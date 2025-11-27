@@ -1,0 +1,34 @@
+# eBidPortal Mobile App Development Tasks
+
+- [ ] Plan Mobile App Phases <!-- id: 0 -->
+    - [x] Analyze API docs for feature extraction <!-- id: 1 -->
+    - [x] Create `mobile_app_phase_plan.md` <!-- id: 2 -->
+    - [x] Review plan with user <!-- id: 3 -->
+- [ ] Phase 1: Foundation & Auth <!-- id: 4 -->
+    - [x] Create Phase 1 Technical Spec (`phase1_technical_spec.md`) <!-- id: 7 -->
+    - [x] Setup Project Structure & Dependencies <!-- id: 8 -->
+    - [x] Implement Networking Layer <!-- id: 9 -->
+    - [x] Implement Auth Features <!-- id: 10 -->
+    - [x] Reconfigure Package Name (`com.ebidportal.auctions`) <!-- id: 11 -->
+    - [x] Setup Git Remote (`eBidPortal_Flutter_MobileApp`) <!-- id: 12 -->
+- [x] Firebase Configuration <!-- id: 27 -->
+    - [x] Move Firebase config files to correct paths <!-- id: 28 -->
+    - [x] Add Firebase dependencies <!-- id: 29 -->
+    - [x] Configure Android build files <!-- id: 30 -->
+    - [x] Initialize Firebase in main.dart <!-- id: 31 -->
+- [/] UI Redesign: Modern Design System <!-- id: 18 -->
+    - [x] Create App Theme & Design System <!-- id: 19 -->
+    - [x] Redesign Login Screen (Modern UI) <!-- id: 20 -->
+    - [x] Redesign Home Screen with Bottom Navigation <!-- id: 21 -->
+    - [x] Redesign Category Screen (Cards, Images, Animations) <!-- id: 22 -->
+    - [x] Redesign Auction List (Search, Filters, Advanced UI) <!-- id: 23 -->
+    - [ ] Add Auction Detail Screen <!-- id: 24 -->
+    - [ ] Implement Search Functionality <!-- id: 25 -->
+    - [x] Implement Filter Drawer with Dynamic Filters <!-- id: 26 -->
+- [ ] Phase 2: Catalog & Discovery <!-- id: 5 -->
+    - [x] Create Phase 2 Technical Spec (`phase2_technical_spec.md`) <!-- id: 13 -->
+    - [x] Implement Category Repository & Provider <!-- id: 14 -->
+    - [x] Implement Category List Screen <!-- id: 15 -->
+    - [x] Implement Product Repository & Provider <!-- id: 16 -->
+    - [x] Implement Product List Screen with Filters <!-- id: 17 -->
+- [ ] Phase 3: Auction Operations <!-- id: 6 -->

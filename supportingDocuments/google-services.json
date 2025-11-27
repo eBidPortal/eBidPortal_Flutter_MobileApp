@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "899035500951",
+    "project_id": "ebidportal-1104f",
+    "storage_bucket": "ebidportal-1104f.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:899035500951:android:6e3d7b312450f5fd8db4d2",
+        "android_client_info": {
+          "package_name": "com.ebidportal.auctions"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCpzvR6kAIfKiw_e7SFV0bYAOQl8kZT2Nw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
