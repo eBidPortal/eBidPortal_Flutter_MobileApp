@@ -9,10 +9,10 @@ class Category with _$Category {
     required String id,
     required String name,
     String? description,
-    @JsonKey(name: 'image_url') String? imageUrl,
-    @JsonKey(name: 'icon_url') String? iconUrl,
-    @JsonKey(name: 'parent_id') String? parentId,
-    @JsonKey(name: 'is_active') @Default(true) bool isActive,
+    String? imageUrl,
+    String? iconUrl,
+    String? parentId,
+    @Default(true) bool isActive,
     @Default([]) List<Category> children,
   }) = _Category;
 

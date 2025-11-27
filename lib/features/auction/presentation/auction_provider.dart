@@ -1,6 +1,7 @@
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../data/auction_repository.dart';
 import '../domain/auction.dart';
+import '../domain/watchlist_item.dart';
 
 part 'auction_provider.g.dart';
 
@@ -17,5 +18,50 @@ class AuctionList extends _$AuctionList {
       search: search,
       status: 'active', // Default to active auctions
     );
+  }
+}
+
+@riverpod
+Future<Auction> auctionDetail(ref, String auctionId) async {
+  final repository = ref.watch(auctionRepositoryProvider);
+  return repository.getAuctionById(auctionId);
+}
+
+@riverpod
+Future<List<WatchlistItem>> watchlist(ref) async {
+  final repository = ref.watch(auctionRepositoryProvider);
+  return repository.getWatchlist();
+}
+
+@riverpod
+Future<bool> isInWatchlist(ref, String auctionId) async {
+  final watchlist = await ref.watch(watchlistProvider.future);
+  return watchlist.any((item) => item.auction.id == auctionId);
+}
+
+@riverpod
+class WatchlistActions extends _$WatchlistActions {
+  @override
+  FutureOr<void> build() async {
+    // No initial state needed
+  }
+
+  Future<void> toggleWatchlist(String auctionId) async {
+    final repository = ref.read(auctionRepositoryProvider);
+    final isInWatchlist = await ref.read(isInWatchlistProvider(auctionId).future);
+
+    try {
+      if (isInWatchlist) {
+        await repository.removeFromWatchlist(auctionId);
+      } else {
+        await repository.addToWatchlist(auctionId);
+      }
+      // Invalidate watchlist to refresh
+      ref.invalidate(watchlistProvider);
+      ref.invalidate(isInWatchlistProvider(auctionId));
+    } catch (e) {
+      // Handle error - could add error state here
+      rethrow;
+    }
   }
 }

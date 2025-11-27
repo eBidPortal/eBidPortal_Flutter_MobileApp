@@ -146,9 +146,9 @@ class ImagesStep extends ConsumerWidget {
             Container(
               padding: const EdgeInsets.all(AppTheme.spacingMd),
               decoration: BoxDecoration(
-                color: AppTheme.infoColor.withOpacity(0.1),
+                color: AppTheme.infoColor.withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-                border: Border.all(color: AppTheme.infoColor.withOpacity(0.3)),
+                border: Border.all(color: AppTheme.infoColor.withValues(alpha: 0.3)),
               ),
               child: Row(
                 children: [

@@ -5,6 +5,9 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/catalog/presentation/category_screen.dart';
 import '../../features/auction/presentation/auction_list_screen.dart';
+import '../../features/auction/presentation/auction_detail_screen.dart';
+import '../../features/auction/presentation/watchlist_screen.dart';
+import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
@@ -43,11 +46,31 @@ final routerProvider = Provider<GoRouter>((ref) {
             search: search,
           );
         },
+        routes: [
+          GoRoute(
+            path: ':auctionId',
+            name: 'auction-detail',
+            builder: (context, state) {
+              final auctionId = state.pathParameters['auctionId']!;
+              return AuctionDetailScreen(auctionId: auctionId);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/create-auction',
         name: 'create-auction',
         builder: (context, state) => const CreateAuctionScreen(),
+      ),
+      GoRoute(
+        path: '/watchlist',
+        name: 'watchlist',
+        builder: (context, state) => const WatchlistScreen(),
+      ),
+      GoRoute(
+        path: '/profile',
+        name: 'profile',
+        builder: (context, state) => const ProfileScreen(),
       ),
       GoRoute(
         path: '/login',

@@ -12,6 +12,7 @@ class ApiConstants {
   static const String addresses = '$baseUrl/addresses';
   static const String auctions = '$baseUrl/auctions';
   static const String categories = '$baseUrl/catalog/categories';
+  static const String watchlist = '$baseUrl/watchlist';
   
   // Timeouts
   static const int connectTimeout = 15000; // 15s

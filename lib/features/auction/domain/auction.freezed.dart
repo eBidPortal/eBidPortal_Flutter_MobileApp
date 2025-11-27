@@ -24,27 +24,17 @@ mixin _$Auction {
   String get id => throw _privateConstructorUsedError;
   String get title => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
-  @JsonKey(name: 'current_bid')
   double? get currentBid => throw _privateConstructorUsedError;
-  @JsonKey(name: 'start_price')
   double? get startPrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'reserve_price')
   double? get reservePrice => throw _privateConstructorUsedError;
-  @JsonKey(name: 'buy_now_price')
   double? get buyNowPrice => throw _privateConstructorUsedError;
   String get status => throw _privateConstructorUsedError;
-  @JsonKey(name: 'start_time')
   DateTime get startTime => throw _privateConstructorUsedError;
-  @JsonKey(name: 'end_time')
   DateTime get endTime => throw _privateConstructorUsedError;
   List<String> get images => throw _privateConstructorUsedError;
-  @JsonKey(name: 'category_id')
   String? get categoryId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'seller_id')
   String? get sellerId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'bid_count')
   int get bidCount => throw _privateConstructorUsedError;
-  @JsonKey(name: 'watchers_count')
   int get watchersCount => throw _privateConstructorUsedError;
 
   /// Serializes this Auction to a JSON map.
@@ -65,18 +55,18 @@ abstract class $AuctionCopyWith<$Res> {
     String id,
     String title,
     String? description,
-    @JsonKey(name: 'current_bid') double? currentBid,
-    @JsonKey(name: 'start_price') double? startPrice,
-    @JsonKey(name: 'reserve_price') double? reservePrice,
-    @JsonKey(name: 'buy_now_price') double? buyNowPrice,
+    double? currentBid,
+    double? startPrice,
+    double? reservePrice,
+    double? buyNowPrice,
     String status,
-    @JsonKey(name: 'start_time') DateTime startTime,
-    @JsonKey(name: 'end_time') DateTime endTime,
+    DateTime startTime,
+    DateTime endTime,
     List<String> images,
-    @JsonKey(name: 'category_id') String? categoryId,
-    @JsonKey(name: 'seller_id') String? sellerId,
-    @JsonKey(name: 'bid_count') int bidCount,
-    @JsonKey(name: 'watchers_count') int watchersCount,
+    String? categoryId,
+    String? sellerId,
+    int bidCount,
+    int watchersCount,
   });
 }
 
@@ -191,18 +181,18 @@ abstract class _$$AuctionImplCopyWith<$Res> implements $AuctionCopyWith<$Res> {
     String id,
     String title,
     String? description,
-    @JsonKey(name: 'current_bid') double? currentBid,
-    @JsonKey(name: 'start_price') double? startPrice,
-    @JsonKey(name: 'reserve_price') double? reservePrice,
-    @JsonKey(name: 'buy_now_price') double? buyNowPrice,
+    double? currentBid,
+    double? startPrice,
+    double? reservePrice,
+    double? buyNowPrice,
     String status,
-    @JsonKey(name: 'start_time') DateTime startTime,
-    @JsonKey(name: 'end_time') DateTime endTime,
+    DateTime startTime,
+    DateTime endTime,
     List<String> images,
-    @JsonKey(name: 'category_id') String? categoryId,
-    @JsonKey(name: 'seller_id') String? sellerId,
-    @JsonKey(name: 'bid_count') int bidCount,
-    @JsonKey(name: 'watchers_count') int watchersCount,
+    String? categoryId,
+    String? sellerId,
+    int bidCount,
+    int watchersCount,
   });
 }
 
@@ -310,18 +300,18 @@ class _$AuctionImpl implements _Auction {
     required this.id,
     required this.title,
     this.description,
-    @JsonKey(name: 'current_bid') this.currentBid,
-    @JsonKey(name: 'start_price') this.startPrice,
-    @JsonKey(name: 'reserve_price') this.reservePrice,
-    @JsonKey(name: 'buy_now_price') this.buyNowPrice,
+    this.currentBid,
+    this.startPrice,
+    this.reservePrice,
+    this.buyNowPrice,
     required this.status,
-    @JsonKey(name: 'start_time') required this.startTime,
-    @JsonKey(name: 'end_time') required this.endTime,
+    required this.startTime,
+    required this.endTime,
     final List<String> images = const [],
-    @JsonKey(name: 'category_id') this.categoryId,
-    @JsonKey(name: 'seller_id') this.sellerId,
-    @JsonKey(name: 'bid_count') this.bidCount = 0,
-    @JsonKey(name: 'watchers_count') this.watchersCount = 0,
+    this.categoryId,
+    this.sellerId,
+    this.bidCount = 0,
+    this.watchersCount = 0,
   }) : _images = images;
 
   factory _$AuctionImpl.fromJson(Map<String, dynamic> json) =>
@@ -334,24 +324,18 @@ class _$AuctionImpl implements _Auction {
   @override
   final String? description;
   @override
-  @JsonKey(name: 'current_bid')
   final double? currentBid;
   @override
-  @JsonKey(name: 'start_price')
   final double? startPrice;
   @override
-  @JsonKey(name: 'reserve_price')
   final double? reservePrice;
   @override
-  @JsonKey(name: 'buy_now_price')
   final double? buyNowPrice;
   @override
   final String status;
   @override
-  @JsonKey(name: 'start_time')
   final DateTime startTime;
   @override
-  @JsonKey(name: 'end_time')
   final DateTime endTime;
   final List<String> _images;
   @override
@@ -363,16 +347,14 @@ class _$AuctionImpl implements _Auction {
   }
 
   @override
-  @JsonKey(name: 'category_id')
   final String? categoryId;
   @override
-  @JsonKey(name: 'seller_id')
   final String? sellerId;
   @override
-  @JsonKey(name: 'bid_count')
+  @JsonKey()
   final int bidCount;
   @override
-  @JsonKey(name: 'watchers_count')
+  @JsonKey()
   final int watchersCount;
 
   @override
@@ -452,18 +434,18 @@ abstract class _Auction implements Auction {
     required final String id,
     required final String title,
     final String? description,
-    @JsonKey(name: 'current_bid') final double? currentBid,
-    @JsonKey(name: 'start_price') final double? startPrice,
-    @JsonKey(name: 'reserve_price') final double? reservePrice,
-    @JsonKey(name: 'buy_now_price') final double? buyNowPrice,
+    final double? currentBid,
+    final double? startPrice,
+    final double? reservePrice,
+    final double? buyNowPrice,
     required final String status,
-    @JsonKey(name: 'start_time') required final DateTime startTime,
-    @JsonKey(name: 'end_time') required final DateTime endTime,
+    required final DateTime startTime,
+    required final DateTime endTime,
     final List<String> images,
-    @JsonKey(name: 'category_id') final String? categoryId,
-    @JsonKey(name: 'seller_id') final String? sellerId,
-    @JsonKey(name: 'bid_count') final int bidCount,
-    @JsonKey(name: 'watchers_count') final int watchersCount,
+    final String? categoryId,
+    final String? sellerId,
+    final int bidCount,
+    final int watchersCount,
   }) = _$AuctionImpl;
 
   factory _Auction.fromJson(Map<String, dynamic> json) = _$AuctionImpl.fromJson;
@@ -475,38 +457,28 @@ abstract class _Auction implements Auction {
   @override
   String? get description;
   @override
-  @JsonKey(name: 'current_bid')
   double? get currentBid;
   @override
-  @JsonKey(name: 'start_price')
   double? get startPrice;
   @override
-  @JsonKey(name: 'reserve_price')
   double? get reservePrice;
   @override
-  @JsonKey(name: 'buy_now_price')
   double? get buyNowPrice;
   @override
   String get status;
   @override
-  @JsonKey(name: 'start_time')
   DateTime get startTime;
   @override
-  @JsonKey(name: 'end_time')
   DateTime get endTime;
   @override
   List<String> get images;
   @override
-  @JsonKey(name: 'category_id')
   String? get categoryId;
   @override
-  @JsonKey(name: 'seller_id')
   String? get sellerId;
   @override
-  @JsonKey(name: 'bid_count')
   int get bidCount;
   @override
-  @JsonKey(name: 'watchers_count')
   int get watchersCount;
 
   /// Create a copy of Auction

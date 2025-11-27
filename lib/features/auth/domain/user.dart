@@ -11,10 +11,10 @@ class User with _$User {
     required String email,
     String? mobile,
     required String role,
-    @JsonKey(name: 'department_id') String? departmentId,
-    @JsonKey(name: 'is_active') @Default(true) bool isActive,
-    @JsonKey(name: 'can_buy') @Default(false) bool canBuy,
-    @JsonKey(name: 'can_sell') @Default(false) bool canSell,
+    String? departmentId,
+    @Default(true) bool isActive,
+    @Default(false) bool canBuy,
+    @Default(false) bool canSell,
   }) = _User;
 
   factory User.fromJson(Map<String, dynamic> json) => _$UserFromJson(json);

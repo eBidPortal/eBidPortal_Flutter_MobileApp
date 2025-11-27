@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../auth/presentation/auth_provider.dart';
 import '../../catalog/presentation/category_screen.dart';
 import '../../auction/presentation/auction_list_screen.dart';
+import '../../profile/presentation/profile_screen.dart';
+import '../../auction/presentation/watchlist_screen.dart';
 import '../../../core/theme/app_theme.dart';
 
 final _currentIndexProvider = StateProvider<int>((ref) => 0);
@@ -31,8 +32,7 @@ class HomeScreen extends ConsumerWidget {
           ? FloatingActionButton.extended(
               onPressed: () {
                 // Assuming context.go is available via go_router or similar
-                // For this example, we'll just print, as go_router isn't imported
-                print('Navigate to /create-auction');
+                // For this example, we'll navigate to create auction screen
                 // context.go('/create-auction'); 
               },
               icon: const Icon(Icons.add),
@@ -43,7 +43,7 @@ class HomeScreen extends ConsumerWidget {
         decoration: BoxDecoration(
           boxShadow: [
             BoxShadow(
-              color: Colors.black.withOpacity(0.05),
+              color: Colors.black.withValues(alpha: 0.05),
               blurRadius: 10,
               offset: const Offset(0, -2),
             ),
@@ -95,7 +95,6 @@ class _HomeTab extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider).value;
     
     return Scaffold(
       body: CustomScrollView(
@@ -110,7 +109,7 @@ class _HomeTab extends ConsumerWidget {
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
-                  'Hello, ${user?.name?.split(' ').first ?? 'Guest'}!',
+                  'Hello, Guest!',
                   style: Theme.of(context).textTheme.titleLarge,
                 ),
                 Text(
@@ -288,9 +287,9 @@ class _HomeTab extends ConsumerWidget {
     return Container(
       padding: const EdgeInsets.all(AppTheme.spacingMd),
       decoration: BoxDecoration(
-        color: color.withOpacity(0.1),
+        color: color.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: color.withOpacity(0.3)),
+        border: Border.all(color: color.withValues(alpha: 0.3)),
       ),
       child: Column(
         children: [
@@ -523,133 +522,15 @@ class _WatchlistTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Watchlist'),
-      ),
-      body: const Center(
-        child: Text('Watchlist Coming Soon'),
-      ),
-    );
+    return const WatchlistScreen();
   }
 }
 
-class _ProfileTab extends ConsumerWidget {
+class _ProfileTab extends StatelessWidget {
   const _ProfileTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = ref.watch(authProvider).value;
-    
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Profile'),
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.settings_outlined),
-            onPressed: () {},
-          ),
-        ],
-      ),
-      body: ListView(
-        padding: const EdgeInsets.all(AppTheme.spacingMd),
-        children: [
-          // Profile Header
-          Center(
-            child: Column(
-              children: [
-                Container(
-                  width: 100,
-                  height: 100,
-                  decoration: BoxDecoration(
-                    gradient: AppTheme.primaryGradient,
-                    shape: BoxShape.circle,
-                  ),
-                  child: Center(
-                    child: Text(
-                      user?.name?.substring(0, 1).toUpperCase() ?? 'U',
-                      style: const TextStyle(
-                        color: Colors.white,
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                ),
-                const SizedBox(height: AppTheme.spacingMd),
-                Text(
-                  user?.name ?? 'User',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 4),
-                Text(
-                  user?.email ?? '',
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const SizedBox(height: 4),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: AppTheme.primaryColor.withOpacity(0.1),
-                    borderRadius: BorderRadius.circular(AppTheme.radiusFull),
-                  ),
-                  child: Text(
-                    user?.role ?? 'User',
-                    style: const TextStyle(
-                      color: AppTheme.primaryColor,
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(height: AppTheme.spacingXl),
-          // Menu Items
-          _buildMenuItem(context, Icons.person_outline, 'Edit Profile', () {}),
-          _buildMenuItem(context, Icons.shopping_bag_outlined, 'My Bids', () {}),
-          _buildMenuItem(context, Icons.sell_outlined, 'My Listings', () {}),
-          _buildMenuItem(context, Icons.payment_outlined, 'Payment Methods', () {}),
-          _buildMenuItem(context, Icons.location_on_outlined, 'Addresses', () {}),
-          _buildMenuItem(context, Icons.notifications_outlined, 'Notifications', () {}),
-          _buildMenuItem(context, Icons.help_outline, 'Help & Support', () {}),
-          _buildMenuItem(context, Icons.info_outline, 'About', () {}),
-          const SizedBox(height: AppTheme.spacingLg),
-          // Logout Button
-          SizedBox(
-            height: 50,
-            child: OutlinedButton.icon(
-              onPressed: () {
-                ref.read(authProvider.notifier).logout();
-              },
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppTheme.errorColor,
-                side: const BorderSide(color: AppTheme.errorColor),
-              ),
-              icon: const Icon(Icons.logout),
-              label: const Text('Logout'),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildMenuItem(BuildContext context, IconData icon, String title, VoidCallback onTap) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: AppTheme.spacingSm),
-      decoration: BoxDecoration(
-        color: AppTheme.surfaceColor,
-        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-        border: Border.all(color: AppTheme.borderColor),
-      ),
-      child: ListTile(
-        leading: Icon(icon, color: AppTheme.textSecondary),
-        title: Text(title),
-        trailing: const Icon(Icons.chevron_right, color: AppTheme.textMuted),
-        onTap: onTap,
-      ),
-    );
+  Widget build(BuildContext context) {
+    return const ProfileScreen();
   }
 }

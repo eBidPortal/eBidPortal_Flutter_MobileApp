@@ -70,7 +70,7 @@ class BasicInfoStep extends ConsumerWidget {
                 errorText: state.categoryError,
                 prefixIcon: const Icon(Icons.category),
               ),
-              value: state.categoryId,
+              initialValue: state.categoryId,
               items: categories.map((category) {
                 return DropdownMenuItem(
                   value: category.id,

@@ -102,7 +102,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     if (state.tags.length >= 20) {
       return;
     }
-    if (tag.length < 1 || tag.length > 50) {
+    if (tag.isEmpty || tag.length > 50) {
       return;
     }
     state = state.copyWith(tags: [...state.tags, tag]);
@@ -155,7 +155,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
       );
 
       // Create auction
-      final response = await _repository.createAuction(
+      await _repository.createAuction(
         title: state.title,
         description: state.description,
         startPrice: double.parse(state.startPrice!),

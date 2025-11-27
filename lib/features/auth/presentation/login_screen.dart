@@ -242,7 +242,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                   borderRadius: BorderRadius.circular(AppTheme.radiusMd),
                 ),
                 elevation: 4,
-                shadowColor: AppTheme.primaryColor.withOpacity(0.3),
+                shadowColor: AppTheme.primaryColor.withValues(alpha: 0.3),
               ),
               child: _isLoading
                   ? const SizedBox(

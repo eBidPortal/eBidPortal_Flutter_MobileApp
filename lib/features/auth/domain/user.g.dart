@@ -12,10 +12,10 @@ _$UserImpl _$$UserImplFromJson(Map<String, dynamic> json) => _$UserImpl(
   email: json['email'] as String,
   mobile: json['mobile'] as String?,
   role: json['role'] as String,
-  departmentId: json['department_id'] as String?,
-  isActive: json['is_active'] as bool? ?? true,
-  canBuy: json['can_buy'] as bool? ?? false,
-  canSell: json['can_sell'] as bool? ?? false,
+  departmentId: json['departmentId'] as String?,
+  isActive: json['isActive'] as bool? ?? true,
+  canBuy: json['canBuy'] as bool? ?? false,
+  canSell: json['canSell'] as bool? ?? false,
 );
 
 Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
@@ -25,8 +25,8 @@ Map<String, dynamic> _$$UserImplToJson(_$UserImpl instance) =>
       'email': instance.email,
       'mobile': instance.mobile,
       'role': instance.role,
-      'department_id': instance.departmentId,
-      'is_active': instance.isActive,
-      'can_buy': instance.canBuy,
-      'can_sell': instance.canSell,
+      'departmentId': instance.departmentId,
+      'isActive': instance.isActive,
+      'canBuy': instance.canBuy,
+      'canSell': instance.canSell,
     };

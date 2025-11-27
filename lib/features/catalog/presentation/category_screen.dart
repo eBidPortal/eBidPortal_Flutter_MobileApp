@@ -54,7 +54,7 @@ class CategoryScreen extends ConsumerWidget {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: AppTheme.errorColor.withOpacity(0.5),
+            color: AppTheme.errorColor.withValues(alpha: 0.5),
           ),
           const SizedBox(height: AppTheme.spacingMd),
           Text(
@@ -214,7 +214,7 @@ class _CategoryCardState extends State<_CategoryCard>
             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
             border: Border.all(
               color: _isPressed
-                  ? categoryColor.withOpacity(0.5)
+                  ? categoryColor.withValues(alpha: 0.5)
                   : AppTheme.borderColor,
               width: _isPressed ? 2 : 1,
             ),
@@ -230,8 +230,8 @@ class _CategoryCardState extends State<_CategoryCard>
                   decoration: BoxDecoration(
                     gradient: LinearGradient(
                       colors: [
-                        categoryColor.withOpacity(0.8),
-                        categoryColor.withOpacity(0.6),
+                        categoryColor.withValues(alpha: 0.8),
+                        categoryColor.withValues(alpha: 0.6),
                       ],
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
@@ -334,7 +334,7 @@ class _CategoryCardState extends State<_CategoryCard>
       child: Icon(
         Icons.category,
         size: 48,
-        color: Colors.white.withOpacity(0.9),
+        color: Colors.white.withValues(alpha: 0.9),
       ),
     );
   }

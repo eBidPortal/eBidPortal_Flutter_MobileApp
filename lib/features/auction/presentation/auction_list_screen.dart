@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'auction_provider.dart';
 import '../domain/auction.dart';
 import '../../../core/theme/app_theme.dart';
@@ -191,7 +192,7 @@ class _AuctionListScreenState extends ConsumerState<AuctionListScreen> {
           Icon(
             Icons.error_outline,
             size: 64,
-            color: AppTheme.errorColor.withOpacity(0.5),
+            color: AppTheme.errorColor.withValues(alpha: 0.5),
           ),
           const SizedBox(height: AppTheme.spacingMd),
           Text(
@@ -252,7 +253,7 @@ class _AuctionCard extends StatelessWidget {
       ),
       child: InkWell(
         onTap: () {
-          // TODO: Navigate to auction detail
+          context.go('/auctions/${auction.id}');
         },
         borderRadius: BorderRadius.circular(AppTheme.radiusMd),
         child: Column(
@@ -387,8 +388,8 @@ class _AuctionCard extends StatelessWidget {
                         ),
                         decoration: BoxDecoration(
                           color: isEndingSoon
-                              ? AppTheme.errorColor.withOpacity(0.1)
-                              : AppTheme.infoColor.withOpacity(0.1),
+                              ? AppTheme.errorColor.withValues(alpha: 0.1)
+                              : AppTheme.infoColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(AppTheme.radiusSm),
                         ),
                         child: Row(
@@ -595,17 +596,21 @@ class _FilterDrawerState extends State<_FilterDrawer> {
                       style: Theme.of(context).textTheme.titleMedium,
                     ),
                     const SizedBox(height: AppTheme.spacingMd),
-                    ...['ending_soonest', 'newest', 'highest_bid', 'most_watched'].map(
-                      (sort) => RadioListTile<String>(
-                        value: sort,
-                        groupValue: _sortBy,
-                        title: Text(_getSortLabel(sort)),
-                        onChanged: (value) {
-                          setState(() {
-                            _sortBy = value!;
-                          });
-                        },
-                      ),
+                    Column(
+                      children: ['ending_soonest', 'newest', 'highest_bid', 'most_watched'].map(
+                        (sort) => RadioListTile<String>(
+                          value: sort,
+                          groupValue: _sortBy,
+                          title: Text(_getSortLabel(sort)),
+                          onChanged: (value) {
+                            if (value != null) {
+                              setState(() {
+                                _sortBy = value;
+                              });
+                            }
+                          },
+                        ),
+                      ).toList(),
                     ),
                   ],
                 ),
@@ -643,7 +648,7 @@ class _FilterDrawerState extends State<_FilterDrawer> {
         });
       },
       backgroundColor: AppTheme.surfaceColor,
-      selectedColor: AppTheme.primaryColor.withOpacity(0.2),
+      selectedColor: AppTheme.primaryColor.withValues(alpha: 0.2),
       checkmarkColor: AppTheme.primaryColor,
       side: BorderSide(
         color: isSelected ? AppTheme.primaryColor : AppTheme.borderColor,

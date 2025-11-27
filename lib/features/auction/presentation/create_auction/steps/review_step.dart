@@ -128,9 +128,9 @@ class _ReviewStepState extends ConsumerState<ReviewStep> {
           Container(
             padding: const EdgeInsets.all(AppTheme.spacingMd),
             decoration: BoxDecoration(
-              color: AppTheme.warningColor.withOpacity(0.1),
+              color: AppTheme.warningColor.withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(AppTheme.radiusSm),
-              border: Border.all(color: AppTheme.warningColor.withOpacity(0.3)),
+              border: Border.all(color: AppTheme.warningColor.withValues(alpha: 0.3)),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,

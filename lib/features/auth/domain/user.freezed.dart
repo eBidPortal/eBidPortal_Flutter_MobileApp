@@ -26,13 +26,9 @@ mixin _$User {
   String get email => throw _privateConstructorUsedError;
   String? get mobile => throw _privateConstructorUsedError;
   String get role => throw _privateConstructorUsedError;
-  @JsonKey(name: 'department_id')
   String? get departmentId => throw _privateConstructorUsedError;
-  @JsonKey(name: 'is_active')
   bool get isActive => throw _privateConstructorUsedError;
-  @JsonKey(name: 'can_buy')
   bool get canBuy => throw _privateConstructorUsedError;
-  @JsonKey(name: 'can_sell')
   bool get canSell => throw _privateConstructorUsedError;
 
   /// Serializes this User to a JSON map.
@@ -55,10 +51,10 @@ abstract class $UserCopyWith<$Res> {
     String email,
     String? mobile,
     String role,
-    @JsonKey(name: 'department_id') String? departmentId,
-    @JsonKey(name: 'is_active') bool isActive,
-    @JsonKey(name: 'can_buy') bool canBuy,
-    @JsonKey(name: 'can_sell') bool canSell,
+    String? departmentId,
+    bool isActive,
+    bool canBuy,
+    bool canSell,
   });
 }
 
@@ -145,10 +141,10 @@ abstract class _$$UserImplCopyWith<$Res> implements $UserCopyWith<$Res> {
     String email,
     String? mobile,
     String role,
-    @JsonKey(name: 'department_id') String? departmentId,
-    @JsonKey(name: 'is_active') bool isActive,
-    @JsonKey(name: 'can_buy') bool canBuy,
-    @JsonKey(name: 'can_sell') bool canSell,
+    String? departmentId,
+    bool isActive,
+    bool canBuy,
+    bool canSell,
   });
 }
 
@@ -226,10 +222,10 @@ class _$UserImpl implements _User {
     required this.email,
     this.mobile,
     required this.role,
-    @JsonKey(name: 'department_id') this.departmentId,
-    @JsonKey(name: 'is_active') this.isActive = true,
-    @JsonKey(name: 'can_buy') this.canBuy = false,
-    @JsonKey(name: 'can_sell') this.canSell = false,
+    this.departmentId,
+    this.isActive = true,
+    this.canBuy = false,
+    this.canSell = false,
   });
 
   factory _$UserImpl.fromJson(Map<String, dynamic> json) =>
@@ -246,16 +242,15 @@ class _$UserImpl implements _User {
   @override
   final String role;
   @override
-  @JsonKey(name: 'department_id')
   final String? departmentId;
   @override
-  @JsonKey(name: 'is_active')
+  @JsonKey()
   final bool isActive;
   @override
-  @JsonKey(name: 'can_buy')
+  @JsonKey()
   final bool canBuy;
   @override
-  @JsonKey(name: 'can_sell')
+  @JsonKey()
   final bool canSell;
 
   @override
@@ -317,10 +312,10 @@ abstract class _User implements User {
     required final String email,
     final String? mobile,
     required final String role,
-    @JsonKey(name: 'department_id') final String? departmentId,
-    @JsonKey(name: 'is_active') final bool isActive,
-    @JsonKey(name: 'can_buy') final bool canBuy,
-    @JsonKey(name: 'can_sell') final bool canSell,
+    final String? departmentId,
+    final bool isActive,
+    final bool canBuy,
+    final bool canSell,
   }) = _$UserImpl;
 
   factory _User.fromJson(Map<String, dynamic> json) = _$UserImpl.fromJson;
@@ -336,16 +331,12 @@ abstract class _User implements User {
   @override
   String get role;
   @override
-  @JsonKey(name: 'department_id')
   String? get departmentId;
   @override
-  @JsonKey(name: 'is_active')
   bool get isActive;
   @override
-  @JsonKey(name: 'can_buy')
   bool get canBuy;
   @override
-  @JsonKey(name: 'can_sell')
   bool get canSell;
 
   /// Create a copy of User
