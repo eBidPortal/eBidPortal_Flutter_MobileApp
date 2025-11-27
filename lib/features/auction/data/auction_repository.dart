@@ -45,4 +45,45 @@ class AuctionRepository {
       throw Exception(e.response?.data['message'] ?? 'Network error');
     }
   }
+
+  Future<Map<String, dynamic>> createAuction({
+    required String title,
+    required String description,
+    required double startPrice,
+    double? reservePrice,
+    required String categoryId,
+    required DateTime startTime,
+    required DateTime endTime,
+    required String type,
+    required List<String> images,
+    List<String> tags = const [],
+  }) async {
+    try {
+      final requestBody = {
+        'title': title,
+        'description': description,
+        'start_price': startPrice,
+        if (reservePrice != null) 'reserve_price': reservePrice,
+        'category_id': categoryId,
+        'start_time': startTime.toIso8601String(),
+        'end_time': endTime.toIso8601String(),
+        'type': type,
+        'images': images,
+        if (tags.isNotEmpty) 'tags': tags,
+      };
+
+      final response = await _apiClient.post(
+        ApiConstants.auctions,
+        data: requestBody,
+      );
+
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to create auction');
+      }
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Network error');
+    }
+  }
 }
