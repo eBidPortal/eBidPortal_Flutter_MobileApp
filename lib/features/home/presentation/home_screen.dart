@@ -27,6 +27,18 @@ class HomeScreen extends ConsumerWidget {
         index: currentIndex,
         children: screens,
       ),
+      floatingActionButton: currentIndex == 0 || currentIndex == 2
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                // Assuming context.go is available via go_router or similar
+                // For this example, we'll just print, as go_router isn't imported
+                print('Navigate to /create-auction');
+                // context.go('/create-auction'); 
+              },
+              icon: const Icon(Icons.add),
+              label: const Text('Create Auction'),
+            )
+          : null,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [

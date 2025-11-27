@@ -5,6 +5,7 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/catalog/presentation/category_screen.dart';
 import '../../features/auction/presentation/auction_list_screen.dart';
+import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -29,15 +30,24 @@ final routerProvider = Provider<GoRouter>((ref) {
             path: 'categories',
             builder: (context, state) => const CategoryScreen(),
           ),
-          GoRoute(
-            path: 'auctions',
-            builder: (context, state) {
-              final categoryId = state.uri.queryParameters['categoryId'];
-              final search = state.uri.queryParameters['search'];
-              return AuctionListScreen(categoryId: categoryId, search: search);
-            },
-          ),
         ],
+      ),
+      GoRoute(
+        path: '/auctions',
+        name: 'auctions',
+        builder: (context, state) {
+          final categoryId = state.uri.queryParameters['categoryId'];
+          final search = state.uri.queryParameters['search'];
+          return AuctionListScreen(
+            categoryId: categoryId,
+            search: search,
+          );
+        },
+      ),
+      GoRoute(
+        path: '/create-auction',
+        name: 'create-auction',
+        builder: (context, state) => const CreateAuctionScreen(),
       ),
       GoRoute(
         path: '/login',
