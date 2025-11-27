@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toastification/toastification.dart';
 import 'router/app_router.dart';
+import '../core/theme/app_theme.dart';
 
 class App extends ConsumerWidget {
   const App({super.key});
@@ -13,10 +14,7 @@ class App extends ConsumerWidget {
     return ToastificationWrapper(
       child: MaterialApp.router(
         title: 'eBidPortal',
-        theme: ThemeData(
-          colorScheme: ColorScheme.fromSeed(seedColor: Colors.blue),
-          useMaterial3: true,
-        ),
+        theme: AppTheme.lightTheme,
         routerConfig: router,
         debugShowCheckedModeBanner: false,
       ),

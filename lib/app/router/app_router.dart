@@ -1,9 +1,10 @@
-import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/auth_provider.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/catalog/presentation/category_screen.dart';
+import '../../features/auction/presentation/auction_list_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
@@ -23,6 +24,20 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/',
         builder: (context, state) => const HomeScreen(),
+        routes: [
+          GoRoute(
+            path: 'categories',
+            builder: (context, state) => const CategoryScreen(),
+          ),
+          GoRoute(
+            path: 'auctions',
+            builder: (context, state) {
+              final categoryId = state.uri.queryParameters['categoryId'];
+              final search = state.uri.queryParameters['search'];
+              return AuctionListScreen(categoryId: categoryId, search: search);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/login',
