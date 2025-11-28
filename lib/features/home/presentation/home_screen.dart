@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../catalog/presentation/category_screen.dart';
 import '../../auction/presentation/auction_list_screen.dart';
 import '../../profile/presentation/profile_screen.dart';
@@ -30,13 +31,9 @@ class HomeScreen extends ConsumerWidget {
       ),
       floatingActionButton: currentIndex == 0 || currentIndex == 2
           ? FloatingActionButton.extended(
-              onPressed: () {
-                // Assuming context.go is available via go_router or similar
-                // For this example, we'll navigate to create auction screen
-                // context.go('/create-auction'); 
-              },
+              onPressed: () => _showCreateOptions(context),
               icon: const Icon(Icons.add),
-              label: const Text('Create Auction'),
+              label: const Text('Create'),
             )
           : null,
       bottomNavigationBar: Container(
@@ -84,6 +81,139 @@ class HomeScreen extends ConsumerWidget {
               label: 'Profile',
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  void _showCreateOptions(BuildContext context) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: Colors.transparent,
+      isScrollControlled: true,
+      builder: (context) => Container(
+        constraints: BoxConstraints(
+          maxHeight: MediaQuery.of(context).size.height * 0.8,
+        ),
+        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusXl)),
+        ),
+        child: SingleChildScrollView(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: AppTheme.borderColor,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingXl),
+              Text(
+                'What would you like to create?',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              const SizedBox(height: AppTheme.spacingXl),
+              _buildCreateOption(
+                context,
+                icon: Icons.gavel,
+                title: 'Create Auction',
+                subtitle: 'List an item for bidding',
+                color: AppTheme.primaryColor,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.go('/create-auction');
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              _buildCreateOption(
+                context,
+                icon: Icons.shopping_bag,
+                title: 'Sell Product',
+                subtitle: 'List an item for direct sale',
+                color: AppTheme.successColor,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  // TODO: Navigate to sell product screen
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    const SnackBar(content: Text('Sell Product - Coming soon!')),
+                  );
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingXl),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCreateOption(
+    BuildContext context, {
+    required IconData icon,
+    required String title,
+    required String subtitle,
+    required Color color,
+    required VoidCallback onTap,
+  }) {
+    return Material(
+      color: Colors.transparent,
+      child: InkWell(
+        onTap: onTap,
+        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+        child: Container(
+          padding: const EdgeInsets.all(AppTheme.spacingLg),
+          decoration: BoxDecoration(
+            border: Border.all(color: color.withValues(alpha: 0.2)),
+            borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+          ),
+          child: Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(AppTheme.spacingMd),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                ),
+                child: Icon(
+                  icon,
+                  color: color,
+                  size: 28,
+                ),
+              ),
+              const SizedBox(width: AppTheme.spacingMd),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      title,
+                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppTheme.textSecondary,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Icon(
+                Icons.chevron_right,
+                color: AppTheme.textSecondary,
+              ),
+            ],
+          ),
         ),
       ),
     );

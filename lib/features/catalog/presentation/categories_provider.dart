@@ -7,6 +7,15 @@ part 'categories_provider.g.dart';
 
 @Riverpod(keepAlive: true)
 Future<List<Category>> categories(Ref ref) async {
+  print('CategoriesProvider: Starting to fetch categories');
   final repository = ref.watch(catalogRepositoryProvider);
-  return repository.getCategories();
+  try {
+    final categories = await repository.getCategories();
+    print('CategoriesProvider: Successfully fetched ${categories.length} categories');
+    return categories;
+  } catch (e, stackTrace) {
+    print('CategoriesProvider: Failed to fetch categories: $e');
+    print('CategoriesProvider: Stack trace: $stackTrace');
+    rethrow;
+  }
 }

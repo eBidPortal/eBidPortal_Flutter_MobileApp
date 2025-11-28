@@ -19,6 +19,12 @@ class CreateAuctionState with _$CreateAuctionState {
     String? categoryId,
     @Default(AuctionType.english) AuctionType type,
     
+    // Dynamic Schema Fields
+    Map<String, dynamic>? categorySchema,
+    @Default({}) Map<String, dynamic> dynamicFields,
+    @Default(false) bool isLoadingSchema,
+    String? schemaError,
+    
     // Step 2: Pricing & Duration
     String? startPrice,
     String? reservePrice,
@@ -48,5 +54,6 @@ class CreateAuctionState with _$CreateAuctionState {
     String? startTimeError,
     String? endTimeError,
     String? imagesError,
+    @Default({}) Map<String, String> dynamicFieldErrors,
   }) = _CreateAuctionState;
 }

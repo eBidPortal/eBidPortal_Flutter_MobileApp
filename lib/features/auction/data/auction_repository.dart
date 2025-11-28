@@ -74,6 +74,7 @@ class AuctionRepository {
     required String type,
     required List<String> images,
     List<String> tags = const [],
+    Map<String, dynamic> dynamicFields = const {},
   }) async {
     try {
       final requestBody = {
@@ -87,6 +88,7 @@ class AuctionRepository {
         'type': type,
         'images': images,
         if (tags.isNotEmpty) 'tags': tags,
+        if (dynamicFields.isNotEmpty) 'dynamic_fields': dynamicFields,
       };
 
       final response = await _apiClient.post(

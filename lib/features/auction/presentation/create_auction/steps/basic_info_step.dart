@@ -1,7 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
-import '../../../../catalog/presentation/categories_provider.dart';
+import '../../../../catalog/presentation/widgets/category_selector.dart';
+import '../widgets/dynamic_fields_form.dart';
 import '../create_auction_provider.dart';
 import '../create_auction_state.dart';
 
@@ -12,7 +13,6 @@ class BasicInfoStep extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final state = ref.watch(createAuctionProvider);
     final notifier = ref.read(createAuctionProvider.notifier);
-    final categoriesAsync = ref.watch(categoriesProvider);
 
     return SingleChildScrollView(
       padding: const EdgeInsets.all(AppTheme.spacingLg),
@@ -63,28 +63,31 @@ class BasicInfoStep extends ConsumerWidget {
           const SizedBox(height: AppTheme.spacingLg),
           
           // Category
-          categoriesAsync.when(
-            data: (categories) => DropdownButtonFormField<String>(
-              decoration: InputDecoration(
-                labelText: 'Category *',
-                errorText: state.categoryError,
-                prefixIcon: const Icon(Icons.category),
-              ),
-              initialValue: state.categoryId,
-              items: categories.map((category) {
-                return DropdownMenuItem(
-                  value: category.id,
-                  child: Text(category.name),
-                );
-              }).toList(),
-              onChanged: (value) {
-                if (value != null) notifier.setCategory(value);
-              },
-            ),
-            loading: () => const LinearProgressIndicator(),
-            error: (_, __) => const Text('Failed to load categories'),
+          CategorySelector(
+            selectedCategoryId: state.categoryId,
+            onCategorySelected: notifier.setCategory,
+            errorText: state.categoryError,
           ),
           const SizedBox(height: AppTheme.spacingLg),
+          
+          // Dynamic Fields (shown when schema is loaded)
+          if (state.isLoadingSchema)
+            const Center(child: CircularProgressIndicator())
+          else if (state.schemaError != null)
+            Text(
+              state.schemaError!,
+              style: TextStyle(color: Theme.of(context).colorScheme.error),
+            )
+          else if (state.categorySchema != null)
+            DynamicFieldsForm(
+              schema: state.categorySchema!,
+              values: state.dynamicFields,
+              errors: state.dynamicFieldErrors,
+              onFieldChanged: notifier.setDynamicField,
+              onFieldError: notifier.setDynamicFieldError,
+              context: context,
+            ),
+          if (state.categorySchema != null) const SizedBox(height: AppTheme.spacingLg),
           
           // Auction Type
           Text(
