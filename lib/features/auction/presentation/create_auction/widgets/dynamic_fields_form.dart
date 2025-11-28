@@ -231,7 +231,7 @@ class _DynamicFieldsFormState extends ConsumerState<DynamicFieldsForm> {
         print('DynamicFieldsForm: Auto-configuring dynamic options for model field');
         return {
           'api_url': 'https://api.ebidportal.com/api/v1/cars/brands/{brand}/models',
-          'data_path': 'data',
+          'data_path': 'data.models', // Try nested path first
           'label_field': 'name',
           'value_field': 'id',
           'depends_on': 'brand',
@@ -240,7 +240,7 @@ class _DynamicFieldsFormState extends ConsumerState<DynamicFieldsForm> {
         print('DynamicFieldsForm: Auto-configuring dynamic options for variant field');
         return {
           'api_url': 'https://api.ebidportal.com/api/v1/cars/models/{model}/variants',
-          'data_path': 'data',
+          'data_path': 'data.variants', // Try nested path first
           'label_field': 'name',
           'value_field': 'id',
           'depends_on': 'model',
@@ -274,7 +274,8 @@ class _DynamicFieldsFormState extends ConsumerState<DynamicFieldsForm> {
       print('DynamicFieldsForm: Received response for field "$fieldName": status=${response.statusCode}');
 
       if (response.data['success'] == true) {
-        final data = response.data[dataPath] as List<dynamic>? ?? [];
+        // Extract data more flexibly - handle both direct lists and nested structures
+        List<dynamic> data = _extractDataFromResponse(response.data, dataPath);
         print('DynamicFieldsForm: Found ${data.length} options for field "$fieldName"');
 
         final options = data.map((item) {
@@ -313,6 +314,43 @@ class _DynamicFieldsFormState extends ConsumerState<DynamicFieldsForm> {
         _loadingOptions[fieldName] = false;
       });
     }
+  }
+
+  List<dynamic> _extractDataFromResponse(Map<String, dynamic> responseData, String dataPath) {
+    // Handle dot-notation paths like 'data.models'
+    final pathParts = dataPath.split('.');
+    dynamic current = responseData;
+
+    // Navigate through the path
+    for (final part in pathParts) {
+      if (current is Map && current.containsKey(part)) {
+        current = current[part];
+      } else {
+        // Path doesn't exist, fall back to trying common keys
+        break;
+      }
+    }
+
+    // Now extract the final list
+    if (current is List) {
+      return current;
+    } else if (current is Map) {
+      // Try common keys that might contain the list
+      return current['models'] as List<dynamic>? ??
+             current['data'] as List<dynamic>? ??
+             current['items'] as List<dynamic>? ??
+             current['results'] as List<dynamic>? ??
+             [];
+    }
+
+    // If we get here, try the original dataPath directly
+    final fallbackData = responseData[dataPath];
+    if (fallbackData is List) {
+      return fallbackData;
+    }
+
+    // Last resort: return empty list
+    return [];
   }
 
   String _resolveUrlTemplate(String urlTemplate, [Map<String, dynamic>? overrideValues]) {
