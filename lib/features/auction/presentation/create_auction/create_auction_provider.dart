@@ -29,36 +29,14 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     );
   }
 
-  void setCategory(Category category) async {
+  void setCategory(Category category) {
     print('CreateAuctionProvider: Setting category to ${category.id} (${category.name})');
     state = state.copyWith(
       categoryId: category.id,
       categoryError: null,
-      isLoadingSchema: true,
-      schemaError: null,
-      categorySchema: null,
       dynamicFields: {},
       dynamicFieldErrors: {},
     );
-
-    try {
-      print('CreateAuctionProvider: Using schema from category input_schema');
-      final schema = category.inputSchema ?? {};
-      print('CreateAuctionProvider: Successfully got schema with ${schema.length} keys');
-      if (schema.isNotEmpty) {
-        print('CreateAuctionProvider: Schema contains: ${schema.keys.join(', ')}');
-      }
-      state = state.copyWith(
-        categorySchema: schema,
-        isLoadingSchema: false,
-      );
-    } catch (e) {
-      print('CreateAuctionProvider: Failed to process schema for category ${category.id}: $e');
-      state = state.copyWith(
-        schemaError: 'Failed to load category schema',
-        isLoadingSchema: false,
-      );
-    }
   }
 
   void setType(AuctionType type) {
@@ -324,18 +302,8 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         final categoryError =
             state.categoryId == null ? 'Category is required' : null;
         
-        // Validate dynamic fields if schema is present
+        // Dynamic field validation is now handled by EnhancedDynamicFieldsForm
         final dynamicFieldErrors = <String, String>{};
-        if (state.categorySchema != null) {
-          final fields = _extractFieldsFromSchema(state.categorySchema!);
-          for (final field in fields) {
-            final fieldName = field['name'] as String;
-            final error = _validateDynamicField(field, state.dynamicFields[fieldName]);
-            if (error != null) {
-              dynamicFieldErrors[fieldName] = error;
-            }
-          }
-        }
 
         state = state.copyWith(
           titleError: titleError,
@@ -384,96 +352,6 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
 
   bool _validateAllSteps() {
     return _validateCurrentStep();
-  }
-
-  List<Map<String, dynamic>> _extractFieldsFromSchema(Map<String, dynamic> schema) {
-    final sections = schema['sections'] as List<dynamic>? ?? [];
-    final fields = <Map<String, dynamic>>[];
-    
-    if (sections.isNotEmpty) {
-      for (final section in sections) {
-        final sectionData = section as Map<String, dynamic>;
-        final sectionFields = sectionData['fields'] as List<dynamic>? ?? [];
-        fields.addAll(sectionFields.map((f) => f as Map<String, dynamic>));
-      }
-    } else {
-      final directFields = schema['fields'] as List<dynamic>? ?? [];
-      fields.addAll(directFields.map((f) => f as Map<String, dynamic>));
-    }
-    
-    return fields;
-  }
-
-  String? _validateDynamicField(Map<String, dynamic> field, dynamic value) {
-    final required = field['required'] as bool? ?? false;
-    final validation = field['validation'] as Map<String, dynamic>? ?? {};
-    
-    // Check required
-    if (required && (value == null || (value is String && value.isEmpty))) {
-      return 'This field is required';
-    }
-    
-    // Skip further validation if empty and not required
-    if (value == null || (value is String && value.isEmpty)) {
-      return null;
-    }
-    
-    // Type-specific validation
-    final type = field['type'] as String;
-    switch (type) {
-      case 'email':
-        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-        if (!emailRegex.hasMatch(value.toString())) {
-          return 'Invalid email address';
-        }
-        break;
-      case 'url':
-        final urlRegex = RegExp(r'^https?://');
-        if (!urlRegex.hasMatch(value.toString())) {
-          return 'Invalid URL (must start with http:// or https://)';
-        }
-        break;
-      case 'phone':
-        final phoneRegex = RegExp(r'^\+?[\d\s\-\(\)]+$');
-        if (!phoneRegex.hasMatch(value.toString())) {
-          return 'Invalid phone number';
-        }
-        break;
-      case 'number':
-        final numValue = num.tryParse(value.toString());
-        if (numValue == null) {
-          return 'Invalid number';
-        }
-        final min = validation['minimum'] as num?;
-        final max = validation['maximum'] as num?;
-        if (min != null && numValue < min) {
-          return 'Minimum value is $min';
-        }
-        if (max != null && numValue > max) {
-          return 'Maximum value is $max';
-        }
-        break;
-    }
-    
-    // General validation
-    final minLength = validation['minLength'] as int?;
-    final maxLength = validation['maxLength'] as int?;
-    final pattern = validation['pattern'] as String?;
-    
-    if (minLength != null && value.toString().length < minLength) {
-      return 'Minimum $minLength characters required';
-    }
-    if (maxLength != null && value.toString().length > maxLength) {
-      return 'Maximum $maxLength characters allowed';
-    }
-    if (pattern != null) {
-      final regex = RegExp(pattern);
-      if (!regex.hasMatch(value.toString())) {
-        return 'Invalid format';
-      }
-    }
-    
-    return null;
   }
 }
 

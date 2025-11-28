@@ -1,0 +1,941 @@
+# Professional Co-working Spaces Template for eBidPortal
+
+**Template Name:** Co-working Spaces Template
+**Version:** 1.0
+**Category Type:** co_working
+**Created:** November 21, 2025
+**Industry Standards:** Based on co-working and flexible workspace industry standards (workspace regulations, business center certifications, commercial leasing standards)
+
+## Template JSON Structure
+
+```json
+{
+  "name": "Co-working Spaces Template",
+  "description": "Comprehensive template for co-working spaces, business centers, and flexible workspaces. Includes space specifications, membership plans, amenities, regulatory compliance, and professional workspace management features.",
+  "category_type": "co_working",
+  "is_active": true,
+  "sections": [
+    {
+      "title": "Space Information",
+      "order": 1,
+      "description": "Basic workspace details and specifications",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "space_title",
+          "label": "Space Title",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "min_length:15", "max_length:120"],
+          "ui_config": {
+            "placeholder": "e.g., Premium Co-working Space in Tech Hub - Flexible Desks Available",
+            "help_text": "Create an attractive title that highlights your space's unique features and location"
+          }
+        },
+        {
+          "name": "space_type",
+          "label": "Space Type",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "co_working", "label": "Co-working Space"},
+              {"value": "business_center", "label": "Business Center"},
+              {"value": "flexible_office", "label": "Flexible Office"},
+              {"value": "creative_studio", "label": "Creative Studio"},
+              {"value": "makerspace", "label": "Makerspace"},
+              {"value": "accelerator", "label": "Startup Accelerator"}
+            ]
+          }
+        },
+        {
+          "name": "space_name",
+          "label": "Space Name",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "min_length:3", "max_length:100"],
+          "ui_config": {
+            "placeholder": "Official space name (e.g., WorkHub Tech Center)"
+          }
+        },
+        {
+          "name": "total_capacity",
+          "label": "Total Capacity",
+          "type": "number",
+          "required": true,
+          "validation": ["required", "min:5", "max:1000"],
+          "ui_config": {
+            "placeholder": "Maximum number of people the space can accommodate",
+            "suffix": "people"
+          }
+        },
+        {
+          "name": "available_seats",
+          "label": "Available Seats",
+          "type": "number",
+          "required": true,
+          "validation": ["required", "min:0"],
+          "ui_config": {
+            "placeholder": "Currently available seats/desks",
+            "suffix": "seats"
+          }
+        },
+        {
+          "name": "space_area",
+          "label": "Total Area",
+          "type": "number",
+          "required": true,
+          "validation": ["required", "min:100", "max:50000"],
+          "ui_config": {
+            "placeholder": "Total area in square feet",
+            "suffix": "sq ft"
+          }
+        },
+        {
+          "name": "year_established",
+          "label": "Year Established",
+          "type": "number",
+          "required": false,
+          "validation": ["min:2000", "max:2025"],
+          "ui_config": {
+            "placeholder": "Year the space was established"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Location & Accessibility",
+      "order": 2,
+      "description": "Space location and transportation access",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "address_line_1",
+          "label": "Address Line 1",
+          "type": "textarea",
+          "required": true,
+          "validation": ["required", "max_length:200"],
+          "ui_config": {
+            "placeholder": "Street address, building name, etc.",
+            "rows": 2
+          }
+        },
+        {
+          "name": "address_line_2",
+          "label": "Address Line 2",
+          "type": "text",
+          "required": false,
+          "validation": ["max_length:100"],
+          "ui_config": {
+            "placeholder": "Floor, tower, landmark"
+          }
+        },
+        {
+          "name": "city",
+          "label": "City",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "max_length:50"],
+          "ui_config": {
+            "placeholder": "City name"
+          }
+        },
+        {
+          "name": "state",
+          "label": "State",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "max_length:50"],
+          "ui_config": {
+            "placeholder": "State name"
+          }
+        },
+        {
+          "name": "pincode",
+          "label": "Pincode",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "pattern:^\\d{6}$"],
+          "ui_config": {
+            "placeholder": "6-digit pincode"
+          }
+        },
+        {
+          "name": "gps_coordinates",
+          "label": "GPS Coordinates",
+          "type": "text",
+          "required": false,
+          "validation": ["pattern:^-?\\d{1,3}\\.\\d+,-?\\d{1,3}\\.\\d+$"],
+          "ui_config": {
+            "placeholder": "Latitude,Longitude (e.g., 19.0760,72.8777)",
+            "help_text": "GPS coordinates for precise location mapping"
+          }
+        },
+        {
+          "name": "nearby_landmarks",
+          "label": "Nearby Landmarks",
+          "type": "textarea",
+          "required": false,
+          "validation": ["max_length:500"],
+          "ui_config": {
+            "placeholder": "Metro station, mall, hotel, etc. (one per line)",
+            "rows": 3
+          }
+        },
+        {
+          "name": "parking_available",
+          "label": "Parking Available",
+          "type": "boolean",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "default": true
+          }
+        },
+        {
+          "name": "public_transport",
+          "label": "Public Transport Access",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "metro", "label": "Metro Station"},
+              {"value": "bus", "label": "Bus Stop"},
+              {"value": "railway", "label": "Railway Station"},
+              {"value": "airport", "label": "Airport Access"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Facilities & Amenities",
+      "order": 3,
+      "description": "Workspace facilities and amenities offered",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "workspace_types",
+          "label": "Workspace Types Available",
+          "type": "checkbox",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "dedicated_desk", "label": "Dedicated Desk"},
+              {"value": "hot_desk", "label": "Hot Desk"},
+              {"value": "private_office", "label": "Private Office"},
+              {"value": "meeting_room", "label": "Meeting Room"},
+              {"value": "conference_room", "label": "Conference Room"},
+              {"value": "event_space", "label": "Event Space"}
+            ]
+          }
+        },
+        {
+          "name": "basic_amenities",
+          "label": "Basic Amenities",
+          "type": "checkbox",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "high_speed_internet", "label": "High-Speed Internet"},
+              {"value": "unlimited_tea_coffee", "label": "Unlimited Tea/Coffee"},
+              {"value": "air_conditioning", "label": "Air Conditioning"},
+              {"value": "power_backup", "label": "Power Backup"},
+              {"value": "housekeeping", "label": "Daily Housekeeping"},
+              {"value": "security", "label": "24/7 Security"}
+            ]
+          }
+        },
+        {
+          "name": "technology_facilities",
+          "label": "Technology Facilities",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "printer_scanner", "label": "Printer/Scanner"},
+              {"value": "projector", "label": "Projector/Screen"},
+              {"value": "video_conferencing", "label": "Video Conferencing"},
+              {"value": "whiteboard", "label": "Whiteboard/Flipchart"},
+              {"value": "sound_system", "label": "Sound System"},
+              {"value": "smart_tv", "label": "Smart TV"}
+            ]
+          }
+        },
+        {
+          "name": "meeting_facilities",
+          "label": "Meeting Facilities",
+          "type": "object",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "fields": [
+              {"key": "meeting_rooms_count", "label": "Number of Meeting Rooms", "type": "number", "min": 0, "max": 20},
+              {"key": "meeting_room_capacity", "label": "Max Capacity per Room", "type": "number", "min": 2, "max": 50},
+              {"key": "conference_hall_capacity", "label": "Conference Hall Capacity", "type": "number", "min": 10, "max": 200}
+            ]
+          }
+        },
+        {
+          "name": "recreational_facilities",
+          "label": "Recreational Facilities",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "pantry", "label": "Pantry/Kitchen"},
+              {"value": "rooftop", "label": "Rooftop Terrace"},
+              {"value": "gym", "label": "Gym/Fitness Area"},
+              {"value": "game_zone", "label": "Game Zone"},
+              {"value": "library", "label": "Library/Reading Area"},
+              {"value": "nap_room", "label": "Nap Room"}
+            ]
+          }
+        },
+        {
+          "name": "accessibility_features",
+          "label": "Accessibility Features",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "wheelchair_access", "label": "Wheelchair Accessible"},
+              {"value": "elevator", "label": "Elevator Access"},
+              {"value": "accessible_restrooms", "label": "Accessible Restrooms"},
+              {"value": "braille_signage", "label": "Braille Signage"},
+              {"value": "hearing_loop", "label": "Hearing Loop System"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Membership & Pricing",
+      "order": 4,
+      "description": "Membership plans and pricing structure",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "membership_plans",
+          "label": "Available Membership Plans",
+          "type": "checkbox",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "hourly", "label": "Hourly Pass"},
+              {"value": "daily", "label": "Day Pass"},
+              {"value": "monthly", "label": "Monthly Membership"},
+              {"value": "quarterly", "label": "Quarterly Membership"},
+              {"value": "annual", "label": "Annual Membership"},
+              {"value": "enterprise", "label": "Enterprise Solutions"}
+            ]
+          }
+        },
+        {
+          "name": "pricing_structure",
+          "label": "Pricing Structure (₹)",
+          "type": "object",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "fields": [
+              {"key": "hourly_rate", "label": "Hourly Rate", "type": "number", "min": 50, "max": 500, "prefix": "₹"},
+              {"key": "daily_rate", "label": "Day Pass Rate", "type": "number", "min": 200, "max": 2000, "prefix": "₹"},
+              {"key": "monthly_rate", "label": "Monthly Membership", "type": "number", "min": 2000, "max": 20000, "prefix": "₹"},
+              {"key": "dedicated_desk_monthly", "label": "Dedicated Desk Monthly", "type": "number", "min": 5000, "max": 50000, "prefix": "₹"}
+            ]
+          }
+        },
+        {
+          "name": "minimum_commitment",
+          "label": "Minimum Commitment Period",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "no_minimum", "label": "No Minimum"},
+              {"value": "1_month", "label": "1 Month"},
+              {"value": "3_months", "label": "3 Months"},
+              {"value": "6_months", "label": "6 Months"},
+              {"value": "1_year", "label": "1 Year"}
+            ]
+          }
+        },
+        {
+          "name": "cancellation_policy",
+          "label": "Cancellation Policy",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "flexible", "label": "Flexible (Cancel anytime)"},
+              {"value": "30_days", "label": "30 Days Notice"},
+              {"value": "60_days", "label": "60 Days Notice"},
+              {"value": "90_days", "label": "90 Days Notice"}
+            ]
+          }
+        },
+        {
+          "name": "payment_terms",
+          "label": "Payment Terms",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "monthly", "label": "Monthly"},
+              {"value": "quarterly", "label": "Quarterly"},
+              {"value": "half_yearly", "label": "Half Yearly"},
+              {"value": "annual", "label": "Annual (Upfront)"}
+            ]
+          }
+        },
+        {
+          "name": "security_deposit",
+          "label": "Security Deposit (₹)",
+          "type": "number",
+          "required": false,
+          "validation": ["min:0"],
+          "ui_config": {
+            "placeholder": "Security deposit amount (if applicable)",
+            "prefix": "₹"
+          }
+        },
+        {
+          "name": "additional_charges",
+          "label": "Additional Charges",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "meeting_room_charges", "label": "Meeting Room Charges"},
+              {"value": "printing_charges", "label": "Printing Charges"},
+              {"value": "parking_charges", "label": "Parking Charges"},
+              {"value": "late_fees", "label": "Late Payment Fees"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Policies & Rules",
+      "order": 5,
+      "description": "Space policies and usage rules",
+      "is_collapsible": true,
+      "fields": [
+        {
+          "name": "operating_hours",
+          "label": "Operating Hours",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "max_length:100"],
+          "ui_config": {
+            "placeholder": "e.g., Mon-Fri: 8 AM - 8 PM, Sat-Sun: 9 AM - 6 PM"
+          }
+        },
+        {
+          "name": "booking_policy",
+          "label": "Booking Policy",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "instant_booking", "label": "Instant Booking"},
+              {"value": "approval_required", "label": "Approval Required"},
+              {"value": "membership_only", "label": "Members Only"}
+            ]
+          }
+        },
+        {
+          "name": "guest_policy",
+          "label": "Guest Policy",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "guests_allowed", "label": "Guests Allowed"},
+              {"value": "members_only", "label": "Members Only"},
+              {"value": "with_permission", "label": "Guests Allowed with Permission"}
+            ]
+          }
+        },
+        {
+          "name": "food_drink_policy",
+          "label": "Food & Drink Policy",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "outside_food_allowed", "label": "Outside Food Allowed"},
+              {"value": "designated_areas", "label": "Food in Designated Areas"},
+              {"value": "caterer_only", "label": "Caterer Services Only"},
+              {"value": "no_outside_food", "label": "No Outside Food"}
+            ]
+          }
+        },
+        {
+          "name": "noise_policy",
+          "label": "Noise Policy",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "quiet_zones", "label": "Designated Quiet Zones"},
+              {"value": "moderate_noise", "label": "Moderate Noise Allowed"},
+              {"value": "flexible", "label": "Flexible Based on Space"}
+            ]
+          }
+        },
+        {
+          "name": "cleanliness_policy",
+          "label": "Cleanliness Policy",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "member_responsibility", "label": "Members Responsible for Cleanliness"},
+              {"value": "housekeeping_provided", "label": "Housekeeping Services Provided"},
+              {"value": "shared_spaces_cleaned", "label": "Shared Spaces Cleaned Regularly"}
+            ]
+          }
+        },
+        {
+          "name": "additional_policies",
+          "label": "Additional Policies",
+          "type": "textarea",
+          "required": false,
+          "validation": ["max_length:1000"],
+          "ui_config": {
+            "placeholder": "Any additional rules or policies for members",
+            "rows": 4
+          }
+        }
+      ]
+    },
+    {
+      "title": "Contact Information",
+      "order": 6,
+      "description": "Space owner/manager contact details",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "contact_person",
+          "label": "Contact Person",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "max_length:100"],
+          "ui_config": {
+            "placeholder": "Name of the contact person"
+          }
+        },
+        {
+          "name": "contact_designation",
+          "label": "Designation",
+          "type": "text",
+          "required": false,
+          "validation": ["max_length:50"],
+          "ui_config": {
+            "placeholder": "Manager, Owner, Community Manager, etc."
+          }
+        },
+        {
+          "name": "primary_phone",
+          "label": "Primary Phone Number",
+          "type": "phone",
+          "required": true,
+          "validation": ["required", "phone"],
+          "ui_config": {
+            "placeholder": "Primary contact number"
+          }
+        },
+        {
+          "name": "secondary_phone",
+          "label": "Secondary Phone Number",
+          "type": "phone",
+          "required": false,
+          "validation": ["phone"],
+          "ui_config": {
+            "placeholder": "Alternative contact number"
+          }
+        },
+        {
+          "name": "email",
+          "label": "Email Address",
+          "type": "email",
+          "required": true,
+          "validation": ["required", "email"],
+          "ui_config": {
+            "placeholder": "Contact email address"
+          }
+        },
+        {
+          "name": "whatsapp_number",
+          "label": "WhatsApp Number",
+          "type": "phone",
+          "required": false,
+          "validation": ["phone"],
+          "ui_config": {
+            "placeholder": "WhatsApp contact number"
+          }
+        },
+        {
+          "name": "website",
+          "label": "Website",
+          "type": "url",
+          "required": false,
+          "validation": ["url"],
+          "ui_config": {
+            "placeholder": "Official website URL"
+          }
+        },
+        {
+          "name": "emergency_contact",
+          "label": "Emergency Contact",
+          "type": "phone",
+          "required": false,
+          "validation": ["phone"],
+          "ui_config": {
+            "placeholder": "Emergency contact number"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Images & Media",
+      "order": 7,
+      "description": "Space photos and media content",
+      "is_collapsible": true,
+      "fields": [
+        {
+          "name": "space_images",
+          "label": "Space Images",
+          "type": "file",
+          "required": true,
+          "validation": ["required", "file_type:image", "max_files:25"],
+          "ui_config": {
+            "accept": "image/*",
+            "multiple": true,
+            "max_size": "5MB",
+            "help_text": "Upload high-quality images of the workspace, meeting rooms, common areas, and facilities"
+          }
+        },
+        {
+          "name": "workspace_images",
+          "label": "Individual Workspace Images",
+          "type": "file",
+          "required": false,
+          "validation": ["file_type:image", "max_files:15"],
+          "ui_config": {
+            "accept": "image/*",
+            "multiple": true,
+            "max_size": "5MB",
+            "help_text": "Upload images of individual desks, private offices, and workstations"
+          }
+        },
+        {
+          "name": "meeting_room_images",
+          "label": "Meeting Room Images",
+          "type": "file",
+          "required": false,
+          "validation": ["file_type:image", "max_files:10"],
+          "ui_config": {
+            "accept": "image/*",
+            "multiple": true,
+            "max_size": "5MB",
+            "help_text": "Upload images of meeting rooms and conference facilities"
+          }
+        },
+        {
+          "name": "common_area_images",
+          "label": "Common Area Images",
+          "type": "file",
+          "required": false,
+          "validation": ["file_type:image", "max_files:10"],
+          "ui_config": {
+            "accept": "image/*",
+            "multiple": true,
+            "max_size": "5MB",
+            "help_text": "Upload images of pantry, lounge, recreational areas, etc."
+          }
+        },
+        {
+          "name": "virtual_tour",
+          "label": "Virtual Tour",
+          "type": "url",
+          "required": false,
+          "validation": ["url"],
+          "ui_config": {
+            "placeholder": "YouTube/Vimeo link to virtual tour video"
+          }
+        },
+        {
+          "name": "floor_plan",
+          "label": "Floor Plan",
+          "type": "file",
+          "required": false,
+          "validation": ["file_type:image,pdf", "max_size:10MB"],
+          "ui_config": {
+            "accept": "image/*,.pdf",
+            "help_text": "Upload floor plan or layout diagram (PDF or image)"
+          }
+        },
+        {
+          "name": "brochure",
+          "label": "Space Brochure",
+          "type": "file",
+          "required": false,
+          "validation": ["file_type:pdf", "max_size:10MB"],
+          "ui_config": {
+            "accept": ".pdf",
+            "help_text": "Upload detailed space brochure (PDF format)"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Community & Networking",
+      "order": 8,
+      "description": "Community features and networking opportunities",
+      "is_collapsible": true,
+      "fields": [
+        {
+          "name": "community_events",
+          "label": "Community Events",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "networking_events", "label": "Networking Events"},
+              {"value": "workshops", "label": "Workshops & Training"},
+              {"value": "speaker_sessions", "label": "Speaker Sessions"},
+              {"value": "social_events", "label": "Social Events"},
+              {"value": "industry_meetups", "label": "Industry Meetups"}
+            ]
+          }
+        },
+        {
+          "name": "mentorship_programs",
+          "label": "Mentorship Programs",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "startup_mentorship", "label": "Startup Mentorship"},
+              {"value": "business_advisory", "label": "Business Advisory"},
+              {"value": "skill_development", "label": "Skill Development Programs"},
+              {"value": "career_counseling", "label": "Career Counseling"}
+            ]
+          }
+        },
+        {
+          "name": "partnerships",
+          "label": "Partnerships & Collaborations",
+          "type": "textarea",
+          "required": false,
+          "validation": ["max_length:500"],
+          "ui_config": {
+            "placeholder": "List partnerships with other businesses, accelerators, etc.",
+            "rows": 3
+          }
+        },
+        {
+          "name": "member_demographics",
+          "label": "Member Demographics",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "startups", "label": "Startups"},
+              {"value": "freelancers", "label": "Freelancers"},
+              {"value": "small_businesses", "label": "Small Businesses"},
+              {"value": "corporates", "label": "Corporate Teams"},
+              {"value": "consultants", "label": "Consultants"},
+              {"value": "creatives", "label": "Creative Professionals"}
+            ]
+          }
+        },
+        {
+          "name": "community_size",
+          "label": "Community Size",
+          "type": "select",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "small", "label": "Small (1-50 members)"},
+              {"value": "medium", "label": "Medium (51-200 members)"},
+              {"value": "large", "label": "Large (201-500 members)"},
+              {"value": "xlarge", "label": "Extra Large (500+ members)"}
+            ]
+          }
+        }
+      ]
+    },
+    {
+      "title": "Additional Services",
+      "order": 9,
+      "description": "Extra services and value-added offerings",
+      "is_collapsible": true,
+      "fields": [
+        {
+          "name": "business_services",
+          "label": "Business Services",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "mail_handling", "label": "Mail Handling"},
+              {"value": "reception_services", "label": "Reception Services"},
+              {"value": "it_support", "label": "IT Support"},
+              {"value": "legal_services", "label": "Legal Services"},
+              {"value": "accounting_services", "label": "Accounting Services"}
+            ]
+          }
+        },
+        {
+          "name": "catering_services",
+          "label": "Catering Services",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "coffee_tea", "label": "Coffee/Tea Service"},
+              {"value": "snacks", "label": "Snacks & Beverages"},
+              {"value": "lunch_catering", "label": "Lunch Catering"},
+              {"value": "event_catering", "label": "Event Catering"}
+            ]
+          }
+        },
+        {
+          "name": "technology_services",
+          "label": "Technology Services",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "cloud_storage", "label": "Cloud Storage"},
+              {"value": "backup_solutions", "label": "Backup Solutions"},
+              {"value": "software_licenses", "label": "Software Licenses"},
+              {"value": "tech_consulting", "label": "Technology Consulting"}
+            ]
+          }
+        },
+        {
+          "name": "special_features",
+          "label": "Special Features",
+          "type": "textarea",
+          "required": false,
+          "validation": ["max_length:500"],
+          "ui_config": {
+            "placeholder": "Any special features or unique selling points",
+            "rows": 3
+          }
+        },
+        {
+          "name": "certifications_awards",
+          "label": "Certifications & Awards",
+          "type": "textarea",
+          "required": false,
+          "validation": ["max_length:300"],
+          "ui_config": {
+            "placeholder": "Safety certifications, awards, recognitions",
+            "rows": 2
+          }
+        },
+        {
+          "name": "sustainability_features",
+          "label": "Sustainability Features",
+          "type": "checkbox",
+          "required": false,
+          "validation": [],
+          "ui_config": {
+            "options": [
+              {"value": "green_building", "label": "Green Building Certification"},
+              {"value": "energy_efficient", "label": "Energy Efficient Lighting"},
+              {"value": "recycling_program", "label": "Recycling Program"},
+              {"value": "eco_friendly_materials", "label": "Eco-friendly Materials"}
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
+```
+
+## Template Features
+
+### Industry-Specific Fields
+- **Space Classification**: Co-working, business center, flexible office, creative studio options
+- **Capacity Management**: Total capacity, available seats, area specifications
+- **Workspace Types**: Dedicated desks, hot desks, private offices, meeting rooms
+- **Technology Facilities**: High-speed internet, video conferencing, smart equipment
+- **Community Features**: Networking events, mentorship programs, member demographics
+
+### Validation Rules
+- **Space Information**: Required fields for accurate classification and capacity
+- **Location Data**: GPS coordinates for mapping and accessibility features
+- **Pricing Validation**: Industry-standard pricing ranges for different membership types
+- **Contact Verification**: Valid phone numbers and email addresses
+- **Image Requirements**: High-quality photos for workspace showcase
+
+### UI/UX Enhancements
+- **Progressive Disclosure**: Collapsible sections for better user experience
+- **Smart Pricing**: Dynamic pricing structure with multiple membership options
+- **Conditional Fields**: Dynamic field visibility based on space type and services
+- **Rich Media Support**: Multiple image uploads with virtual tours and floor plans
+- **Location Mapping**: GPS coordinate integration for precise workspace mapping
+
+### API Integration Points
+- **Car Management API**: Integration with location services for neighborhood data
+- **Schema Template System**: Dynamic form generation with validation rules
+- **File Upload Service**: Firebase integration for space images and documents
+- **Analytics Integration**: Space utilization tracking and member analytics
+
+### Compliance & Standards
+- **Workspace Regulations**: Compliance with commercial space regulations
+- **Safety Standards**: Fire safety, emergency protocols, accessibility compliance
+- **Data Privacy**: GDPR/CCPA compliant data handling
+- **Industry Standards**: Alignment with co-working and flexible workspace best practices
+- **Regulatory Compliance**: Local business licensing and commercial space regulations
+
+## Usage Instructions
+
+1. **Template Assignment**: Assign this template to co-working category via `/api/v1/schema-templates/{id}/assign-category`
+2. **Form Generation**: Use `GET /api/v1/catalog/categories/{id}/schema` to retrieve complete form structure
+3. **Validation**: Implement client-side validation using provided validation rules
+4. **Image Upload**: Use Firebase storage for space images with automatic optimization
+5. **GPS Integration**: Enable location services for precise workspace mapping
+6. **Member Management**: Integrate membership management and booking systems
+
+## Implementation Notes
+
+- **Database Storage**: Template stored as JSONB in PostgreSQL for flexible querying
+- **Performance**: Optimized with proper indexing on frequently queried fields
+- **Scalability**: Supports unlimited custom fields through JSONB structure
+- **Version Control**: Template versioning for backward compatibility
+- **Audit Trail**: Complete change tracking for compliance requirements
+
+This template provides a comprehensive, industry-standard solution for co-working space listings on the eBidPortal marketplace, ensuring professional presentation and regulatory compliance for workspace providers.

@@ -9,7 +9,9 @@ import '../../features/auction/presentation/auction_list_screen.dart';
 import '../../features/auction/presentation/auction_detail_screen.dart';
 import '../../features/auction/presentation/watchlist_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/catalog/domain/category.dart';
 import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
+import '../../features/auction/presentation/create_auction/widgets/category_selection_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import 'scaffold_with_navbar.dart';
 
@@ -135,10 +137,19 @@ final routerProvider = Provider<GoRouter>((ref) {
       ),
       // Routes that should cover the bottom nav bar (root navigator)
       GoRoute(
+        path: '/select-category',
+        name: 'select-category',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const CategorySelectionScreen(),
+      ),
+      GoRoute(
         path: '/create-auction',
         name: 'create-auction',
         parentNavigatorKey: rootNavigatorKey,
-        builder: (context, state) => const CreateAuctionScreen(),
+        builder: (context, state) {
+          final category = state.extra as Category?;
+          return CreateAuctionScreen(initialCategory: category);
+        },
       ),
     ],
   );

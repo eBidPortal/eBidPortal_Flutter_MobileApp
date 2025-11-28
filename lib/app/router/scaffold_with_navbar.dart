@@ -129,7 +129,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 color: AppTheme.primaryColor,
                 onTap: () {
                   Navigator.of(context).pop();
-                  context.push('/create-auction');
+                  context.push('/select-category');
                 },
               ),
               const SizedBox(height: AppTheme.spacingMd),

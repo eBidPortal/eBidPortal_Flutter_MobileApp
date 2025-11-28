@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../catalog/presentation/widgets/category_selector.dart';
-import '../widgets/dynamic_fields_form.dart';
+import '../widgets/enhanced_dynamic_fields_form.dart';
 import '../create_auction_provider.dart';
 import '../create_auction_state.dart';
 
@@ -31,7 +31,7 @@ class BasicInfoStep extends ConsumerWidget {
                 ),
           ),
           const SizedBox(height: AppTheme.spacingXl),
-          
+
           // Title
           TextField(
             decoration: InputDecoration(
@@ -45,7 +45,7 @@ class BasicInfoStep extends ConsumerWidget {
             textCapitalization: TextCapitalization.words,
           ),
           const SizedBox(height: AppTheme.spacingLg),
-          
+
           // Description
           TextField(
             decoration: InputDecoration(
@@ -61,7 +61,7 @@ class BasicInfoStep extends ConsumerWidget {
             textCapitalization: TextCapitalization.sentences,
           ),
           const SizedBox(height: AppTheme.spacingLg),
-          
+
           // Category
           CategorySelector(
             selectedCategoryId: state.categoryId,
@@ -69,25 +69,16 @@ class BasicInfoStep extends ConsumerWidget {
             errorText: state.categoryError,
           ),
           const SizedBox(height: AppTheme.spacingLg),
-          
-          // Dynamic Fields (shown when schema is loaded)
-          if (state.isLoadingSchema)
-            const Center(child: CircularProgressIndicator())
-          else if (state.schemaError != null)
-            Text(
-              state.schemaError!,
-              style: TextStyle(color: Theme.of(context).colorScheme.error),
-            )
-          else if (state.categorySchema != null)
-            DynamicFieldsForm(
-              schema: state.categorySchema!,
+
+          // Dynamic Fields (shown when category is selected)
+          if (state.categoryId != null && state.categoryId!.isNotEmpty)
+            EnhancedDynamicFieldsForm(
+              categoryId: state.categoryId!,
               values: state.dynamicFields,
               errors: state.dynamicFieldErrors,
-              onFieldChanged: notifier.setDynamicField,
-              onFieldError: notifier.setDynamicFieldError,
+              onValueChanged: notifier.setDynamicField,
             ),
-          if (state.categorySchema != null) const SizedBox(height: AppTheme.spacingLg),
-          
+
           // Auction Type
           Text(
             'Auction Type',

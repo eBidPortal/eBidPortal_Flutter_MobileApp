@@ -103,4 +103,6 @@ class ApiClient {
       options: options,
     );
   }
+
+  Dio get dio => _dio;
 }

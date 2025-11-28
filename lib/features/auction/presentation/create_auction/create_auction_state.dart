@@ -18,33 +18,30 @@ class CreateAuctionState with _$CreateAuctionState {
     @Default('') String description,
     String? categoryId,
     @Default(AuctionType.english) AuctionType type,
-    
-    // Dynamic Schema Fields
-    Map<String, dynamic>? categorySchema,
+
+    // Dynamic Fields
     @Default({}) Map<String, dynamic> dynamicFields,
-    @Default(false) bool isLoadingSchema,
-    String? schemaError,
-    
+
     // Step 2: Pricing & Duration
     String? startPrice,
     String? reservePrice,
-   DateTime? startTime,
+    DateTime? startTime,
     DateTime? endTime,
-    
+
     // Step 3: Images
     @Default([]) List<File> localImages,
     @Default([]) List<String> uploadedImageUrls,
     @Default(false) bool isUploadingImages,
     @Default(0.0) double uploadProgress,
-    
+
     // Step 4: Additional Details
     @Default([]) List<String> tags,
-    
+
     // Form State
     @Default(0) int currentStep,
     @Default(false) bool isSubmitting,
     String? error,
-    
+
     // Validation Errors
     String? titleError,
     String? descriptionError,

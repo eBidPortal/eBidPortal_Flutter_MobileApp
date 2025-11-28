@@ -7,13 +7,32 @@ import 'create_auction_provider.dart';
 import 'steps/basic_info_step.dart';
 import 'steps/pricing_step.dart';
 import 'steps/images_step.dart';
+import '../../../catalog/domain/category.dart';
 import 'steps/review_step.dart';
 
-class CreateAuctionScreen extends ConsumerWidget {
-  const CreateAuctionScreen({super.key});
+class CreateAuctionScreen extends ConsumerStatefulWidget {
+  final Category? initialCategory;
+
+  const CreateAuctionScreen({super.key, this.initialCategory});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<CreateAuctionScreen> createState() => _CreateAuctionScreenState();
+}
+
+class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Initialize with the selected category if provided
+    if (widget.initialCategory != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(createAuctionProvider.notifier).setCategory(widget.initialCategory!);
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final state = ref.watch(createAuctionProvider);
     final notifier = ref.read(createAuctionProvider.notifier);
 

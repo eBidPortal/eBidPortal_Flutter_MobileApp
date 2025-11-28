@@ -21,13 +21,8 @@ mixin _$CreateAuctionState {
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
   String? get categoryId => throw _privateConstructorUsedError;
-  AuctionType get type =>
-      throw _privateConstructorUsedError; // Dynamic Schema Fields
-  Map<String, dynamic>? get categorySchema =>
-      throw _privateConstructorUsedError;
-  Map<String, dynamic> get dynamicFields => throw _privateConstructorUsedError;
-  bool get isLoadingSchema => throw _privateConstructorUsedError;
-  String? get schemaError =>
+  AuctionType get type => throw _privateConstructorUsedError; // Dynamic Fields
+  Map<String, dynamic> get dynamicFields =>
       throw _privateConstructorUsedError; // Step 2: Pricing & Duration
   String? get startPrice => throw _privateConstructorUsedError;
   String? get reservePrice => throw _privateConstructorUsedError;
@@ -72,10 +67,7 @@ abstract class $CreateAuctionStateCopyWith<$Res> {
     String description,
     String? categoryId,
     AuctionType type,
-    Map<String, dynamic>? categorySchema,
     Map<String, dynamic> dynamicFields,
-    bool isLoadingSchema,
-    String? schemaError,
     String? startPrice,
     String? reservePrice,
     DateTime? startTime,
@@ -119,10 +111,7 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
     Object? description = null,
     Object? categoryId = freezed,
     Object? type = null,
-    Object? categorySchema = freezed,
     Object? dynamicFields = null,
-    Object? isLoadingSchema = null,
-    Object? schemaError = freezed,
     Object? startPrice = freezed,
     Object? reservePrice = freezed,
     Object? startTime = freezed,
@@ -163,22 +152,10 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
                 ? _value.type
                 : type // ignore: cast_nullable_to_non_nullable
                       as AuctionType,
-            categorySchema: freezed == categorySchema
-                ? _value.categorySchema
-                : categorySchema // ignore: cast_nullable_to_non_nullable
-                      as Map<String, dynamic>?,
             dynamicFields: null == dynamicFields
                 ? _value.dynamicFields
                 : dynamicFields // ignore: cast_nullable_to_non_nullable
                       as Map<String, dynamic>,
-            isLoadingSchema: null == isLoadingSchema
-                ? _value.isLoadingSchema
-                : isLoadingSchema // ignore: cast_nullable_to_non_nullable
-                      as bool,
-            schemaError: freezed == schemaError
-                ? _value.schemaError
-                : schemaError // ignore: cast_nullable_to_non_nullable
-                      as String?,
             startPrice: freezed == startPrice
                 ? _value.startPrice
                 : startPrice // ignore: cast_nullable_to_non_nullable
@@ -283,10 +260,7 @@ abstract class _$$CreateAuctionStateImplCopyWith<$Res>
     String description,
     String? categoryId,
     AuctionType type,
-    Map<String, dynamic>? categorySchema,
     Map<String, dynamic> dynamicFields,
-    bool isLoadingSchema,
-    String? schemaError,
     String? startPrice,
     String? reservePrice,
     DateTime? startTime,
@@ -329,10 +303,7 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
     Object? description = null,
     Object? categoryId = freezed,
     Object? type = null,
-    Object? categorySchema = freezed,
     Object? dynamicFields = null,
-    Object? isLoadingSchema = null,
-    Object? schemaError = freezed,
     Object? startPrice = freezed,
     Object? reservePrice = freezed,
     Object? startTime = freezed,
@@ -373,22 +344,10 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
             ? _value.type
             : type // ignore: cast_nullable_to_non_nullable
                   as AuctionType,
-        categorySchema: freezed == categorySchema
-            ? _value._categorySchema
-            : categorySchema // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>?,
         dynamicFields: null == dynamicFields
             ? _value._dynamicFields
             : dynamicFields // ignore: cast_nullable_to_non_nullable
                   as Map<String, dynamic>,
-        isLoadingSchema: null == isLoadingSchema
-            ? _value.isLoadingSchema
-            : isLoadingSchema // ignore: cast_nullable_to_non_nullable
-                  as bool,
-        schemaError: freezed == schemaError
-            ? _value.schemaError
-            : schemaError // ignore: cast_nullable_to_non_nullable
-                  as String?,
         startPrice: freezed == startPrice
             ? _value.startPrice
             : startPrice // ignore: cast_nullable_to_non_nullable
@@ -486,10 +445,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.description = '',
     this.categoryId,
     this.type = AuctionType.english,
-    final Map<String, dynamic>? categorySchema,
     final Map<String, dynamic> dynamicFields = const {},
-    this.isLoadingSchema = false,
-    this.schemaError,
     this.startPrice,
     this.reservePrice,
     this.startTime,
@@ -511,8 +467,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.endTimeError,
     this.imagesError,
     final Map<String, String> dynamicFieldErrors = const {},
-  }) : _categorySchema = categorySchema,
-       _dynamicFields = dynamicFields,
+  }) : _dynamicFields = dynamicFields,
        _localImages = localImages,
        _uploadedImageUrls = uploadedImageUrls,
        _tags = tags,
@@ -530,19 +485,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
   @override
   @JsonKey()
   final AuctionType type;
-  // Dynamic Schema Fields
-  final Map<String, dynamic>? _categorySchema;
-  // Dynamic Schema Fields
-  @override
-  Map<String, dynamic>? get categorySchema {
-    final value = _categorySchema;
-    if (value == null) return null;
-    if (_categorySchema is EqualUnmodifiableMapView) return _categorySchema;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(value);
-  }
-
+  // Dynamic Fields
   final Map<String, dynamic> _dynamicFields;
+  // Dynamic Fields
   @override
   @JsonKey()
   Map<String, dynamic> get dynamicFields {
@@ -551,11 +496,6 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     return EqualUnmodifiableMapView(_dynamicFields);
   }
 
-  @override
-  @JsonKey()
-  final bool isLoadingSchema;
-  @override
-  final String? schemaError;
   // Step 2: Pricing & Duration
   @override
   final String? startPrice;
@@ -641,7 +581,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
 
   @override
   String toString() {
-    return 'CreateAuctionState(title: $title, description: $description, categoryId: $categoryId, type: $type, categorySchema: $categorySchema, dynamicFields: $dynamicFields, isLoadingSchema: $isLoadingSchema, schemaError: $schemaError, startPrice: $startPrice, reservePrice: $reservePrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, dynamicFieldErrors: $dynamicFieldErrors)';
+    return 'CreateAuctionState(title: $title, description: $description, categoryId: $categoryId, type: $type, dynamicFields: $dynamicFields, startPrice: $startPrice, reservePrice: $reservePrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, dynamicFieldErrors: $dynamicFieldErrors)';
   }
 
   @override
@@ -656,17 +596,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
                 other.categoryId == categoryId) &&
             (identical(other.type, type) || other.type == type) &&
             const DeepCollectionEquality().equals(
-              other._categorySchema,
-              _categorySchema,
-            ) &&
-            const DeepCollectionEquality().equals(
               other._dynamicFields,
               _dynamicFields,
             ) &&
-            (identical(other.isLoadingSchema, isLoadingSchema) ||
-                other.isLoadingSchema == isLoadingSchema) &&
-            (identical(other.schemaError, schemaError) ||
-                other.schemaError == schemaError) &&
             (identical(other.startPrice, startPrice) ||
                 other.startPrice == startPrice) &&
             (identical(other.reservePrice, reservePrice) ||
@@ -721,10 +653,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     description,
     categoryId,
     type,
-    const DeepCollectionEquality().hash(_categorySchema),
     const DeepCollectionEquality().hash(_dynamicFields),
-    isLoadingSchema,
-    schemaError,
     startPrice,
     reservePrice,
     startTime,
@@ -766,10 +695,7 @@ abstract class _CreateAuctionState implements CreateAuctionState {
     final String description,
     final String? categoryId,
     final AuctionType type,
-    final Map<String, dynamic>? categorySchema,
     final Map<String, dynamic> dynamicFields,
-    final bool isLoadingSchema,
-    final String? schemaError,
     final String? startPrice,
     final String? reservePrice,
     final DateTime? startTime,
@@ -801,15 +727,9 @@ abstract class _CreateAuctionState implements CreateAuctionState {
   @override
   String? get categoryId;
   @override
-  AuctionType get type; // Dynamic Schema Fields
+  AuctionType get type; // Dynamic Fields
   @override
-  Map<String, dynamic>? get categorySchema;
-  @override
-  Map<String, dynamic> get dynamicFields;
-  @override
-  bool get isLoadingSchema;
-  @override
-  String? get schemaError; // Step 2: Pricing & Duration
+  Map<String, dynamic> get dynamicFields; // Step 2: Pricing & Duration
   @override
   String? get startPrice;
   @override
