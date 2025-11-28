@@ -1,6 +1,6 @@
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../catalog/data/catalog_repository.dart';
+import '../../../catalog/domain/category.dart';
 import '../../data/auction_repository.dart';
 import '../../data/image_upload_service.dart';
 import 'create_auction_state.dart';
@@ -9,10 +9,9 @@ final imageUploadServiceProvider = Provider((ref) => ImageUploadService());
 
 class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   final AuctionRepository _auctionRepository;
-  final CatalogRepository _catalogRepository;
   final ImageUploadService _imageService;
 
-  CreateAuctionNotifier(this._auctionRepository, this._catalogRepository, this._imageService)
+  CreateAuctionNotifier(this._auctionRepository, this._imageService)
       : super(const CreateAuctionState());
 
   // Step 1: Basic Info
@@ -30,10 +29,10 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     );
   }
 
-  void setCategory(String categoryId) async {
-    print('CreateAuctionProvider: Setting category to $categoryId');
+  void setCategory(Category category) async {
+    print('CreateAuctionProvider: Setting category to ${category.id} (${category.name})');
     state = state.copyWith(
-      categoryId: categoryId,
+      categoryId: category.id,
       categoryError: null,
       isLoadingSchema: true,
       schemaError: null,
@@ -43,15 +42,18 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     );
 
     try {
-      print('CreateAuctionProvider: Fetching schema for category $categoryId');
-      final schema = await _catalogRepository.getCategorySchema(categoryId);
-      print('CreateAuctionProvider: Successfully fetched schema with ${schema.length} keys');
+      print('CreateAuctionProvider: Using schema from category input_schema');
+      final schema = category.inputSchema ?? {};
+      print('CreateAuctionProvider: Successfully got schema with ${schema.length} keys');
+      if (schema.isNotEmpty) {
+        print('CreateAuctionProvider: Schema contains: ${schema.keys.join(', ')}');
+      }
       state = state.copyWith(
         categorySchema: schema,
         isLoadingSchema: false,
       );
     } catch (e) {
-      print('CreateAuctionProvider: Failed to fetch schema for category $categoryId: $e');
+      print('CreateAuctionProvider: Failed to process schema for category ${category.id}: $e');
       state = state.copyWith(
         schemaError: 'Failed to load category schema',
         isLoadingSchema: false,
@@ -478,7 +480,6 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
 final createAuctionProvider =
     StateNotifierProvider<CreateAuctionNotifier, CreateAuctionState>((ref) {
   final auctionRepository = ref.watch(auctionRepositoryProvider);
-  final catalogRepository = ref.watch(catalogRepositoryProvider);
   final imageService = ref.watch(imageUploadServiceProvider);
-  return CreateAuctionNotifier(auctionRepository, catalogRepository, imageService);
+  return CreateAuctionNotifier(auctionRepository, imageService);
 });

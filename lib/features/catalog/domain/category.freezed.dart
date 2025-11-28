@@ -29,6 +29,7 @@ mixin _$Category {
   String? get parentId => throw _privateConstructorUsedError;
   bool get isActive => throw _privateConstructorUsedError;
   List<Category> get children => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get inputSchema => throw _privateConstructorUsedError;
 
   /// Serializes this Category to a JSON map.
   Map<String, dynamic> toJson() => throw _privateConstructorUsedError;
@@ -54,6 +55,7 @@ abstract class $CategoryCopyWith<$Res> {
     String? parentId,
     bool isActive,
     List<Category> children,
+    Map<String, dynamic>? inputSchema,
   });
 }
 
@@ -80,6 +82,7 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
     Object? parentId = freezed,
     Object? isActive = null,
     Object? children = null,
+    Object? inputSchema = freezed,
   }) {
     return _then(
       _value.copyWith(
@@ -115,6 +118,10 @@ class _$CategoryCopyWithImpl<$Res, $Val extends Category>
                 ? _value.children
                 : children // ignore: cast_nullable_to_non_nullable
                       as List<Category>,
+            inputSchema: freezed == inputSchema
+                ? _value.inputSchema
+                : inputSchema // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>?,
           )
           as $Val,
     );
@@ -139,6 +146,7 @@ abstract class _$$CategoryImplCopyWith<$Res>
     String? parentId,
     bool isActive,
     List<Category> children,
+    Map<String, dynamic>? inputSchema,
   });
 }
 
@@ -164,6 +172,7 @@ class __$$CategoryImplCopyWithImpl<$Res>
     Object? parentId = freezed,
     Object? isActive = null,
     Object? children = null,
+    Object? inputSchema = freezed,
   }) {
     return _then(
       _$CategoryImpl(
@@ -199,6 +208,10 @@ class __$$CategoryImplCopyWithImpl<$Res>
             ? _value._children
             : children // ignore: cast_nullable_to_non_nullable
                   as List<Category>,
+        inputSchema: freezed == inputSchema
+            ? _value._inputSchema
+            : inputSchema // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>?,
       ),
     );
   }
@@ -216,7 +229,9 @@ class _$CategoryImpl implements _Category {
     this.parentId,
     this.isActive = true,
     final List<Category> children = const [],
-  }) : _children = children;
+    final Map<String, dynamic>? inputSchema,
+  }) : _children = children,
+       _inputSchema = inputSchema;
 
   factory _$CategoryImpl.fromJson(Map<String, dynamic> json) =>
       _$$CategoryImplFromJson(json);
@@ -245,9 +260,19 @@ class _$CategoryImpl implements _Category {
     return EqualUnmodifiableListView(_children);
   }
 
+  final Map<String, dynamic>? _inputSchema;
+  @override
+  Map<String, dynamic>? get inputSchema {
+    final value = _inputSchema;
+    if (value == null) return null;
+    if (_inputSchema is EqualUnmodifiableMapView) return _inputSchema;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
   @override
   String toString() {
-    return 'Category(id: $id, name: $name, description: $description, imageUrl: $imageUrl, iconUrl: $iconUrl, parentId: $parentId, isActive: $isActive, children: $children)';
+    return 'Category(id: $id, name: $name, description: $description, imageUrl: $imageUrl, iconUrl: $iconUrl, parentId: $parentId, isActive: $isActive, children: $children, inputSchema: $inputSchema)';
   }
 
   @override
@@ -266,7 +291,11 @@ class _$CategoryImpl implements _Category {
                 other.parentId == parentId) &&
             (identical(other.isActive, isActive) ||
                 other.isActive == isActive) &&
-            const DeepCollectionEquality().equals(other._children, _children));
+            const DeepCollectionEquality().equals(other._children, _children) &&
+            const DeepCollectionEquality().equals(
+              other._inputSchema,
+              _inputSchema,
+            ));
   }
 
   @JsonKey(includeFromJson: false, includeToJson: false)
@@ -281,6 +310,7 @@ class _$CategoryImpl implements _Category {
     parentId,
     isActive,
     const DeepCollectionEquality().hash(_children),
+    const DeepCollectionEquality().hash(_inputSchema),
   );
 
   /// Create a copy of Category
@@ -307,6 +337,7 @@ abstract class _Category implements Category {
     final String? parentId,
     final bool isActive,
     final List<Category> children,
+    final Map<String, dynamic>? inputSchema,
   }) = _$CategoryImpl;
 
   factory _Category.fromJson(Map<String, dynamic> json) =
@@ -328,6 +359,8 @@ abstract class _Category implements Category {
   bool get isActive;
   @override
   List<Category> get children;
+  @override
+  Map<String, dynamic>? get inputSchema;
 
   /// Create a copy of Category
   /// with the given fields replaced by the non-null parameter values.

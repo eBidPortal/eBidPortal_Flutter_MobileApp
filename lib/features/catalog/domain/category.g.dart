@@ -20,6 +20,7 @@ _$CategoryImpl _$$CategoryImplFromJson(Map<String, dynamic> json) =>
               ?.map((e) => Category.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
+      inputSchema: json['inputSchema'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$CategoryImplToJson(_$CategoryImpl instance) =>
@@ -32,4 +33,5 @@ Map<String, dynamic> _$$CategoryImplToJson(_$CategoryImpl instance) =>
       'parentId': instance.parentId,
       'isActive': instance.isActive,
       'children': instance.children,
+      'inputSchema': instance.inputSchema,
     };

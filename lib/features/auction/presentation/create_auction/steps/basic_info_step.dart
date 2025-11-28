@@ -85,7 +85,6 @@ class BasicInfoStep extends ConsumerWidget {
               errors: state.dynamicFieldErrors,
               onFieldChanged: notifier.setDynamicField,
               onFieldError: notifier.setDynamicFieldError,
-              context: context,
             ),
           if (state.categorySchema != null) const SizedBox(height: AppTheme.spacingLg),
           

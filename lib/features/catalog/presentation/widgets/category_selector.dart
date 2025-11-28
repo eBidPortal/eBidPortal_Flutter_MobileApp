@@ -5,7 +5,7 @@ import '../categories_provider.dart';
 
 class CategorySelector extends ConsumerStatefulWidget {
   final String? selectedCategoryId;
-  final Function(String) onCategorySelected;
+  final Function(Category) onCategorySelected;
   final String? errorText;
 
   const CategorySelector({
@@ -103,27 +103,49 @@ class _CategorySelectorState extends ConsumerState<CategorySelector> {
   }
 
   void _showCategoryPicker(BuildContext context) {
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      builder: (context) => CategoryPickerBottomSheet(
-        selectedCategoryId: widget.selectedCategoryId,
-        onCategorySelected: (categoryId) {
-          widget.onCategorySelected(categoryId);
-          Navigator.of(context).pop();
-        },
-      ),
+    final categoriesAsync = ref.read(categoriesProvider);
+    
+    categoriesAsync.when(
+      data: (categoryList) {
+        showModalBottomSheet(
+          context: context,
+          isScrollControlled: true,
+          builder: (context) => CategoryPickerBottomSheet(
+            selectedCategoryId: widget.selectedCategoryId,
+            categories: categoryList,
+            onCategorySelected: (category) {
+              widget.onCategorySelected(category);
+              Navigator.of(context).pop();
+            },
+          ),
+        );
+      },
+      loading: () {
+        // Show loading indicator or do nothing
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Loading categories...')),
+        );
+      },
+      error: (error, stack) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Error loading categories: $error')),
+        );
+      },
     );
   }
+
+
 }
 
 class CategoryPickerBottomSheet extends ConsumerStatefulWidget {
   final String? selectedCategoryId;
-  final Function(String) onCategorySelected;
+  final List<Category> categories;
+  final Function(Category) onCategorySelected;
 
   const CategoryPickerBottomSheet({
     super.key,
     this.selectedCategoryId,
+    required this.categories,
     required this.onCategorySelected,
   });
 
@@ -229,7 +251,7 @@ class _CategoryPickerBottomSheetState extends ConsumerState<CategoryPickerBottom
                     }
                   });
                 } else {
-                  widget.onCategorySelected(category.id);
+                  widget.onCategorySelected(category);
                 }
               },
             ),

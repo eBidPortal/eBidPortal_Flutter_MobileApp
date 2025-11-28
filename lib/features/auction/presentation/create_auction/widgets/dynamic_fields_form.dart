@@ -1,13 +1,14 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
+import '../../../../../core/network/api_client.dart';
 
-class DynamicFieldsForm extends StatelessWidget {
+class DynamicFieldsForm extends ConsumerStatefulWidget {
   final Map<String, dynamic> schema;
   final Map<String, dynamic> values;
   final Map<String, String> errors;
   final Function(String, dynamic) onFieldChanged;
   final Function(String, String) onFieldError;
-  final BuildContext context;
 
   const DynamicFieldsForm({
     super.key,
@@ -16,16 +17,117 @@ class DynamicFieldsForm extends StatelessWidget {
     required this.errors,
     required this.onFieldChanged,
     required this.onFieldError,
-    required this.context,
   });
 
   @override
+  ConsumerState<DynamicFieldsForm> createState() => _DynamicFieldsFormState();
+}
+
+class _DynamicFieldsFormState extends ConsumerState<DynamicFieldsForm> {
+  final Map<String, List<Map<String, dynamic>>> _dynamicOptions = {};
+  final Map<String, bool> _loadingOptions = {};
+  final Map<String, String?> _optionsErrors = {};
+
+  @override
+  void initState() {
+    super.initState();
+    _loadDynamicOptions();
+  }
+
+  @override
+  void didUpdateWidget(DynamicFieldsForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.schema != widget.schema) {
+      _loadDynamicOptions();
+    }
+  }
+
+  Future<void> _loadDynamicOptions() async {
+    final fields = widget.schema['fields'] as List<dynamic>? ?? [];
+    final sections = widget.schema['sections'] as List<dynamic>? ?? [];
+
+    final allFields = [...fields, ...sections.expand((s) => s['fields'] ?? [])];
+
+    for (final field in allFields) {
+      final fieldData = field as Map<String, dynamic>;
+      final name = fieldData['name'] as String;
+      final dynamicOptions = fieldData['dynamic_options'] as Map<String, dynamic>?;
+
+      if (dynamicOptions != null) {
+        await _loadOptionsForField(name, dynamicOptions);
+      }
+    }
+  }
+
+  Future<void> _loadOptionsForField(String fieldName, Map<String, dynamic> dynamicOptions) async {
+    setState(() {
+      _loadingOptions[fieldName] = true;
+      _optionsErrors[fieldName] = null;
+    });
+
+    try {
+      final apiUrl = dynamicOptions['api_url'] as String;
+      final dataPath = dynamicOptions['data_path'] as String? ?? 'data';
+      final labelField = dynamicOptions['label_field'] as String? ?? 'name';
+      final valueField = dynamicOptions['value_field'] as String? ?? 'id';
+
+      // Get API client from Riverpod
+      final apiClient = ref.read(apiClientProvider);
+      final response = await apiClient.get(apiUrl);
+
+      if (response.data['success'] == true) {
+        final data = response.data[dataPath] as List<dynamic>? ?? [];
+
+        final options = data.map((item) {
+          final itemData = item as Map<String, dynamic>;
+          return {
+            'value': itemData[valueField]?.toString() ?? '',
+            'label': itemData[labelField]?.toString() ?? '',
+          };
+        }).toList();
+
+        setState(() {
+          _dynamicOptions[fieldName] = options;
+          _loadingOptions[fieldName] = false;
+        });
+      } else {
+        throw Exception('API returned success=false');
+      }
+    } catch (e) {
+      setState(() {
+        _optionsErrors[fieldName] = 'Failed to load options: $e';
+        _loadingOptions[fieldName] = false;
+      });
+    }
+  }
+
+  List<Map<String, dynamic>> _getOptionsForField(Map<String, dynamic> field) {
+    final name = field['name'] as String;
+    final dynamicOptions = field['dynamic_options'] as Map<String, dynamic>?;
+    final staticOptions = field['options'] as List<dynamic>? ?? [];
+
+    if (dynamicOptions != null) {
+      return _dynamicOptions[name] ?? [];
+    }
+
+    return staticOptions.map((option) => option as Map<String, dynamic>).toList();
+  }
+
+  bool _isLoadingOptionsForField(String fieldName) {
+    return _loadingOptions[fieldName] ?? false;
+  }
+
+  String? _getOptionsErrorForField(String fieldName) {
+    return _optionsErrors[fieldName];
+  }
+
+  @override
   Widget build(BuildContext context) {
-    final sections = schema['sections'] as List<dynamic>? ?? [];
+    final sections = widget.schema['sections'] as List<dynamic>? ?? [];
     
     if (sections.isEmpty) {
       // Fallback: render fields directly if no sections
-      final fields = schema['fields'] as List<dynamic>? ?? [];
+      final fields = widget.schema['fields'] as List<dynamic>? ?? [];
       return _buildFieldsList(fields);
     }
 
@@ -75,7 +177,7 @@ class DynamicFieldsForm extends StatelessWidget {
     final validation = field['validation'] as Map<String, dynamic>? ?? {};
     
     final displayLabel = required ? '$label *' : label;
-    final error = errors[name];
+    final error = widget.errors[name];
 
     switch (type) {
       case 'text':
@@ -123,14 +225,14 @@ class DynamicFieldsForm extends StatelessWidget {
           const SizedBox(height: 4),
         ],
         TextFormField(
-          initialValue: values[name]?.toString(),
+          initialValue: widget.values[name]?.toString(),
           decoration: InputDecoration(
             labelText: label,
             errorText: error,
             border: const OutlineInputBorder(),
           ),
           maxLength: maxLength,
-          onChanged: (value) => onFieldChanged(name, value),
+          onChanged: (value) => widget.onFieldChanged(name, value),
           validator: (value) {
             if (minLength != null && (value?.length ?? 0) < minLength) {
               return 'Minimum $minLength characters required';
@@ -154,7 +256,7 @@ class DynamicFieldsForm extends StatelessWidget {
           const SizedBox(height: 4),
         ],
         TextFormField(
-          initialValue: values[name]?.toString(),
+          initialValue: widget.values[name]?.toString(),
           decoration: InputDecoration(
             labelText: label,
             errorText: error,
@@ -163,7 +265,7 @@ class DynamicFieldsForm extends StatelessWidget {
           ),
           maxLines: 4,
           maxLength: maxLength,
-          onChanged: (value) => onFieldChanged(name, value),
+          onChanged: (value) => widget.onFieldChanged(name, value),
           validator: (value) {
             if (minLength != null && (value?.length ?? 0) < minLength) {
               return 'Minimum $minLength characters required';
@@ -187,7 +289,7 @@ class DynamicFieldsForm extends StatelessWidget {
           const SizedBox(height: 4),
         ],
         TextFormField(
-          initialValue: values[name]?.toString(),
+          initialValue: widget.values[name]?.toString(),
           decoration: InputDecoration(
             labelText: label,
             errorText: error,
@@ -196,7 +298,7 @@ class DynamicFieldsForm extends StatelessWidget {
           keyboardType: TextInputType.number,
           onChanged: (value) {
             final numValue = num.tryParse(value);
-            onFieldChanged(name, numValue);
+            widget.onFieldChanged(name, numValue);
           },
           validator: (value) {
             final numValue = num.tryParse(value ?? '');
@@ -214,7 +316,9 @@ class DynamicFieldsForm extends StatelessWidget {
   }
 
   Widget _buildSelectField(String name, String label, String? description, Map<String, dynamic> field, String? error) {
-    final options = field['options'] as List<dynamic>? ?? [];
+    final options = _getOptionsForField(field);
+    final isLoading = _isLoadingOptionsForField(name);
+    final optionsError = _getOptionsErrorForField(name);
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -223,21 +327,26 @@ class DynamicFieldsForm extends StatelessWidget {
           Text(description, style: const TextStyle(fontSize: 12, color: Colors.grey)),
           const SizedBox(height: 4),
         ],
-        DropdownButtonFormField<String>(
-          decoration: InputDecoration(
-            labelText: label,
-            errorText: error,
-            border: const OutlineInputBorder(),
+        if (isLoading) ...[
+          const CircularProgressIndicator(),
+        ] else if (optionsError != null) ...[
+          Text(optionsError, style: const TextStyle(color: Colors.red)),
+        ] else ...[
+          DropdownButtonFormField<String>(
+            decoration: InputDecoration(
+              labelText: label,
+              errorText: error,
+              border: const OutlineInputBorder(),
+            ),
+            value: widget.values[name]?.toString(),
+            items: options.map((option) {
+              final value = option['value'] as String;
+              final label = option['label'] as String? ?? value;
+              return DropdownMenuItem(value: value, child: Text(label));
+            }).toList(),
+            onChanged: (value) => widget.onFieldChanged(name, value),
           ),
-          value: values[name]?.toString(),
-          items: options.map((option) {
-            final optionData = option as Map<String, dynamic>;
-            final value = optionData['value'] as String;
-            final label = optionData['label'] as String? ?? value;
-            return DropdownMenuItem(value: value, child: Text(label));
-          }).toList(),
-          onChanged: (value) => onFieldChanged(name, value),
-        ),
+        ],
       ],
     );
   }
@@ -260,8 +369,8 @@ class DynamicFieldsForm extends StatelessWidget {
           return RadioListTile<String>(
             title: Text(label),
             value: value,
-            groupValue: values[name]?.toString(),
-            onChanged: (newValue) => onFieldChanged(name, newValue),
+            groupValue: widget.values[name]?.toString(),
+            onChanged: (newValue) => widget.onFieldChanged(name, newValue),
           );
         }),
         if (error != null) ...[
@@ -273,7 +382,7 @@ class DynamicFieldsForm extends StatelessWidget {
   }
 
   Widget _buildCheckboxField(String name, String label, String? description, Map<String, dynamic> field, String? error) {
-    final currentValue = values[name] as bool? ?? false;
+    final currentValue = widget.values[name] as bool? ?? false;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,7 +394,7 @@ class DynamicFieldsForm extends StatelessWidget {
         CheckboxListTile(
           title: Text(label),
           value: currentValue,
-          onChanged: (value) => onFieldChanged(name, value ?? false),
+          onChanged: (value) => widget.onFieldChanged(name, value ?? false),
         ),
         if (error != null) ...[
           const SizedBox(height: 4),
@@ -304,7 +413,7 @@ class DynamicFieldsForm extends StatelessWidget {
           const SizedBox(height: 4),
         ],
         TextFormField(
-          initialValue: values[name]?.toString(),
+          initialValue: widget.values[name]?.toString(),
           decoration: InputDecoration(
             labelText: label,
             errorText: error,
@@ -320,7 +429,7 @@ class DynamicFieldsForm extends StatelessWidget {
               lastDate: DateTime(2100),
             );
             if (date != null) {
-              onFieldChanged(name, date.toIso8601String().split('T')[0]);
+              widget.onFieldChanged(name, date.toIso8601String().split('T')[0]);
             }
           },
         ),
@@ -329,7 +438,7 @@ class DynamicFieldsForm extends StatelessWidget {
   }
 
   Widget _buildBooleanField(String name, String label, String? description, String? error) {
-    final currentValue = values[name] as bool? ?? false;
+    final currentValue = widget.values[name] as bool? ?? false;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -341,7 +450,7 @@ class DynamicFieldsForm extends StatelessWidget {
         SwitchListTile(
           title: Text(label),
           value: currentValue,
-          onChanged: (value) => onFieldChanged(name, value),
+          onChanged: (value) => widget.onFieldChanged(name, value),
         ),
         if (error != null) ...[
           const SizedBox(height: 4),
@@ -367,7 +476,7 @@ class DynamicFieldsForm extends StatelessWidget {
     final min = field['min'] as num? ?? 0;
     final max = field['max'] as num? ?? 100;
     final step = field['step'] as num? ?? 1;
-    final currentValue = values[name] as num? ?? min;
+    final currentValue = widget.values[name] as num? ?? min;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -382,7 +491,7 @@ class DynamicFieldsForm extends StatelessWidget {
           min: min.toDouble(),
           max: max.toDouble(),
           divisions: ((max - min) / step).round(),
-          onChanged: (value) => onFieldChanged(name, value),
+          onChanged: (value) => widget.onFieldChanged(name, value),
         ),
         if (error != null) ...[
           const SizedBox(height: 4),
@@ -393,7 +502,7 @@ class DynamicFieldsForm extends StatelessWidget {
   }
 
   Widget _buildColorField(String name, String label, String? description, String? error) {
-    final currentValue = values[name] as String? ?? '#000000';
+    final currentValue = widget.values[name] as String? ?? '#000000';
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -417,7 +526,7 @@ class DynamicFieldsForm extends StatelessWidget {
               ),
             ),
           ),
-          onChanged: (value) => onFieldChanged(name, value),
+          onChanged: (value) => widget.onFieldChanged(name, value),
         ),
       ],
     );
@@ -425,7 +534,7 @@ class DynamicFieldsForm extends StatelessWidget {
 
   Widget _buildRatingField(String name, String label, String? description, Map<String, dynamic> field, String? error) {
     final maxRating = field['maxRating'] as int? ?? 5;
-    final currentValue = values[name] as int? ?? 0;
+    final currentValue = widget.values[name] as int? ?? 0;
     
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -443,7 +552,7 @@ class DynamicFieldsForm extends StatelessWidget {
                 index < currentValue ? Icons.star : Icons.star_border,
                 color: Colors.amber,
               ),
-              onPressed: () => onFieldChanged(name, index + 1),
+              onPressed: () => widget.onFieldChanged(name, index + 1),
             );
           }),
         ),

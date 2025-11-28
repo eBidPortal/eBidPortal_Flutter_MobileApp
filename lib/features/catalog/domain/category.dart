@@ -14,6 +14,7 @@ class Category with _$Category {
     String? parentId,
     @Default(true) bool isActive,
     @Default([]) List<Category> children,
+    Map<String, dynamic>? inputSchema,
   }) = _Category;
 
   factory Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);
