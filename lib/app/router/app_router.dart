@@ -12,6 +12,7 @@ import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/catalog/domain/category.dart';
 import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
 import '../../features/auction/presentation/create_auction/widgets/category_selection_screen.dart';
+import '../../features/auction/presentation/create_auction/widgets/category_schema_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import 'scaffold_with_navbar.dart';
 
@@ -141,6 +142,19 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'select-category',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const CategorySelectionScreen(),
+      ),
+      GoRoute(
+        path: '/category-schema',
+        name: 'category-schema',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final category = state.extra as Category?;
+          if (category == null) {
+            // Fallback if no category provided
+            return const CategorySelectionScreen();
+          }
+          return CategorySchemaScreen(category: category);
+        },
       ),
       GoRoute(
         path: '/create-auction',

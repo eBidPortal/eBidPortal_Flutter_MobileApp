@@ -275,7 +275,6 @@ final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String
 
   final category = findCategoryById(categoriesAsync, categoryId);
   if (category == null) {
-    print('TemplateService: Category with ID $categoryId not found');
     return null;
   }
 
@@ -287,5 +286,6 @@ final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String
     'input_schema': category.inputSchema,
   };
 
-  return templateService.createTemplateFromCategoryData(categoryData);
+  final template = templateService.createTemplateFromCategoryData(categoryData);
+  return template;
 });

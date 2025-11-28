@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:image_picker/image_picker.dart';
 import '../../../data/template_service.dart';
 import '../../../../../core/network/api_client.dart';
 
@@ -28,6 +29,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
   final Map<String, bool> _loadingOptions = {};
   final Map<String, String?> _optionsErrors = {};
   final Map<String, String> _fieldDependencies = {};
+  final Map<String, TextEditingController> _controllers = {};
   bool _dynamicOptionsInitialized = false;
 
   @override
@@ -47,6 +49,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           _dynamicOptionsInitialized = true;
           _loadDynamicOptionsForTemplate(template);
         }
+
+        print('EnhancedDynamicFieldsForm: Rendering template with ${template.sections.length} sections');
 
         return _buildTemplateForm(template);
       },
@@ -313,33 +317,70 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
   Widget _buildFieldWidget(TemplateField field) {
     final currentValue = widget.values[field.name];
 
+    // Create a form field with validation
+    return FormField<dynamic>(
+      initialValue: currentValue,
+      validator: (value) => _validateField(field, value),
+      builder: (FormFieldState<dynamic> state) {
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            _buildFieldInput(field, state),
+            if (state.hasError) ...[
+              const SizedBox(height: 4),
+              Text(
+                state.errorText!,
+                style: const TextStyle(color: Colors.red, fontSize: 12),
+              ),
+            ],
+          ],
+        );
+      },
+    );
+  }
+
+  Widget _buildFieldInput(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value;
+
     switch (field.type) {
       case 'text':
+        final controller = _controllers[field.name] ??= TextEditingController();
+        controller.text = currentValue?.toString() ?? '';
         return TextFormField(
-          initialValue: currentValue?.toString(),
+          controller: controller,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
             border: const OutlineInputBorder(),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           ),
-          onChanged: (value) => _onFieldValueChanged(field.name, value),
+          onChanged: (value) {
+            state.didChange(value);
+            _onFieldValueChanged(field.name, value);
+          },
         );
 
       case 'textarea':
+        final controller = _controllers[field.name] ??= TextEditingController();
+        controller.text = currentValue?.toString() ?? '';
         return TextFormField(
-          initialValue: currentValue?.toString(),
+          controller: controller,
           maxLines: field.uiConfig['rows'] ?? 4,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
             border: const OutlineInputBorder(),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           ),
-          onChanged: (value) => _onFieldValueChanged(field.name, value),
+          onChanged: (value) {
+            state.didChange(value);
+            _onFieldValueChanged(field.name, value);
+          },
         );
 
       case 'number':
+        final controller = _controllers[field.name] ??= TextEditingController();
+        controller.text = currentValue?.toString() ?? '';
         return TextFormField(
-          initialValue: currentValue?.toString(),
+          controller: controller,
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
@@ -350,6 +391,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           ),
           onChanged: (value) {
             final numValue = num.tryParse(value);
+            state.didChange(numValue);
             _onFieldValueChanged(field.name, numValue);
           },
         );
@@ -359,7 +401,10 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           children: [
             Checkbox(
               value: currentValue ?? field.uiConfig['defaultValue'] ?? false,
-            onChanged: (value) => _onFieldValueChanged(field.name, value),
+              onChanged: (value) {
+                state.didChange(value);
+                _onFieldValueChanged(field.name, value);
+              },
             ),
             const SizedBox(width: 8),
             Text(field.label),
@@ -378,7 +423,9 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
               lastDate: DateTime(2100),
             );
             if (date != null) {
-              _onFieldValueChanged(field.name, date.toIso8601String().split('T')[0]);
+              final dateString = date.toIso8601String().split('T')[0];
+              state.didChange(dateString);
+              _onFieldValueChanged(field.name, dateString);
             }
           },
           child: InputDecorator(
@@ -397,14 +444,16 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         );
 
       case 'checkbox':
-        return _buildCheckboxField(field);
+        return _buildCheckboxField(field, state);
 
       case 'file':
-        return _buildFileField(field);
+        return _buildFileField(field, state);
 
       case 'email':
+        final controller = _controllers[field.name] ??= TextEditingController();
+        controller.text = currentValue?.toString() ?? '';
         return TextFormField(
-          initialValue: currentValue?.toString(),
+          controller: controller,
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter email address',
@@ -412,24 +461,17 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             prefixIcon: const Icon(Icons.email),
           ),
-          validator: (value) {
-            if (field.required && (value == null || value.isEmpty)) {
-              return 'Email is required';
-            }
-            if (value != null && value.isNotEmpty) {
-              final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-              if (!emailRegex.hasMatch(value)) {
-                return 'Please enter a valid email address';
-              }
-            }
-            return null;
+          onChanged: (value) {
+            state.didChange(value);
+            _onFieldValueChanged(field.name, value);
           },
-          onChanged: (value) => _onFieldValueChanged(field.name, value),
         );
 
       case 'url':
+        final controller = _controllers[field.name] ??= TextEditingController();
+        controller.text = currentValue?.toString() ?? '';
         return TextFormField(
-          initialValue: currentValue?.toString(),
+          controller: controller,
           keyboardType: TextInputType.url,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter URL',
@@ -437,24 +479,17 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             prefixIcon: const Icon(Icons.link),
           ),
-          validator: (value) {
-            if (field.required && (value == null || value.isEmpty)) {
-              return 'URL is required';
-            }
-            if (value != null && value.isNotEmpty) {
-              final urlRegex = RegExp(r'^https?://[^\s/$.?#].[^\s]*$');
-              if (!urlRegex.hasMatch(value)) {
-                return 'Please enter a valid URL';
-              }
-            }
-            return null;
+          onChanged: (value) {
+            state.didChange(value);
+            _onFieldValueChanged(field.name, value);
           },
-          onChanged: (value) => _onFieldValueChanged(field.name, value),
         );
 
       case 'phone':
+        final controller = _controllers[field.name] ??= TextEditingController();
+        controller.text = currentValue?.toString() ?? '';
         return TextFormField(
-          initialValue: currentValue?.toString(),
+          controller: controller,
           keyboardType: TextInputType.phone,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter phone number',
@@ -462,49 +497,131 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
             prefixIcon: const Icon(Icons.phone),
           ),
-          validator: (value) {
-            if (field.required && (value == null || value.isEmpty)) {
-              return 'Phone number is required';
-            }
-            if (value != null && value.isNotEmpty) {
-              final phoneRegex = RegExp(r'^\+?[\d\s\-\(\)]{10,}$');
-              if (!phoneRegex.hasMatch(value)) {
-                return 'Please enter a valid phone number';
-              }
-            }
-            return null;
+          onChanged: (value) {
+            state.didChange(value);
+            _onFieldValueChanged(field.name, value);
           },
-          onChanged: (value) => _onFieldValueChanged(field.name, value),
         );
 
       case 'range':
-        return _buildRangeField(field);
+        return _buildRangeField(field, state);
 
       case 'color':
-        return _buildColorField(field);
+        return _buildColorField(field, state);
 
       case 'rating':
-        return _buildRatingField(field);
+        return _buildRatingField(field, state);
 
       case 'map':
-        return _buildMapField(field);
+        return _buildMapField(field, state);
 
       case 'object':
-        return _buildObjectField(field);
+        return _buildObjectField(field, state);
 
       case 'select':
-        return _buildSelectField(field);
+        return _buildSelectField(field, state);
 
       case 'radio':
-        return _buildRadioField(field);
+        return _buildRadioField(field, state);
+
+      case 'array':
+        return _buildArrayField(field, state);
 
       default:
         return Text('Unsupported field type: ${field.type}');
     }
   }
 
-  Widget _buildSelectField(TemplateField field) {
-    final currentValue = widget.values[field.name];
+  String? _validateField(TemplateField field, dynamic value) {
+    // Check required validation
+    if (field.required && (value == null || value.toString().trim().isEmpty)) {
+      return '${field.label} is required';
+    }
+
+    // Skip further validation if value is empty and field is not required
+    if (value == null || value.toString().trim().isEmpty) {
+      return null;
+    }
+
+    // Apply field-specific validation rules
+    final validationRules = field.validation['rules'] as List<dynamic>? ?? [];
+
+    for (final rule in validationRules) {
+      final ruleType = rule['type'] as String?;
+      final ruleValue = rule['value'];
+      final errorMessage = rule['message'] as String? ?? 'Validation failed';
+
+      switch (ruleType) {
+        case 'minLength':
+          if (value.toString().length < (ruleValue as num)) {
+            return errorMessage;
+          }
+          break;
+
+        case 'maxLength':
+          if (value.toString().length > (ruleValue as num)) {
+            return errorMessage;
+          }
+          break;
+
+        case 'min':
+          final numValue = num.tryParse(value.toString());
+          if (numValue == null || numValue < (ruleValue as num)) {
+            return errorMessage;
+          }
+          break;
+
+        case 'max':
+          final numValue = num.tryParse(value.toString());
+          if (numValue == null || numValue > (ruleValue as num)) {
+            return errorMessage;
+          }
+          break;
+
+        case 'pattern':
+          final pattern = RegExp(ruleValue as String);
+          if (!pattern.hasMatch(value.toString())) {
+            return errorMessage;
+          }
+          break;
+
+        case 'email':
+          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+          if (!emailRegex.hasMatch(value.toString())) {
+            return errorMessage;
+          }
+          break;
+
+        case 'url':
+          final urlRegex = RegExp(r'^https?://[^\s/$.?#].[^\s]*$');
+          if (!urlRegex.hasMatch(value.toString())) {
+            return errorMessage;
+          }
+          break;
+
+        case 'phone':
+          final phoneRegex = RegExp(r'^\+?[\d\s\-\(\)]{10,}$');
+          if (!phoneRegex.hasMatch(value.toString())) {
+            return errorMessage;
+          }
+          break;
+
+        case 'custom':
+          // For custom validation, we could call a function
+          // For now, skip custom validation
+          break;
+
+        default:
+          // Unknown validation rule, skip
+          break;
+      }
+    }
+
+    return null;
+  }
+
+  Widget _buildSelectField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value;
     final isLoading = _loadingOptions[field.name] ?? false;
     final optionsError = _optionsErrors[field.name];
     final dynamicOptions = _dynamicOptions[field.name];
@@ -520,53 +637,55 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
       }
 
       final options = dynamicOptions ?? [];
-      return SizedBox(
-        width: double.infinity,
-        child: DropdownButtonFormField<String>(
-          initialValue: currentValue,
-          decoration: InputDecoration(
-            hintText: field.uiConfig['placeholder'],
-            border: const OutlineInputBorder(),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
-          ),
-          items: options.map((option) {
-            return DropdownMenuItem<String>(
-              value: option['value'],
-              child: Text(option['label']),
-            );
-          }).toList(),
-          onChanged: (value) => _onFieldValueChanged(field.name, value),
-        ),
-      );
-    }
-
-    // Static options
-    final staticOptions = field.uiConfig['options'] as List<dynamic>? ?? [];
-    return SizedBox(
-      width: double.infinity,
-      child: DropdownButtonFormField<String>(
-        initialValue: currentValue,
+      return DropdownButtonFormField<String>(
+        value: currentValue,
+        isExpanded: true,
         decoration: InputDecoration(
           hintText: field.uiConfig['placeholder'],
           border: const OutlineInputBorder(),
           contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
         ),
-        items: staticOptions.map((option) {
-          if (option is String) {
-            return DropdownMenuItem<String>(
-              value: option,
-              child: Text(option),
-            );
-          } else if (option is Map) {
-            return DropdownMenuItem<String>(
-              value: option['value'],
-              child: Text(option['label']),
-            );
-          }
-          return null;
-        }).whereType<DropdownMenuItem<String>>().toList(),
-        onChanged: (value) => _onFieldValueChanged(field.name, value),
+        items: options.map((option) {
+          return DropdownMenuItem<String>(
+            value: option['value'],
+            child: Text(option['label']),
+          );
+        }).toList(),
+        onChanged: (value) {
+          state.didChange(value);
+          _onFieldValueChanged(field.name, value);
+        },
+      );
+    }
+
+    // Static options
+    final staticOptions = field.uiConfig['options'] as List<dynamic>? ?? [];
+    return DropdownButtonFormField<String>(
+      value: currentValue,
+      isExpanded: true,
+      decoration: InputDecoration(
+        hintText: field.uiConfig['placeholder'],
+        border: const OutlineInputBorder(),
+        contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
       ),
+      items: staticOptions.map((option) {
+        if (option is String) {
+          return DropdownMenuItem<String>(
+            value: option,
+            child: Text(option),
+          );
+        } else if (option is Map) {
+          return DropdownMenuItem<String>(
+            value: option['value'],
+            child: Text(option['label']),
+          );
+        }
+        return null;
+      }).whereType<DropdownMenuItem<String>>().toList(),
+      onChanged: (value) {
+        state.didChange(value);
+        _onFieldValueChanged(field.name, value);
+      },
     );
   }
 
@@ -631,8 +750,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     }
   }
 
-  Widget _buildRadioField(TemplateField field) {
-    final currentValue = widget.values[field.name];
+  Widget _buildRadioField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value;
     final options = field.uiConfig['options'] as List<dynamic>? ?? [];
 
     return Column(
@@ -655,6 +774,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
               groupValue: currentValue,
               onChanged: (String? value) {
                 if (value != null) {
+                  state.didChange(value);
                   _onFieldValueChanged(field.name, value);
                 }
               },
@@ -667,8 +787,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildCheckboxField(TemplateField field) {
-    final currentValue = widget.values[field.name] as List<dynamic>? ?? [];
+  Widget _buildCheckboxField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value as List<dynamic>? ?? [];
     final options = field.uiConfig['options'] as List<dynamic>? ?? [];
 
     return Column(
@@ -701,6 +821,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
                   } else {
                     newValue.remove(value);
                   }
+                  state.didChange(newValue);
                   _onFieldValueChanged(field.name, newValue);
                 },
               ),
@@ -713,33 +834,40 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildFileField(TemplateField field) {
-    final currentValue = widget.values[field.name];
+  Widget _buildFileField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         ElevatedButton.icon(
           onPressed: () async {
-            // TODO: Implement file picker
-            // For now, show a placeholder
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('File picker not implemented yet')),
-            );
+            try {
+              final picker = ImagePicker();
+              final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+              if (pickedFile != null) {
+                state.didChange(pickedFile.path);
+                _onFieldValueChanged(field.name, pickedFile.path);
+              }
+            } catch (e) {
+              ScaffoldMessenger.of(context).showSnackBar(
+                SnackBar(content: Text('Error picking file: $e')),
+              );
+            }
           },
           icon: const Icon(Icons.file_upload),
           label: Text(field.uiConfig['buttonText'] ?? 'Choose File'),
         ),
         if (currentValue != null) ...[
           const SizedBox(height: 8),
-          Text('Selected: $currentValue'),
+          Text('Selected: ${currentValue.toString().split('/').last}'),
         ],
       ],
     );
   }
 
-  Widget _buildRangeField(TemplateField field) {
-    final currentValue = widget.values[field.name] as num? ?? field.uiConfig['defaultValue'] ?? 50;
+  Widget _buildRangeField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value as num? ?? field.uiConfig['defaultValue'] ?? 50;
     final min = field.uiConfig['min'] ?? 0;
     final max = field.uiConfig['max'] ?? 100;
     final step = field.uiConfig['step'] ?? 1;
@@ -753,7 +881,11 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           min: min.toDouble(),
           max: max.toDouble(),
           divisions: ((max - min) / step).round(),
-          onChanged: (value) => _onFieldValueChanged(field.name, value.round()),
+          onChanged: (value) {
+            final roundedValue = value.round();
+            state.didChange(roundedValue);
+            _onFieldValueChanged(field.name, roundedValue);
+          },
         ),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -766,8 +898,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildColorField(TemplateField field) {
-    final currentValue = widget.values[field.name] as String? ?? field.uiConfig['defaultValue'] ?? '#FF0000';
+  Widget _buildColorField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value as String? ?? field.uiConfig['defaultValue'] ?? '#FF0000';
 
     return Row(
       children: [
@@ -783,22 +915,25 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         const SizedBox(width: 16),
         Expanded(
           child: TextFormField(
-            initialValue: currentValue,
+            controller: _controllers[field.name] ??= TextEditingController(text: currentValue),
             decoration: InputDecoration(
               hintText: field.uiConfig['placeholder'] ?? '#FF0000',
               border: const OutlineInputBorder(),
               contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
               prefixIcon: const Icon(Icons.color_lens),
             ),
-            onChanged: (value) => _onFieldValueChanged(field.name, value),
+            onChanged: (value) {
+              state.didChange(value);
+              _onFieldValueChanged(field.name, value);
+            },
           ),
         ),
       ],
     );
   }
 
-  Widget _buildRatingField(TemplateField field) {
-    final currentValue = widget.values[field.name] as num? ?? 0;
+  Widget _buildRatingField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value as num? ?? 0;
     final maxRating = field.uiConfig['maxRating'] ?? 5;
 
     return Column(
@@ -812,7 +947,11 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
                 index < currentValue ? Icons.star : Icons.star_border,
                 color: Colors.amber,
               ),
-              onPressed: () => _onFieldValueChanged(field.name, index + 1),
+              onPressed: () {
+                final newValue = index + 1;
+                state.didChange(newValue);
+                _onFieldValueChanged(field.name, newValue);
+              },
             );
           }),
         ),
@@ -820,8 +959,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildMapField(TemplateField field) {
-    final currentValue = widget.values[field.name];
+  Widget _buildMapField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -844,7 +983,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildObjectField(TemplateField field) {
+  Widget _buildObjectField(TemplateField field, FormFieldState<dynamic> state) {
     // For now, show a placeholder for nested object fields
     return Container(
       padding: const EdgeInsets.all(16),
@@ -864,8 +1003,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildArrayField(TemplateField field) {
-    final currentValue = widget.values[field.name] as List<dynamic>? ?? [];
+  Widget _buildArrayField(TemplateField field, FormFieldState<dynamic> state) {
+    final currentValue = state.value as List<dynamic>? ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -891,6 +1030,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
               onPressed: () {
                 final newValue = List<dynamic>.from(currentValue);
                 newValue.remove(item);
+                state.didChange(newValue);
                 _onFieldValueChanged(field.name, newValue);
               },
             ),
@@ -904,6 +1044,14 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
   void initState() {
     super.initState();
     // Dynamic options are now loaded when template is available
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
   }
 
   void _loadDynamicOptionsForTemplate(CategoryTemplate template) {
