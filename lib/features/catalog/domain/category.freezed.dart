@@ -24,11 +24,16 @@ mixin _$Category {
   String get id => throw _privateConstructorUsedError;
   String get name => throw _privateConstructorUsedError;
   String? get description => throw _privateConstructorUsedError;
+  @JsonKey(name: 'image_url')
   String? get imageUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'icon_url')
   String? get iconUrl => throw _privateConstructorUsedError;
+  @JsonKey(name: 'parent_id')
   String? get parentId => throw _privateConstructorUsedError;
+  @JsonKey(name: 'is_active')
   bool get isActive => throw _privateConstructorUsedError;
   List<Category> get children => throw _privateConstructorUsedError;
+  @JsonKey(name: 'input_schema')
   Map<String, dynamic>? get inputSchema => throw _privateConstructorUsedError;
 
   /// Serializes this Category to a JSON map.
@@ -50,12 +55,12 @@ abstract class $CategoryCopyWith<$Res> {
     String id,
     String name,
     String? description,
-    String? imageUrl,
-    String? iconUrl,
-    String? parentId,
-    bool isActive,
+    @JsonKey(name: 'image_url') String? imageUrl,
+    @JsonKey(name: 'icon_url') String? iconUrl,
+    @JsonKey(name: 'parent_id') String? parentId,
+    @JsonKey(name: 'is_active') bool isActive,
     List<Category> children,
-    Map<String, dynamic>? inputSchema,
+    @JsonKey(name: 'input_schema') Map<String, dynamic>? inputSchema,
   });
 }
 
@@ -141,12 +146,12 @@ abstract class _$$CategoryImplCopyWith<$Res>
     String id,
     String name,
     String? description,
-    String? imageUrl,
-    String? iconUrl,
-    String? parentId,
-    bool isActive,
+    @JsonKey(name: 'image_url') String? imageUrl,
+    @JsonKey(name: 'icon_url') String? iconUrl,
+    @JsonKey(name: 'parent_id') String? parentId,
+    @JsonKey(name: 'is_active') bool isActive,
     List<Category> children,
-    Map<String, dynamic>? inputSchema,
+    @JsonKey(name: 'input_schema') Map<String, dynamic>? inputSchema,
   });
 }
 
@@ -224,12 +229,12 @@ class _$CategoryImpl implements _Category {
     required this.id,
     required this.name,
     this.description,
-    this.imageUrl,
-    this.iconUrl,
-    this.parentId,
-    this.isActive = true,
+    @JsonKey(name: 'image_url') this.imageUrl,
+    @JsonKey(name: 'icon_url') this.iconUrl,
+    @JsonKey(name: 'parent_id') this.parentId,
+    @JsonKey(name: 'is_active') this.isActive = true,
     final List<Category> children = const [],
-    final Map<String, dynamic>? inputSchema,
+    @JsonKey(name: 'input_schema') final Map<String, dynamic>? inputSchema,
   }) : _children = children,
        _inputSchema = inputSchema;
 
@@ -243,13 +248,16 @@ class _$CategoryImpl implements _Category {
   @override
   final String? description;
   @override
+  @JsonKey(name: 'image_url')
   final String? imageUrl;
   @override
+  @JsonKey(name: 'icon_url')
   final String? iconUrl;
   @override
+  @JsonKey(name: 'parent_id')
   final String? parentId;
   @override
-  @JsonKey()
+  @JsonKey(name: 'is_active')
   final bool isActive;
   final List<Category> _children;
   @override
@@ -262,6 +270,7 @@ class _$CategoryImpl implements _Category {
 
   final Map<String, dynamic>? _inputSchema;
   @override
+  @JsonKey(name: 'input_schema')
   Map<String, dynamic>? get inputSchema {
     final value = _inputSchema;
     if (value == null) return null;
@@ -332,12 +341,12 @@ abstract class _Category implements Category {
     required final String id,
     required final String name,
     final String? description,
-    final String? imageUrl,
-    final String? iconUrl,
-    final String? parentId,
-    final bool isActive,
+    @JsonKey(name: 'image_url') final String? imageUrl,
+    @JsonKey(name: 'icon_url') final String? iconUrl,
+    @JsonKey(name: 'parent_id') final String? parentId,
+    @JsonKey(name: 'is_active') final bool isActive,
     final List<Category> children,
-    final Map<String, dynamic>? inputSchema,
+    @JsonKey(name: 'input_schema') final Map<String, dynamic>? inputSchema,
   }) = _$CategoryImpl;
 
   factory _Category.fromJson(Map<String, dynamic> json) =
@@ -350,16 +359,21 @@ abstract class _Category implements Category {
   @override
   String? get description;
   @override
+  @JsonKey(name: 'image_url')
   String? get imageUrl;
   @override
+  @JsonKey(name: 'icon_url')
   String? get iconUrl;
   @override
+  @JsonKey(name: 'parent_id')
   String? get parentId;
   @override
+  @JsonKey(name: 'is_active')
   bool get isActive;
   @override
   List<Category> get children;
   @override
+  @JsonKey(name: 'input_schema')
   Map<String, dynamic>? get inputSchema;
 
   /// Create a copy of Category

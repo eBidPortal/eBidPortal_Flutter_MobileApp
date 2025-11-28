@@ -1,11 +1,30 @@
+node run_audit.js --quick
+node diagnose_database.js
+node analyze_results.js
+node debug_endpoints.js
+
+now do same for " " the template should be industry level 
+
 # eBidPortal Unified API Documentation
 
-**Version:** 3.1.5  
-**Last Updated:** November 26, 2025  
+**Version:** 3.1.6  
+**Last Updated:** November 28, 2025  
 **Base URL:** `https://api.ebidportal.com/api/v1`  
 **Environment:** Production (Railway)
 
-## 🚀 Latest Updates - Version 3.1.5
+## 🚀 Latest Updates - Version 3.1.6
+
+### Category Template Integration for Selling System Complete
+- **🛍️ SELLING SYSTEM ENHANCED**: Complete category template integration implemented for direct product sales
+- **📋 CATEGORY SCHEMA ENDPOINT**: `GET /api/v1/sell/category-schema/:category_id` for dynamic form generation
+- **✅ TEMPLATE VALIDATION**: Product creation validates against category schemas with required field checking
+- **🗃️ JSONB STORAGE**: User input from category templates stored in `products.data` JSONB column
+- **🔄 UNIFIED EXPERIENCE**: Both auction and selling systems now support category template integration
+- **🎯 DYNAMIC FORMS**: Frontend can generate forms based on category-specific requirements
+- **⚡ VALIDATION ENGINE**: Type-aware validation for text, number, boolean, array, and custom fields
+- **📚 COMPLETE DOCUMENTATION**: Updated API docs with selling system template integration
+- **🧪 TEST SUITE**: Comprehensive test script for validating category template functionality
+- **🔗 BACKWARD COMPATIBILITY**: Existing products without templates continue to work seamlessly
 
 ### Bike Management API - Brand/Model/Variant System Complete
 - **🏍️ NEW MAJOR FEATURE**: Complete bike management system implemented with hierarchical brand/model/variant structure
@@ -90,7 +109,13 @@ cat bike-api-test-report-*.json
 - **🎯 PRODUCTION READY:** All endpoints tested and verified with real database persistence
 - **📚 DOCUMENTATION UPDATED:** Complete API documentation with examples and implementation status
 
-### Database Integration Complete
+### Simplified Selling System - Direct Sale vs Auction
+- **🛍️ DIRECT PRODUCT SALE:** New `/api/v1/sell` endpoint for immediate product sales with fixed pricing
+- **🏛️ AUCTION SYSTEM:** Unified `/api/v1/auctions` endpoint for all auction types (standard and professional)
+- **📋 CATEGORY INTEGRATION:** Both selling methods support category and subcategory selection
+- **🔧 INPUT SCHEMAS:** Dynamic form generation with category-specific fields for both systems
+- **🗑️ REMOVED:** `POST /api/v1/products/enhanced` endpoint (replaced by `/api/v1/sell`)
+- **📊 E-COMMERCE LEVEL:** Enhanced fields for professional selling and auction management
 - **REMOVED ALL MOCK DATA:** All endpoints now use real database queries
 - **Analytics Enhanced:** Full integration with `analytics_events` table
 - **Address Management:** Complete CRUD with `user_addresses` table  
@@ -1128,13 +1153,64 @@ The Enhanced API v2.1 represents a complete enterprise marketplace solution with
 
 ---
 
-### Enhanced Product APIs
+### Simplified Selling System - Direct Sale vs Auction
 
-**Base Path:** `/api/v1/products`
+The eBidPortal platform now offers two primary selling methods with **complete category template integration**:
 
-#### Create Enhanced Product
+1. **Direct Product Sale** (`/api/v1/sell`) - Fixed-price immediate sales with category template validation
+2. **Auction System** (`/api/v1/auctions`) - Competitive bidding with time limits and category template validation
 
-**POST** `/api/v1/products/enhanced`
+Both systems support:
+- ✅ Category/subcategory selection
+- ✅ Dynamic input schemas via category templates
+- ✅ Template-based form validation
+- ✅ User input storage in JSONB attributes columns
+- ✅ Schema retrieval endpoints for frontend dynamic forms
+
+#### Get Category Schema for Selling
+
+**GET** `/api/v1/sell/category-schema/:category_id`
+
+**Authentication:** Required (Bearer token)
+
+**Description:** Retrieves the category template schema for dynamic form generation in the selling interface.
+
+**Response:**
+```json
+{
+  "success": true,
+  "message": "Category schema retrieved successfully",
+  "data": {
+    "category_id": "uuid",
+    "template_id": "uuid",
+    "template_name": "Electronics Template",
+    "template_description": "Schema for electronics products",
+    "schema": {
+      "sections": [
+        {
+          "name": "Basic Information",
+          "fields": [
+            {
+              "name": "brand",
+              "label": "Brand",
+              "type": "text",
+              "required": true
+            }
+          ]
+        }
+      ]
+    }
+  }
+}
+```
+
+#### Create Product for Direct Sale with Template Validation
+
+**POST** `/api/v1/sell`
+
+**Authentication:** Required (Bearer token)
+
+**Description:** Create a product for direct sale with category template validation. User input from category templates is stored in the `products.data` JSONB column.
 
 **Authentication:** Required (Bearer token with seller verification)
 

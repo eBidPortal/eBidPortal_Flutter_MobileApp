@@ -9,12 +9,12 @@ class Category with _$Category {
     required String id,
     required String name,
     String? description,
-    String? imageUrl,
-    String? iconUrl,
-    String? parentId,
-    @Default(true) bool isActive,
+    @JsonKey(name: 'image_url') String? imageUrl,
+    @JsonKey(name: 'icon_url') String? iconUrl,
+    @JsonKey(name: 'parent_id') String? parentId,
+    @JsonKey(name: 'is_active') @Default(true) bool isActive,
     @Default([]) List<Category> children,
-    Map<String, dynamic>? inputSchema,
+    @JsonKey(name: 'input_schema') Map<String, dynamic>? inputSchema,
   }) = _Category;
 
   factory Category.fromJson(Map<String, dynamic> json) => _$CategoryFromJson(json);

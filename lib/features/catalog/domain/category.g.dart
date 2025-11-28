@@ -11,16 +11,16 @@ _$CategoryImpl _$$CategoryImplFromJson(Map<String, dynamic> json) =>
       id: json['id'] as String,
       name: json['name'] as String,
       description: json['description'] as String?,
-      imageUrl: json['imageUrl'] as String?,
-      iconUrl: json['iconUrl'] as String?,
-      parentId: json['parentId'] as String?,
-      isActive: json['isActive'] as bool? ?? true,
+      imageUrl: json['image_url'] as String?,
+      iconUrl: json['icon_url'] as String?,
+      parentId: json['parent_id'] as String?,
+      isActive: json['is_active'] as bool? ?? true,
       children:
           (json['children'] as List<dynamic>?)
               ?.map((e) => Category.fromJson(e as Map<String, dynamic>))
               .toList() ??
           const [],
-      inputSchema: json['inputSchema'] as Map<String, dynamic>?,
+      inputSchema: json['input_schema'] as Map<String, dynamic>?,
     );
 
 Map<String, dynamic> _$$CategoryImplToJson(_$CategoryImpl instance) =>
@@ -28,10 +28,10 @@ Map<String, dynamic> _$$CategoryImplToJson(_$CategoryImpl instance) =>
       'id': instance.id,
       'name': instance.name,
       'description': instance.description,
-      'imageUrl': instance.imageUrl,
-      'iconUrl': instance.iconUrl,
-      'parentId': instance.parentId,
-      'isActive': instance.isActive,
+      'image_url': instance.imageUrl,
+      'icon_url': instance.iconUrl,
+      'parent_id': instance.parentId,
+      'is_active': instance.isActive,
       'children': instance.children,
-      'inputSchema': instance.inputSchema,
+      'input_schema': instance.inputSchema,
     };
