@@ -24,6 +24,7 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   @override
   void initState() {
     super.initState();
+    print('🔐 SCREEN: LoginScreen - initState called');
     _animationController = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 800),

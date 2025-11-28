@@ -10,6 +10,7 @@ class CategoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('📂 SCREEN: CategoryScreen - build called');
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(

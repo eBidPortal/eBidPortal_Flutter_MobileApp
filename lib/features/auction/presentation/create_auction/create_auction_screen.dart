@@ -23,6 +23,7 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
   @override
   void initState() {
     super.initState();
+    print('🔄 SCREEN: CreateAuctionScreen - initState called');
     // Initialize with the selected category if provided
     if (widget.initialCategory != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {

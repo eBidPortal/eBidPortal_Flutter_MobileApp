@@ -21,6 +21,7 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
   @override
   void initState() {
     super.initState();
+    print('🔄 SCREEN: SplashScreen - initState called');
     _setupAnimations();
     _initializeApp();
   }

@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../catalog/presentation/categories_provider.dart';
 import '../../catalog/domain/category.dart';
+import '../../../core/network/api_client.dart';
 
 /// Template data structure matching the API response
 class CategoryTemplate {
@@ -93,8 +94,30 @@ class TemplateField {
 
 /// Service for loading and managing category templates
 class TemplateService {
+  final ApiClient _apiClient;
 
-  /// Load template for a specific category from category data
+  TemplateService(this._apiClient);
+
+  /// Load template for a specific category from API
+  Future<CategoryTemplate?> loadTemplateFromApi(String categoryId) async {
+    try {
+      print('TemplateService: Loading template from API for category: $categoryId');
+      final response = await _apiClient.get('/api/v1/sell/category-schema/$categoryId');
+
+      if (response.statusCode == 200 && response.data['success'] == true) {
+        print('TemplateService: Successfully loaded template from API for category: $categoryId');
+        return CategoryTemplate.fromJson(response.data['data']);
+      }
+
+      print('TemplateService: API returned unsuccessful response for category: $categoryId, status: ${response.statusCode}');
+      return null;
+    } catch (e) {
+      print('TemplateService: Error loading template from API for category $categoryId: $e');
+      return null;
+    }
+  }
+
+  /// Load template for a specific category from category data (fallback)
   CategoryTemplate? createTemplateFromCategoryData(Map<String, dynamic> categoryData) {
     try {
       final inputSchema = categoryData['input_schema'];
@@ -248,12 +271,22 @@ class TemplateService {
 
 /// Riverpod provider for template service
 final templateServiceProvider = Provider<TemplateService>((ref) {
-  return TemplateService();
+  final apiClient = ref.watch(apiClientProvider);
+  return TemplateService(apiClient);
 });
 
 /// Provider for loading category templates
 final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String>((ref, categoryId) async {
   final templateService = ref.watch(templateServiceProvider);
+
+  // Try to load template from API first
+  final apiTemplate = await templateService.loadTemplateFromApi(categoryId);
+  if (apiTemplate != null) {
+    return apiTemplate;
+  }
+
+  // Fallback to local category data if API fails
+  print('API template loading failed, falling back to local category data for category: $categoryId');
 
   // First get all categories
   final categoriesAsync = await ref.watch(categoriesProvider.future);

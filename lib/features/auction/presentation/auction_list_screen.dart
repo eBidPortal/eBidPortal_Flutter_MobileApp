@@ -26,6 +26,7 @@ class _AuctionListScreenState extends ConsumerState<AuctionListScreen> {
   @override
   void initState() {
     super.initState();
+    print('📋 SCREEN: AuctionListScreen - initState called (categoryId: ${widget.categoryId}, search: ${widget.search})');
     _searchController.text = widget.search ?? '';
     _currentSearch = widget.search;
   }

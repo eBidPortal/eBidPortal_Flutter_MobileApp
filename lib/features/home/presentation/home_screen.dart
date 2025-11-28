@@ -7,6 +7,7 @@ class HomeScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('🏠 SCREEN: HomeScreen - build called');
     return Scaffold(
       body: CustomScrollView(
         slivers: [

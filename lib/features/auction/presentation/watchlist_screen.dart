@@ -10,6 +10,7 @@ class WatchlistScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('⭐ SCREEN: WatchlistScreen - build called');
     final watchlistAsync = ref.watch(watchlistProvider);
 
     return Scaffold(

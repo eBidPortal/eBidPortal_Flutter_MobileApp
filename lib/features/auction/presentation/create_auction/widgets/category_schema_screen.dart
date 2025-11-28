@@ -11,6 +11,7 @@ class CategorySchemaScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('📋 SCREEN: CategorySchemaScreen - build called (category: ${category.name})');
     final templateAsync = ref.watch(categoryTemplateProvider(category.id));
 
     return Scaffold(

@@ -8,6 +8,7 @@ class ProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('👤 SCREEN: ProfileScreen - build called');
     final userAsync = ref.watch(authProvider);
 
     return Scaffold(

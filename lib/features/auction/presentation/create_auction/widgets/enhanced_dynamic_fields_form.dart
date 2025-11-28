@@ -33,6 +33,59 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
   bool _dynamicOptionsInitialized = false;
 
   @override
+  void initState() {
+    super.initState();
+    _initializeControllers();
+  }
+
+  @override
+  void didUpdateWidget(EnhancedDynamicFieldsForm oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.values != widget.values) {
+      _updateControllers();
+    }
+  }
+
+  @override
+  void dispose() {
+    for (final controller in _controllers.values) {
+      controller.dispose();
+    }
+    super.dispose();
+  }
+
+  void _initializeControllers() {
+    // Initialize controllers for all current values
+    widget.values.forEach((fieldName, value) {
+      if (!_controllers.containsKey(fieldName)) {
+        _controllers[fieldName] = TextEditingController(text: value?.toString() ?? '');
+      }
+    });
+  }
+
+  void _updateControllers() {
+    // Update existing controllers and create new ones for new fields
+    widget.values.forEach((fieldName, value) {
+      if (_controllers.containsKey(fieldName)) {
+        final currentText = _controllers[fieldName]!.text;
+        final newText = value?.toString() ?? '';
+        if (currentText != newText) {
+          _controllers[fieldName]!.text = newText;
+        }
+      } else {
+        _controllers[fieldName] = TextEditingController(text: value?.toString() ?? '');
+      }
+    });
+
+    // Remove controllers for fields that no longer exist
+    final fieldsToRemove = _controllers.keys.where((fieldName) => !widget.values.containsKey(fieldName)).toList();
+    for (final fieldName in fieldsToRemove) {
+      _controllers[fieldName]!.dispose();
+      _controllers.remove(fieldName);
+    }
+  }
+
+  @override
   Widget build(BuildContext context) {
     final templateAsync = ref.watch(categoryTemplateProvider(widget.categoryId));
 
@@ -316,54 +369,48 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
 
   Widget _buildFieldWidget(TemplateField field) {
     final currentValue = widget.values[field.name];
+    final fieldError = widget.errors[field.name];
 
-    // Create a form field with validation
-    return FormField<dynamic>(
-      initialValue: currentValue,
-      validator: (value) => _validateField(field, value),
-      builder: (FormFieldState<dynamic> state) {
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            _buildFieldInput(field, state),
-            if (state.hasError) ...[
-              const SizedBox(height: 4),
-              Text(
-                state.errorText!,
-                style: const TextStyle(color: Colors.red, fontSize: 12),
-              ),
-            ],
-          ],
-        );
-      },
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        _buildFieldInput(field, currentValue),
+        if (fieldError != null && fieldError.isNotEmpty) ...[
+          const SizedBox(height: 4),
+          Text(
+            fieldError,
+            style: const TextStyle(color: Colors.red, fontSize: 12),
+          ),
+        ],
+      ],
     );
   }
 
-  Widget _buildFieldInput(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value;
+  Widget _buildFieldInput(TemplateField field, dynamic currentValue) {
 
     switch (field.type) {
       case 'text':
-        final controller = _controllers[field.name] ??= TextEditingController();
-        controller.text = currentValue?.toString() ?? '';
+        if (!_controllers.containsKey(field.name)) {
+          _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
+        }
         return TextFormField(
-          controller: controller,
+          controller: _controllers[field.name],
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
             border: const OutlineInputBorder(),
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           ),
           onChanged: (value) {
-            state.didChange(value);
             _onFieldValueChanged(field.name, value);
           },
         );
 
       case 'textarea':
-        final controller = _controllers[field.name] ??= TextEditingController();
-        controller.text = currentValue?.toString() ?? '';
+        if (!_controllers.containsKey(field.name)) {
+          _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
+        }
         return TextFormField(
-          controller: controller,
+          controller: _controllers[field.name],
           maxLines: field.uiConfig['rows'] ?? 4,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
@@ -371,16 +418,16 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
           ),
           onChanged: (value) {
-            state.didChange(value);
             _onFieldValueChanged(field.name, value);
           },
         );
 
       case 'number':
-        final controller = _controllers[field.name] ??= TextEditingController();
-        controller.text = currentValue?.toString() ?? '';
+        if (!_controllers.containsKey(field.name)) {
+          _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
+        }
         return TextFormField(
-          controller: controller,
+          controller: _controllers[field.name],
           keyboardType: TextInputType.number,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
@@ -391,7 +438,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           ),
           onChanged: (value) {
             final numValue = num.tryParse(value);
-            state.didChange(numValue);
             _onFieldValueChanged(field.name, numValue);
           },
         );
@@ -402,7 +448,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             Checkbox(
               value: currentValue ?? field.uiConfig['defaultValue'] ?? false,
               onChanged: (value) {
-                state.didChange(value);
                 _onFieldValueChanged(field.name, value);
               },
             ),
@@ -424,7 +469,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             );
             if (date != null) {
               final dateString = date.toIso8601String().split('T')[0];
-              state.didChange(dateString);
               _onFieldValueChanged(field.name, dateString);
             }
           },
@@ -444,16 +488,17 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         );
 
       case 'checkbox':
-        return _buildCheckboxField(field, state);
+        return _buildCheckboxField(field, currentValue);
 
       case 'file':
-        return _buildFileField(field, state);
+        return _buildFileField(field, currentValue);
 
       case 'email':
-        final controller = _controllers[field.name] ??= TextEditingController();
-        controller.text = currentValue?.toString() ?? '';
+        if (!_controllers.containsKey(field.name)) {
+          _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
+        }
         return TextFormField(
-          controller: controller,
+          controller: _controllers[field.name],
           keyboardType: TextInputType.emailAddress,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter email address',
@@ -462,16 +507,16 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             prefixIcon: const Icon(Icons.email),
           ),
           onChanged: (value) {
-            state.didChange(value);
             _onFieldValueChanged(field.name, value);
           },
         );
 
       case 'url':
-        final controller = _controllers[field.name] ??= TextEditingController();
-        controller.text = currentValue?.toString() ?? '';
+        if (!_controllers.containsKey(field.name)) {
+          _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
+        }
         return TextFormField(
-          controller: controller,
+          controller: _controllers[field.name],
           keyboardType: TextInputType.url,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter URL',
@@ -480,16 +525,16 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             prefixIcon: const Icon(Icons.link),
           ),
           onChanged: (value) {
-            state.didChange(value);
             _onFieldValueChanged(field.name, value);
           },
         );
 
       case 'phone':
-        final controller = _controllers[field.name] ??= TextEditingController();
-        controller.text = currentValue?.toString() ?? '';
+        if (!_controllers.containsKey(field.name)) {
+          _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
+        }
         return TextFormField(
-          controller: controller,
+          controller: _controllers[field.name],
           keyboardType: TextInputType.phone,
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter phone number',
@@ -498,34 +543,33 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             prefixIcon: const Icon(Icons.phone),
           ),
           onChanged: (value) {
-            state.didChange(value);
             _onFieldValueChanged(field.name, value);
           },
         );
 
       case 'range':
-        return _buildRangeField(field, state);
+        return _buildRangeField(field, currentValue);
 
       case 'color':
-        return _buildColorField(field, state);
+        return _buildColorField(field, currentValue);
 
       case 'rating':
-        return _buildRatingField(field, state);
+        return _buildRatingField(field, currentValue);
 
       case 'map':
-        return _buildMapField(field, state);
+        return _buildMapField(field, currentValue);
 
       case 'object':
-        return _buildObjectField(field, state);
+        return _buildObjectField(field, currentValue);
 
       case 'select':
-        return _buildSelectField(field, state);
+        return _buildSelectField(field, currentValue);
 
       case 'radio':
-        return _buildRadioField(field, state);
+        return _buildRadioField(field, currentValue);
 
       case 'array':
-        return _buildArrayField(field, state);
+        return _buildArrayField(field, currentValue);
 
       default:
         return Text('Unsupported field type: ${field.type}');
@@ -620,8 +664,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     return null;
   }
 
-  Widget _buildSelectField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value;
+  Widget _buildSelectField(TemplateField field, dynamic currentValue) {
     final isLoading = _loadingOptions[field.name] ?? false;
     final optionsError = _optionsErrors[field.name];
     final dynamicOptions = _dynamicOptions[field.name];
@@ -652,7 +695,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           );
         }).toList(),
         onChanged: (value) {
-          state.didChange(value);
           _onFieldValueChanged(field.name, value);
         },
       );
@@ -683,7 +725,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         return null;
       }).whereType<DropdownMenuItem<String>>().toList(),
       onChanged: (value) {
-        state.didChange(value);
         _onFieldValueChanged(field.name, value);
       },
     );
@@ -750,8 +791,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     }
   }
 
-  Widget _buildRadioField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value;
+  Widget _buildRadioField(TemplateField field, dynamic currentValue) {
     final options = field.uiConfig['options'] as List<dynamic>? ?? [];
 
     return Column(
@@ -774,7 +814,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
               groupValue: currentValue,
               onChanged: (String? value) {
                 if (value != null) {
-                  state.didChange(value);
                   _onFieldValueChanged(field.name, value);
                 }
               },
@@ -787,8 +826,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildCheckboxField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value as List<dynamic>? ?? [];
+  Widget _buildCheckboxField(TemplateField field, dynamic currentValue) {
+    final checkboxValue = currentValue as List<dynamic>? ?? [];
     final options = field.uiConfig['options'] as List<dynamic>? ?? [];
 
     return Column(
@@ -806,14 +845,14 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
             return const SizedBox.shrink();
           }
 
-          final isChecked = currentValue.contains(value);
+          final isChecked = checkboxValue.contains(value);
 
           return Row(
             children: [
               Checkbox(
                 value: isChecked,
                 onChanged: (bool? checked) {
-                  final newValue = List<dynamic>.from(currentValue);
+                  final newValue = List<dynamic>.from(checkboxValue);
                   if (checked == true) {
                     if (!newValue.contains(value)) {
                       newValue.add(value);
@@ -821,7 +860,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
                   } else {
                     newValue.remove(value);
                   }
-                  state.didChange(newValue);
                   _onFieldValueChanged(field.name, newValue);
                 },
               ),
@@ -834,9 +872,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildFileField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value;
-
+  Widget _buildFileField(TemplateField field, dynamic currentValue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -846,7 +882,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
               final picker = ImagePicker();
               final pickedFile = await picker.pickImage(source: ImageSource.gallery);
               if (pickedFile != null) {
-                state.didChange(pickedFile.path);
                 _onFieldValueChanged(field.name, pickedFile.path);
               }
             } catch (e) {
@@ -866,8 +901,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildRangeField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value as num? ?? field.uiConfig['defaultValue'] ?? 50;
+  Widget _buildRangeField(TemplateField field, dynamic currentValue) {
+    final rangeValue = currentValue as num? ?? field.uiConfig['defaultValue'] ?? 50;
     final min = field.uiConfig['min'] ?? 0;
     final max = field.uiConfig['max'] ?? 100;
     final step = field.uiConfig['step'] ?? 1;
@@ -875,15 +910,14 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${field.label}: ${currentValue.round()}'),
+        Text('${field.label}: ${rangeValue.round()}'),
         Slider(
-          value: currentValue.toDouble(),
+          value: rangeValue.toDouble(),
           min: min.toDouble(),
           max: max.toDouble(),
           divisions: ((max - min) / step).round(),
           onChanged: (value) {
             final roundedValue = value.round();
-            state.didChange(roundedValue);
             _onFieldValueChanged(field.name, roundedValue);
           },
         ),
@@ -898,8 +932,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildColorField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value as String? ?? field.uiConfig['defaultValue'] ?? '#FF0000';
+  Widget _buildColorField(TemplateField field, dynamic currentValue) {
+    final colorValue = currentValue as String? ?? field.uiConfig['defaultValue'] ?? '#FF0000';
 
     return Row(
       children: [
@@ -907,7 +941,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           width: 50,
           height: 50,
           decoration: BoxDecoration(
-            color: Color(int.parse(currentValue.replaceFirst('#', ''), radix: 16) + 0xFF000000),
+            color: Color(int.parse(colorValue.replaceFirst('#', ''), radix: 16) + 0xFF000000),
             border: Border.all(color: Colors.grey),
             borderRadius: BorderRadius.circular(4),
           ),
@@ -915,7 +949,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         const SizedBox(width: 16),
         Expanded(
           child: TextFormField(
-            controller: _controllers[field.name] ??= TextEditingController(text: currentValue),
+            key: ValueKey(colorValue),
+            initialValue: colorValue,
             decoration: InputDecoration(
               hintText: field.uiConfig['placeholder'] ?? '#FF0000',
               border: const OutlineInputBorder(),
@@ -923,7 +958,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
               prefixIcon: const Icon(Icons.color_lens),
             ),
             onChanged: (value) {
-              state.didChange(value);
               _onFieldValueChanged(field.name, value);
             },
           ),
@@ -932,24 +966,23 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildRatingField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value as num? ?? 0;
+  Widget _buildRatingField(TemplateField field, dynamic currentValue) {
+    final ratingValue = currentValue as num? ?? 0;
     final maxRating = field.uiConfig['maxRating'] ?? 5;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${field.label}: ${currentValue.round()}/$maxRating'),
+        Text('${field.label}: ${ratingValue.round()}/$maxRating'),
         Row(
           children: List.generate(maxRating, (index) {
             return IconButton(
               icon: Icon(
-                index < currentValue ? Icons.star : Icons.star_border,
+                index < ratingValue ? Icons.star : Icons.star_border,
                 color: Colors.amber,
               ),
               onPressed: () {
                 final newValue = index + 1;
-                state.didChange(newValue);
                 _onFieldValueChanged(field.name, newValue);
               },
             );
@@ -959,9 +992,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildMapField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value;
-
+  Widget _buildMapField(TemplateField field, dynamic currentValue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -983,7 +1014,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildObjectField(TemplateField field, FormFieldState<dynamic> state) {
+  Widget _buildObjectField(TemplateField field, dynamic currentValue) {
     // For now, show a placeholder for nested object fields
     return Container(
       padding: const EdgeInsets.all(16),
@@ -1003,13 +1034,13 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
-  Widget _buildArrayField(TemplateField field, FormFieldState<dynamic> state) {
-    final currentValue = state.value as List<dynamic>? ?? [];
+  Widget _buildArrayField(TemplateField field, dynamic currentValue) {
+    final arrayValue = currentValue as List<dynamic>? ?? [];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('${field.label} (${currentValue.length} items)'),
+        Text('${field.label} (${arrayValue.length} items)'),
         const SizedBox(height: 8),
         ElevatedButton.icon(
           onPressed: () {
@@ -1021,16 +1052,15 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           icon: const Icon(Icons.add),
           label: const Text('Add Item'),
         ),
-        if (currentValue.isNotEmpty) ...[
+        if (arrayValue.isNotEmpty) ...[
           const SizedBox(height: 8),
-          ...currentValue.map((item) => ListTile(
+          ...arrayValue.map((item) => ListTile(
             title: Text(item.toString()),
             trailing: IconButton(
               icon: const Icon(Icons.delete),
               onPressed: () {
-                final newValue = List<dynamic>.from(currentValue);
+                final newValue = List<dynamic>.from(arrayValue);
                 newValue.remove(item);
-                state.didChange(newValue);
                 _onFieldValueChanged(field.name, newValue);
               },
             ),
@@ -1038,20 +1068,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         ],
       ],
     );
-  }
-
-  @override
-  void initState() {
-    super.initState();
-    // Dynamic options are now loaded when template is available
-  }
-
-  @override
-  void dispose() {
-    for (final controller in _controllers.values) {
-      controller.dispose();
-    }
-    super.dispose();
   }
 
   void _loadDynamicOptionsForTemplate(CategoryTemplate template) {

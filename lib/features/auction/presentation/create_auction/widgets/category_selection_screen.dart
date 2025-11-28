@@ -17,6 +17,7 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
 
   @override
   Widget build(BuildContext context) {
+    print('🎯 SCREEN: CategorySelectionScreen - build called');
     final categoriesAsync = ref.watch(categoriesProvider);
 
     return Scaffold(

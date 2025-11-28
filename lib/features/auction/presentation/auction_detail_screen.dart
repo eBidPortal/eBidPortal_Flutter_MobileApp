@@ -14,6 +14,7 @@ class AuctionDetailScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    print('📄 SCREEN: AuctionDetailScreen - build called (auctionId: $auctionId)');
     final auctionAsync = ref.watch(auctionDetailProvider(auctionId));
 
     return Scaffold(
