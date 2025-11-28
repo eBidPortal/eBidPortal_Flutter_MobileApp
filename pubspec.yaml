@@ -50,6 +50,28 @@ dev_dependencies:
   riverpod_generator: ^2.4.0
   freezed: ^2.4.0
   json_serializable: ^6.7.0
+  
+  # Native Splash Screen
+  flutter_native_splash: ^2.3.5
 
 flutter:
   uses-material-design: true
+  
+  # Assets
+  assets:
+    - assets/images/
+
+# Native Splash Screen Configuration
+flutter_native_splash:
+  color: "#6366F1"  # Your app's primary color (indigo)
+  color_dark: "#6366F1"
+  image: assets/images/splash_icon.png
+  android: true
+  ios: true
+  web: false
+  
+  # Android 12+ specific configuration
+  android_12:
+    image: assets/images/splash_icon.png
+    color: "#6366F1"
+    icon_background_color: "#6366F1"

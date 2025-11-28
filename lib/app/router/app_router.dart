@@ -9,22 +9,38 @@ import '../../features/auction/presentation/auction_detail_screen.dart';
 import '../../features/auction/presentation/watchlist_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
+import '../../features/splash/presentation/splash_screen.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
   final authState = ref.watch(authProvider);
 
   return GoRouter(
-    initialLocation: '/',
+    initialLocation: '/splash',
     redirect: (context, state) {
+      final isSplashScreen = state.uri.path == '/splash';
+      final isLoginScreen = state.uri.path == '/login';
       final isLoggedIn = authState.value != null;
-      final isLoggingIn = state.uri.path == '/login';
 
-      if (!isLoggedIn && !isLoggingIn) return '/login';
-      if (isLoggedIn && isLoggingIn) return '/';
+      // Allow splash screen to show initially
+      if (isSplashScreen) {
+        return null;
+      }
+
+      // After splash, handle auth-based routing
+      if (!isLoggedIn && !isLoginScreen) {
+        return '/login';
+      }
+      if (isLoggedIn && isLoginScreen) {
+        return '/';
+      }
 
       return null;
     },
     routes: [
+      GoRoute(
+        path: '/splash',
+        builder: (context, state) => const SplashScreen(),
+      ),
       GoRoute(
         path: '/',
         builder: (context, state) => const HomeScreen(),
