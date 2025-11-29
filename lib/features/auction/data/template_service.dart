@@ -135,48 +135,83 @@ class TemplateField {
         final valueField = json['valueField'] ?? json['value_field'] ?? uiConfig['value_field'] ?? 'id';
         final dependsOn = json['depends_on'] ?? json['dependsOn'];
         
-        String? finalDependsOn = dependsOn;
-        String finalApiUrl = apiUrl;
-        String finalValueField = valueField;
-        String finalDataPath = dataPath; // Create a mutable copy for modifications
-        
-        // Set dependencies and modify URLs for known cascading fields
-        final fieldName = json['name'] as String?;
-        if (fieldName == 'brand' || fieldName == 'vehicle_type') {
-          finalValueField = 'id'; // Ensure brand uses ID as value
-        } else if (fieldName == 'model') {
-          finalDependsOn = finalDependsOn ?? 'brand';
-          if (finalApiUrl == '/cars/models' || finalApiUrl.contains('/cars/models')) {
-            finalApiUrl = '/cars/brands/{brand}/models';
+        // Only create dynamic_options if we have a valid API URL
+        if (apiUrl != null && apiUrl.isNotEmpty) {
+          String? finalDependsOn = dependsOn;
+          String finalApiUrl = apiUrl;
+          String finalValueField = valueField ?? 'id';
+          String finalDataPath = dataPath ?? 'data'; // Create a mutable copy for modifications
+          
+          // Set dependencies and modify URLs for known cascading fields
+          final fieldName = json['name'] as String?;
+          if (fieldName == 'brand' || fieldName == 'vehicle_type') {
+            finalValueField = 'id'; // Ensure brand uses ID as value
+          } else if (fieldName == 'model') {
+            finalDependsOn = finalDependsOn ?? 'brand';
+            // Support multiple vehicle types: cars, bikes, etc.
+            if (finalApiUrl.contains('/models') && !finalApiUrl.contains('/brands/')) {
+              // Convert generic models URL to brand-specific URL
+              if (finalApiUrl.contains('/cars/')) {
+                finalApiUrl = '/cars/brands/{brand}/models';
+              } else if (finalApiUrl.contains('/bikes/')) {
+                finalApiUrl = '/bikes/brands/{brand}/models';
+              } else {
+                // Generic vehicle type support
+                finalApiUrl = finalApiUrl.replaceAll('/models', '/brands/{brand}/models');
+              }
+            }
+          } else if (fieldName == 'variant') {
+            finalDependsOn = finalDependsOn ?? 'model';
+            // Support variants for multiple vehicle types
+            if (finalApiUrl.contains('/variants') && !finalApiUrl.contains('/models/')) {
+              // Convert generic variants URL to model-specific URL
+              if (finalApiUrl.contains('/cars/')) {
+                finalApiUrl = '/cars/models/{model}/variants';
+                finalDataPath = 'data.variants'; // Cars have nested variants
+              } else if (finalApiUrl.contains('/bikes/')) {
+                finalApiUrl = '/bikes/models/{model}/variants';
+                finalDataPath = 'data.variants'; // Bikes also have nested variants
+              } else {
+                // Generic vehicle type support
+                finalApiUrl = finalApiUrl.replaceAll('/variants', '/models/{model}/variants');
+                finalDataPath = 'data.variants';
+              }
+            }
           }
-        } else if (fieldName == 'variant') {
-          finalDependsOn = finalDependsOn ?? 'model';
-          if (finalApiUrl == '/cars/variants' || finalApiUrl.contains('/cars/variants')) {
-            finalApiUrl = '/cars/models/{model}/variants';
-            finalDataPath = 'data.variants'; // Variants are nested under data.variants in the response
-          }
-        }
-        
-        if (finalApiUrl != null) {
+          
           uiConfig['dynamic_options'] = {
             'api_url': finalApiUrl,
             'data_path': finalDataPath,
-            'label_field': labelField,
+            'label_field': labelField ?? 'name',
             'value_field': finalValueField,
             if (finalDependsOn != null) 'depends_on': finalDependsOn,
           };
         }
       }
 
-      // Special handling for brand field - ensure it uses ID as value
+      // Special handling for brand field - ensure it uses dynamic API options
       if (isBrandField) {
-        // Always override with our configuration for brand field only
-        uiConfig['dynamic_options'] = {
-          'api_url': '/cars/brands',
-          'data_path': 'data',
-          'label_field': 'name',
-          'value_field': 'id',
-        };
+        // Check if there's a vehicle_type dependency to determine API endpoint
+        final hasVehicleTypeDependency = json.containsKey('depends_on') && json['depends_on'] == 'vehicle_type';
+        
+        if (hasVehicleTypeDependency) {
+          // Dynamic vehicle type support: /cars/brands, /bikes/brands, etc.
+          uiConfig['dynamic_options'] = {
+            'api_url': '/{vehicle_type}s/brands',
+            'data_path': 'data',
+            'label_field': 'name',
+            'value_field': 'id',
+            'depends_on': 'vehicle_type',
+          };
+        } else {
+          // Default to cars if no vehicle type dependency
+          uiConfig['dynamic_options'] = {
+            'api_url': '/cars/brands',
+            'data_path': 'data',
+            'label_field': 'name',
+            'value_field': 'id',
+          };
+        }
       }
     }
 

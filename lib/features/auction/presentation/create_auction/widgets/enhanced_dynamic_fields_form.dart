@@ -1269,7 +1269,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for variant field');
         return {
           'api_url': '/cars/models/{model}/variants',
-          'data_path': 'data',
+          'data_path': 'data.variants', // Updated to use nested path for variants
           'label_field': 'name',
           'value_field': 'id',
           'depends_on': 'model',
