@@ -103,14 +103,28 @@ class TemplateField {
                            validation['options'] is List && 
                            (validation['options'] as List).isNotEmpty;
     
-    if (hasStaticOptions) {
-      // Use static options from validation
+    // Check if this is a brand field that should always use dynamic options
+    final fieldName = json['name'] as String?;
+    final isBrandField = (fieldName == 'brand');
+    
+    if (hasStaticOptions && !isBrandField) {
+      // Use static options from validation (except for brand field)
       uiConfig['options'] = validation['options'];
     } else {
       // Add dynamic_options if they exist
       final dynamicOptions = json['dynamic_options'];
       if (dynamicOptions is Map<String, dynamic>) {
-        uiConfig['dynamic_options'] = dynamicOptions;
+        uiConfig['dynamic_options'] = Map<String, dynamic>.from(dynamicOptions);
+        
+        // Modify dynamic_options for known cascading fields
+        final fieldName = json['name'] as String?;
+        if (fieldName == 'model') {
+          uiConfig['dynamic_options']['api_url'] = '/cars/models?brand_id={brand}';
+          uiConfig['dynamic_options']['depends_on'] = 'brand';
+        } else if (fieldName == 'variant') {
+          uiConfig['dynamic_options']['api_url'] = '/cars/variants?model_id={model}';
+          uiConfig['dynamic_options']['depends_on'] = 'model';
+        }
       }
       
       // If no dynamic_options but has apiUrl or similar, create dynamic_options
@@ -121,22 +135,55 @@ class TemplateField {
         final valueField = json['valueField'] ?? json['value_field'] ?? uiConfig['value_field'] ?? 'id';
         final dependsOn = json['depends_on'] ?? json['dependsOn'];
         
-        if (apiUrl != null) {
+        String? finalDependsOn = dependsOn;
+        String finalApiUrl = apiUrl;
+        String finalValueField = valueField;
+        String finalDataPath = dataPath; // Create a mutable copy for modifications
+        
+        // Set dependencies and modify URLs for known cascading fields
+        final fieldName = json['name'] as String?;
+        if (fieldName == 'brand' || fieldName == 'vehicle_type') {
+          finalValueField = 'id'; // Ensure brand uses ID as value
+        } else if (fieldName == 'model') {
+          finalDependsOn = finalDependsOn ?? 'brand';
+          if (finalApiUrl == '/cars/models' || finalApiUrl.contains('/cars/models')) {
+            finalApiUrl = '/cars/brands/{brand}/models';
+          }
+        } else if (fieldName == 'variant') {
+          finalDependsOn = finalDependsOn ?? 'model';
+          if (finalApiUrl == '/cars/variants' || finalApiUrl.contains('/cars/variants')) {
+            finalApiUrl = '/cars/models/{model}/variants';
+            finalDataPath = 'data.variants'; // Variants are nested under data.variants in the response
+          }
+        }
+        
+        if (finalApiUrl != null) {
           uiConfig['dynamic_options'] = {
-            'api_url': apiUrl,
-            'data_path': dataPath,
+            'api_url': finalApiUrl,
+            'data_path': finalDataPath,
             'label_field': labelField,
-            'value_field': valueField,
-            if (dependsOn != null) 'depends_on': dependsOn,
+            'value_field': finalValueField,
+            if (finalDependsOn != null) 'depends_on': finalDependsOn,
           };
         }
+      }
+
+      // Special handling for brand field - ensure it uses ID as value
+      if (isBrandField) {
+        // Always override with our configuration for brand field only
+        uiConfig['dynamic_options'] = {
+          'api_url': '/cars/brands',
+          'data_path': 'data',
+          'label_field': 'name',
+          'value_field': 'id',
+        };
       }
     }
 
     return TemplateField(
-      name: json['name'] ?? '',
-      label: json['label'] ?? json['name'] ?? '',
-      type: json['type'] ?? 'text',
+      name: (json['name']?.toString()) ?? '',
+      label: (json['label']?.toString()) ?? (json['name']?.toString()) ?? '',
+      type: (json['type']?.toString()) ?? 'text',
       required: json['required'] ?? false,
       validation: json['validation'] ?? {},
       uiConfig: uiConfig,
@@ -201,9 +248,24 @@ class TemplateService {
       }
 
       // Convert fields to TemplateField objects
-      final templateFields = fields.map((fieldJson) {
-        return TemplateField.fromJson(fieldJson as Map<String, dynamic>);
-      }).toList();
+      final templateFields = <TemplateField>[];
+      for (final fieldJson in fields) {
+        if (fieldJson is! Map<String, dynamic>) {
+          print('TemplateService: Skipping invalid field: $fieldJson');
+          continue;
+        }
+        try {
+          final templateField = TemplateField.fromJson(fieldJson);
+          templateFields.add(templateField);
+        } catch (e) {
+          print('TemplateService: Error parsing field $fieldJson: $e');
+        }
+      }
+
+      if (templateFields.isEmpty) {
+        print('TemplateService: No valid fields found in input_schema');
+        return null;
+      }
 
       // Group fields into sections (for now, put all in one section)
       final section = TemplateSection(

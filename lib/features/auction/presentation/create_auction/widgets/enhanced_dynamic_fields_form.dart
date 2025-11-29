@@ -791,11 +791,10 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
   }
 
   void _reloadDependentFields(String changedFieldName, dynamic newValue) {
-    final dependentFields = _fieldDependencies.entries
-        .where((entry) => entry.value == changedFieldName)
-        .map((entry) => entry.key);
+    // Get all transitive dependent fields
+    final allDependentFields = _getAllDependentFields(changedFieldName);
 
-    for (final dependentField in dependentFields) {
+    for (final dependentField in allDependentFields) {
       print('EnhancedDynamicFieldsForm: Reloading options for dependent field "$dependentField" due to change in "$changedFieldName"');
 
       // Clear existing options
@@ -830,6 +829,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
                 // Create updated values map with the new value
                 final updatedValues = Map<String, dynamic>.from(widget.values);
                 updatedValues[changedFieldName] = newValue;
+                print('EnhancedDynamicFieldsForm: Reloading "$dependentField" with updated values: $updatedValues');
 
                 _loadOptionsForField(dependentField, options, updatedValues);
               }
@@ -842,6 +842,28 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         },
       );
     }
+  }
+
+  List<String> _getAllDependentFields(String fieldName) {
+    final visited = <String>{};
+    final result = <String>[];
+
+    void collectDependents(String currentField) {
+      if (visited.contains(currentField)) return;
+      visited.add(currentField);
+
+      final dependents = _fieldDependencies.entries
+          .where((entry) => entry.value == currentField)
+          .map((entry) => entry.key);
+
+      for (final dependent in dependents) {
+        result.add(dependent);
+        collectDependents(dependent);
+      }
+    }
+
+    collectDependents(fieldName);
+    return result;
   }
 
   Widget _buildRadioField(TemplateField field, dynamic currentValue) {
@@ -1202,7 +1224,14 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           if (dependsOn != null) {
             _fieldDependencies[field.name] = dependsOn;
             print('EnhancedDynamicFieldsForm: Field "${field.name}" depends on "$dependsOn"');
-            // Don't load options for dependent fields initially
+            // Load options for dependent fields if parent has a value
+            if (widget.values[dependsOn] != null && widget.values[dependsOn].toString().isNotEmpty) {
+              final existingOptions = _dynamicOptions[field.name];
+              if (existingOptions == null || existingOptions.isEmpty) {
+                print('EnhancedDynamicFieldsForm: Initial load for dependent field "${field.name}" with parent "$dependsOn" value: ${widget.values[dependsOn]}');
+                _loadOptionsForField(field.name, options, widget.values);
+              }
+            }
           } else {
             // Only load options for fields without dependencies if not already loaded
             final existingOptions = _dynamicOptions[field.name];
@@ -1231,7 +1260,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for model field');
         return {
           'api_url': '/cars/brands/{brand}/models',
-          'data_path': 'data.models',
+          'data_path': 'data',
           'label_field': 'name',
           'value_field': 'id',
           'depends_on': 'brand',
@@ -1240,7 +1269,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for variant field');
         return {
           'api_url': '/cars/models/{model}/variants',
-          'data_path': 'data.variants',
+          'data_path': 'data',
           'label_field': 'name',
           'value_field': 'id',
           'depends_on': 'model',
@@ -1292,6 +1321,25 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
   }
 
   Future<void> _loadOptionsForField(String fieldName, Map<String, dynamic> dynamicOptions, [Map<String, dynamic>? currentValuesParam]) async {
+    print('EnhancedDynamicFieldsForm: _loadOptionsForField called for field: $fieldName');
+    print('EnhancedDynamicFieldsForm: dynamicOptions: $dynamicOptions');
+    // Check if this field depends on another field
+    final dependsOn = dynamicOptions['depends_on'] as String?;
+    final currentValues = currentValuesParam ?? widget.values;
+    
+    if (dependsOn != null) {
+      final dependentValue = currentValues[dependsOn]?.toString();
+      print('EnhancedDynamicFieldsForm: Checking dependency for "$fieldName" - depends_on: "$dependsOn", currentValues: $currentValues, dependentValue: "$dependentValue"');
+      if (dependentValue == null || dependentValue.isEmpty) {
+        print('EnhancedDynamicFieldsForm: Skipping load for dependent field "$fieldName" - "$dependsOn" not selected');
+        setState(() {
+          _dynamicOptions[fieldName] = []; // Clear options
+          _loadingOptions[fieldName] = false;
+        });
+        return;
+      }
+    }
+
     // Check if options are already loaded and not empty
     final existingOptions = _dynamicOptions[fieldName];
     if (existingOptions != null && existingOptions.isNotEmpty) {
@@ -1324,8 +1372,10 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
       for (final match in matches) {
         final varName = match.group(1)!;
         final varValue = currentValues[varName]?.toString() ?? '';
+        print('EnhancedDynamicFieldsForm: Replacing {$varName} with "$varValue" in URL');
         apiUrl = apiUrl.replaceAll('{$varName}', varValue);
       }
+      print('EnhancedDynamicFieldsForm: URL after template replacement: $apiUrl');
 
       // Convert full URLs to relative paths for apiClient
       if (apiUrl.startsWith('https://api.ebidportal.com/api/v1/')) {
@@ -1337,20 +1387,29 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
 
       // Get API client
       final apiClient = ref.read(apiClientProvider);
+      print('EnhancedDynamicFieldsForm: Making API call to: $apiUrl');
+      print('EnhancedDynamicFieldsForm: Field: $fieldName, Data path: $dataPath, Label field: $labelField, Value field: $valueField');
+      print('EnhancedDynamicFieldsForm: Current values for API call: $currentValues');
+      
       final response = await apiClient.get(apiUrl);
 
       print('EnhancedDynamicFieldsForm: Received response for field "$fieldName": status=${response.statusCode}');
+      print('EnhancedDynamicFieldsForm: Response headers: ${response.headers.map}');
+      print('EnhancedDynamicFieldsForm: Full response data: ${response.data}');
 
       if (response.data['success'] == true) {
         // Extract data flexibly
         List<dynamic> data = _extractDataFromResponse(response.data, dataPath);
         print('EnhancedDynamicFieldsForm: Found ${data.length} options for field "$fieldName"');
+        print('EnhancedDynamicFieldsForm: Raw data from API: $data');
 
         final options = data.map((item) {
           final itemData = item as Map<String, dynamic>;
+          final value = itemData[valueField]?.toString() ?? '';
+          final label = itemData[labelField]?.toString() ?? '';
           return {
-            'value': itemData[valueField]?.toString() ?? '',
-            'label': itemData[labelField]?.toString() ?? '',
+            'value': value,
+            'label': label,
           };
         }).toList();
 
@@ -1360,6 +1419,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         });
 
         print('EnhancedDynamicFieldsForm: Successfully loaded ${options.length} options for field "$fieldName"');
+        print('EnhancedDynamicFieldsForm: Final options: $options');
       } else {
         final errorMsg = 'API returned success=false for field "$fieldName"';
         print('EnhancedDynamicFieldsForm: $errorMsg');
@@ -1373,15 +1433,16 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
       // Handle DioException specifically for detailed logging
       if (e is DioException) {
         print('EnhancedDynamicFieldsForm: DioException details for field "$fieldName":');
-        print('  - Request: ${e.requestOptions.method} ${e.requestOptions.uri}');
+        print('  - Request Method: ${e.requestOptions.method}');
+        print('  - Request URL: ${e.requestOptions.uri}');
+        print('  - Request Headers: ${e.requestOptions.headers}');
+        print('  - Request Data: ${e.requestOptions.data}');
         print('  - Status Code: ${e.response?.statusCode}');
         print('  - Status Message: ${e.response?.statusMessage}');
+        print('  - Response Headers: ${e.response?.headers.map}');
         print('  - Response Data: ${e.response?.data}');
         print('  - Error Type: ${e.type}');
         print('  - Error Message: ${e.message}');
-        if (e.response?.headers != null) {
-          print('  - Response Headers: ${e.response!.headers.map}');
-        }
       }
 
       // Try to fall back to static options from template if API fails
@@ -1473,7 +1534,8 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     if (current is List) {
       return current;
     } else if (current is Map) {
-      return current['models'] as List<dynamic>? ??
+      return current['variants'] as List<dynamic>? ??
+             current['models'] as List<dynamic>? ??
              current['data'] as List<dynamic>? ??
              current['items'] as List<dynamic>? ??
              current['results'] as List<dynamic>? ??
