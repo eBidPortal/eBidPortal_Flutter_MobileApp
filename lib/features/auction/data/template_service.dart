@@ -96,10 +96,41 @@ class TemplateField {
       uiConfig.addAll(ui);
     }
     
-    // Add dynamic_options
-    final dynamicOptions = json['dynamic_options'];
-    if (dynamicOptions is Map<String, dynamic>) {
-      uiConfig['dynamic_options'] = dynamicOptions;
+    // Check if static options exist in validation - these take priority
+    final validation = json['validation'] ?? {};
+    final hasStaticOptions = validation is Map<String, dynamic> && 
+                           validation.containsKey('options') && 
+                           validation['options'] is List && 
+                           (validation['options'] as List).isNotEmpty;
+    
+    if (hasStaticOptions) {
+      // Use static options from validation
+      uiConfig['options'] = validation['options'];
+    } else {
+      // Add dynamic_options if they exist
+      final dynamicOptions = json['dynamic_options'];
+      if (dynamicOptions is Map<String, dynamic>) {
+        uiConfig['dynamic_options'] = dynamicOptions;
+      }
+      
+      // If no dynamic_options but has apiUrl or similar, create dynamic_options
+      if (!uiConfig.containsKey('dynamic_options')) {
+        final apiUrl = json['apiUrl'] ?? json['api_url'] ?? json['api_endpoint'] ?? uiConfig['api_endpoint'];
+        final dataPath = json['dataPath'] ?? json['data_path'] ?? uiConfig['data_path'] ?? 'data';
+        final labelField = json['labelField'] ?? json['label_field'] ?? uiConfig['label_field'] ?? 'name';
+        final valueField = json['valueField'] ?? json['value_field'] ?? uiConfig['value_field'] ?? 'id';
+        final dependsOn = json['depends_on'] ?? json['dependsOn'];
+        
+        if (apiUrl != null) {
+          uiConfig['dynamic_options'] = {
+            'api_url': apiUrl,
+            'data_path': dataPath,
+            'label_field': labelField,
+            'value_field': valueField,
+            if (dependsOn != null) 'depends_on': dependsOn,
+          };
+        }
+      }
     }
 
     return TemplateField(

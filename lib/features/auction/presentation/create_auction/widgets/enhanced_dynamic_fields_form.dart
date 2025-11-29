@@ -691,9 +691,14 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     final dynamicOptions = _dynamicOptions[field.name];
 
     // Check if field has dynamic options (either explicitly configured or auto-configured)
-    final hasDynamicOptions = field.uiConfig.containsKey('dynamic_options') ||
+    // But don't treat as dynamic if static options are available
+    final hasStaticOptions = field.uiConfig.containsKey('options') && 
+                           (field.uiConfig['options'] as List?)?.isNotEmpty == true;
+    
+    final hasDynamicOptions = !hasStaticOptions && (
+                             field.uiConfig.containsKey('dynamic_options') ||
                              _getAutoDynamicOptions(field.name, field) != null ||
-                             dynamicOptions != null;
+                             dynamicOptions != null);
 
     if (hasDynamicOptions) {
       if (isLoading) {
@@ -742,8 +747,9 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
       );
     }
 
-    // Static options
-    final staticOptions = field.uiConfig['options'] as List<dynamic>? ?? [];
+    // Static options (check both uiConfig and validation)
+    final staticOptions = field.uiConfig['options'] as List<dynamic>? ?? 
+                         field.validation['options'] as List<dynamic>? ?? [];
     // Convert static options to the same format as dynamic options
     final normalizedOptions = staticOptions.map((option) {
       if (option is String) {
@@ -844,9 +850,14 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     final dynamicOptions = _dynamicOptions[field.name];
 
     // Check if field has dynamic options (either explicitly configured or auto-configured)
-    final hasDynamicOptions = field.uiConfig.containsKey('dynamic_options') ||
+    // But don't treat as dynamic if static options are available
+    final hasStaticOptions = field.uiConfig.containsKey('options') && 
+                           (field.uiConfig['options'] as List?)?.isNotEmpty == true;
+    
+    final hasDynamicOptions = !hasStaticOptions && (
+                             field.uiConfig.containsKey('dynamic_options') ||
                              _getAutoDynamicOptions(field.name, field) != null ||
-                             dynamicOptions != null;
+                             dynamicOptions != null);
 
     List<Map<String, dynamic>> options = [];
 
@@ -875,8 +886,9 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
 
       options = (dynamicOptions ?? []).cast<Map<String, dynamic>>();
     } else {
-      // Static options
-      final staticOptions = field.uiConfig['options'] as List<dynamic>? ?? [];
+      // Static options (check both uiConfig and validation)
+      final staticOptions = field.uiConfig['options'] as List<dynamic>? ?? 
+                           field.validation['options'] as List<dynamic>? ?? [];
       options = staticOptions.map((option) {
         if (option is String) {
           return {'value': option, 'label': option};
@@ -1176,7 +1188,11 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     for (final section in template.sections) {
       for (final field in section.fields) {
         final dynamicOptions = field.uiConfig['dynamic_options'] as Map<String, dynamic>?;
-        final autoDynamicOptions = _getAutoDynamicOptions(field.name, field);
+        final hasStaticOptions = field.uiConfig.containsKey('options') && 
+                               (field.uiConfig['options'] as List?)?.isNotEmpty == true;
+        
+        // Don't use auto-configuration if field has static options
+        final autoDynamicOptions = hasStaticOptions ? null : _getAutoDynamicOptions(field.name, field);
 
         final options = dynamicOptions ?? autoDynamicOptions;
 
@@ -1387,8 +1403,9 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
                 if (templateField != null) break;
               }
 
-              if (templateField != null && templateField.uiConfig.containsKey('options')) {
-                final staticOptions = templateField.uiConfig['options'] as List<dynamic>?;
+              if (templateField != null && (templateField.uiConfig.containsKey('options') || templateField.validation.containsKey('options'))) {
+                final staticOptions = templateField.uiConfig['options'] as List<dynamic>? ?? 
+                                    templateField.validation['options'] as List<dynamic>?;
                 if (staticOptions != null && staticOptions.isNotEmpty) {
                   final options = staticOptions.map((option) {
                     String value, label;
