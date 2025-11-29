@@ -93,7 +93,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         if (!_controllers.containsKey(field.name)) {
           final currentValue = widget.values[field.name];
           _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
-          print('EnhancedDynamicFieldsForm: Created controller for field "${field.name}" with initial value: ${currentValue?.toString() ?? "null"}');
+
         }
       }
     }
@@ -118,7 +118,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           _initializeControllersForTemplate(template);
         }
 
-        print('EnhancedDynamicFieldsForm: Rendering template with ${template.sections.length} sections');
+
 
         return _buildTemplateForm(template);
       },
@@ -138,29 +138,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Template header
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                template.name,
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                ),
-              ),
-              const SizedBox(height: 8),
-              Text(
-                template.description,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-          ),
-        ),
-
         // Render sections
         ...sortedSections.map((section) => _buildSection(section)),
       ],
@@ -1249,7 +1226,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     // Static options will be used as fallback if API fails
     switch (fieldName) {
       case 'brand':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for brand field');
+
         return {
           'api_url': '/cars/brands',
           'data_path': 'data',
@@ -1257,7 +1234,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           'value_field': 'id',
         };
       case 'model':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for model field');
+
         return {
           'api_url': '/cars/brands/{brand}/models',
           'data_path': 'data',
@@ -1266,7 +1243,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           'depends_on': 'brand',
         };
       case 'variant':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for variant field');
+
         return {
           'api_url': '/cars/models/{model}/variants',
           'data_path': 'data.variants', // Updated to use nested path for variants

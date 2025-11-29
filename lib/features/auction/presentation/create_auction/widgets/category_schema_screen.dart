@@ -73,7 +73,7 @@ class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
 
   @override
   Widget build(BuildContext context) {
-    print('📋 SCREEN: CategorySchemaScreen - build called (category: ${widget.category.name})');
+
     final templateAsync = ref.watch(categoryTemplateProvider(widget.category.id));
 
     return Scaffold(
