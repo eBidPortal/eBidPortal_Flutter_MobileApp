@@ -3,31 +3,87 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../catalog/domain/category.dart';
 import '../../../data/template_service.dart';
+import 'enhanced_dynamic_fields_form.dart';
 
-class CategorySchemaScreen extends ConsumerWidget {
+class CategorySchemaScreen extends ConsumerStatefulWidget {
   final Category category;
 
   const CategorySchemaScreen({super.key, required this.category});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    print('📋 SCREEN: CategorySchemaScreen - build called (category: ${category.name})');
-    final templateAsync = ref.watch(categoryTemplateProvider(category.id));
+  ConsumerState<CategorySchemaScreen> createState() => _CategorySchemaScreenState();
+}
+
+class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
+  final Map<String, dynamic> _formData = {};
+  bool _isSubmitting = false;
+
+  @override
+  void initState() {
+    super.initState();
+    print('📋 SCREEN: CategorySchemaScreen - initState called (category: ${widget.category.name})');
+  }
+
+  void _onFieldChanged(String fieldName, dynamic value) {
+    setState(() {
+      _formData[fieldName] = value;
+    });
+    print('📝 CategorySchemaScreen: Field "$fieldName" changed to: $value');
+  }
+
+  Future<void> _submitForm() async {
+    setState(() {
+      _isSubmitting = true;
+    });
+
+    try {
+      // Here you would typically submit the form data
+      // For now, just show a success message
+      print('✅ CategorySchemaScreen: Form submitted with data: $_formData');
+
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Auction created successfully!'),
+            backgroundColor: Colors.green,
+          ),
+        );
+
+        // Navigate back or to auction list
+        context.go('/');
+      }
+    } catch (e) {
+      print('❌ CategorySchemaScreen: Error submitting form: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Error creating auction: $e'),
+            backgroundColor: Colors.red,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() {
+          _isSubmitting = false;
+        });
+      }
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    print('📋 SCREEN: CategorySchemaScreen - build called (category: ${widget.category.name})');
+    final templateAsync = ref.watch(categoryTemplateProvider(widget.category.id));
 
     return Scaffold(
       appBar: AppBar(
-        title: Text('${category.name} Schema'),
+        title: Text('Create ${widget.category.name} Auction'),
         elevation: 0,
-        actions: [
-          TextButton(
-            onPressed: () => _proceedToAuction(context),
-            child: const Text('Create Auction'),
-          ),
-        ],
       ),
       body: templateAsync.when(
         data: (template) => template != null
-            ? _buildSchemaView(context, template)
+            ? _buildFormView(context, template)
             : _buildNoSchemaView(context),
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(
@@ -36,39 +92,26 @@ class CategorySchemaScreen extends ConsumerWidget {
             children: [
               const Icon(Icons.error_outline, size: 64, color: Colors.red),
               const SizedBox(height: 16),
-              Text('Failed to load schema', style: Theme.of(context).textTheme.headlineSmall),
+              Text('Failed to load form', style: Theme.of(context).textTheme.headlineSmall),
               const SizedBox(height: 8),
               Text('$error', textAlign: TextAlign.center),
               const SizedBox(height: 16),
               ElevatedButton(
-                onPressed: () => ref.invalidate(categoryTemplateProvider(category.id)),
+                onPressed: () => ref.invalidate(categoryTemplateProvider(widget.category.id)),
                 child: const Text('Retry'),
               ),
             ],
           ),
         ),
       ),
-      bottomNavigationBar: Container(
-        padding: const EdgeInsets.all(16),
-        decoration: BoxDecoration(
-          color: Theme.of(context).scaffoldBackgroundColor,
-          border: Border(top: BorderSide(color: Colors.grey.shade300)),
-        ),
-        child: ElevatedButton(
-          onPressed: () => _proceedToAuction(context),
-          style: ElevatedButton.styleFrom(
-            minimumSize: const Size(double.infinity, 50),
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(8),
-            ),
-          ),
-          child: const Text('Continue to Auction Creation'),
-        ),
+      bottomNavigationBar: templateAsync.maybeWhen(
+        data: (template) => template != null ? _buildSubmitButton() : null,
+        orElse: () => null,
       ),
     );
   }
 
-  Widget _buildSchemaView(BuildContext context, CategoryTemplate template) {
+  Widget _buildFormView(BuildContext context, CategoryTemplate template) {
     return SingleChildScrollView(
       padding: const EdgeInsets.all(16),
       child: Column(
@@ -87,7 +130,7 @@ class CategorySchemaScreen extends ConsumerWidget {
                         radius: 24,
                         backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
                         child: Icon(
-                          _getCategoryIcon(category.name),
+                          _getCategoryIcon(widget.category.name),
                           color: Theme.of(context).primaryColor,
                         ),
                       ),
@@ -97,12 +140,12 @@ class CategorySchemaScreen extends ConsumerWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              category.name,
+                              'Create ${widget.category.name} Auction',
                               style: Theme.of(context).textTheme.headlineSmall,
                             ),
-                            if (category.description != null)
+                            if (widget.category.description != null)
                               Text(
-                                category.description!,
+                                widget.category.description!,
                                 style: Theme.of(context).textTheme.bodyMedium?.copyWith(
                                   color: Colors.grey[600],
                                 ),
@@ -118,51 +161,51 @@ class CategorySchemaScreen extends ConsumerWidget {
           ),
           const SizedBox(height: 24),
 
-          // Template Info
+          // Dynamic Form Fields
           Text(
-            'Template Information',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    template.name,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                  if (template.description.isNotEmpty) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      template.description,
-                      style: Theme.of(context).textTheme.bodyMedium,
-                    ),
-                  ],
-                  const SizedBox(height: 8),
-                  Chip(
-                    label: Text(template.categoryType),
-                    backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Schema Sections
-          Text(
-            'Form Fields (${_getTotalFields(template)} fields)',
+            'Auction Details',
             style: Theme.of(context).textTheme.titleLarge,
           ),
           const SizedBox(height: 16),
 
-          ...template.sections.map((section) => _buildSection(context, section)),
+          EnhancedDynamicFieldsForm(
+            categoryId: widget.category.id,
+            values: _formData,
+            errors: const {}, // Add error handling if needed
+            onValueChanged: _onFieldChanged,
+          ),
 
-          const SizedBox(height: 24),
+          const SizedBox(height: 32),
         ],
+      ),
+    );
+  }
+
+  Widget _buildSubmitButton() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Theme.of(context).scaffoldBackgroundColor,
+        border: Border(top: BorderSide(color: Colors.grey.shade300)),
+      ),
+      child: ElevatedButton(
+        onPressed: _isSubmitting ? null : _submitForm,
+        style: ElevatedButton.styleFrom(
+          minimumSize: const Size(double.infinity, 50),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(8),
+          ),
+        ),
+        child: _isSubmitting
+            ? const SizedBox(
+                height: 20,
+                width: 20,
+                child: CircularProgressIndicator(
+                  strokeWidth: 2,
+                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                ),
+              )
+            : const Text('Create Auction'),
       ),
     );
   }
@@ -201,154 +244,6 @@ class CategorySchemaScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSection(BuildContext context, TemplateSection section) {
-    return Card(
-      margin: const EdgeInsets.only(bottom: 16),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              children: [
-                Expanded(
-                  child: Text(
-                    section.title,
-                    style: Theme.of(context).textTheme.titleMedium,
-                  ),
-                ),
-                if (section.isCollapsible)
-                  Icon(
-                    Icons.expand_more,
-                    color: Colors.grey[600],
-                  ),
-              ],
-            ),
-            if (section.description.isNotEmpty) ...[
-              const SizedBox(height: 8),
-              Text(
-                section.description,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                  color: Colors.grey[600],
-                ),
-              ),
-            ],
-            const SizedBox(height: 16),
-            ...section.fields.map((field) => _buildField(context, field)),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildField(BuildContext context, TemplateField field) {
-    return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(12),
-      decoration: BoxDecoration(
-        color: Colors.grey[50],
-        borderRadius: BorderRadius.circular(8),
-        border: Border.all(color: Colors.grey[200]!),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  field.label,
-                  style: Theme.of(context).textTheme.titleSmall,
-                ),
-              ),
-              if (field.required)
-                const Icon(
-                  Icons.star,
-                  size: 16,
-                  color: Colors.red,
-                ),
-              const SizedBox(width: 8),
-              Chip(
-                label: Text(
-                  field.type,
-                  style: const TextStyle(fontSize: 10),
-                ),
-                backgroundColor: _getFieldTypeColor(field.type),
-                labelStyle: const TextStyle(color: Colors.white),
-              ),
-            ],
-          ),
-          if (field.uiConfig['placeholder'] != null) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Placeholder: ${field.uiConfig['placeholder']}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[500],
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-          ],
-          if (field.validation.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text(
-              'Validation: ${_formatValidation(field.validation)}',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: Colors.grey[500],
-              ),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  Color _getFieldTypeColor(String type) {
-    switch (type.toLowerCase()) {
-      case 'text':
-        return Colors.blue;
-      case 'textarea':
-        return Colors.green;
-      case 'number':
-        return Colors.orange;
-      case 'select':
-        return Colors.purple;
-      case 'multiselect':
-        return Colors.indigo;
-      case 'checkbox':
-        return Colors.teal;
-      case 'date':
-        return Colors.pink;
-      case 'file':
-        return Colors.brown;
-      default:
-        return Colors.grey;
-    }
-  }
-
-  String _formatValidation(Map<String, dynamic> validation) {
-    final rules = <String>[];
-    if (validation.containsKey('minLength')) {
-      rules.add('Min: ${validation['minLength']} chars');
-    }
-    if (validation.containsKey('maxLength')) {
-      rules.add('Max: ${validation['maxLength']} chars');
-    }
-    if (validation.containsKey('min')) {
-      rules.add('Min: ${validation['min']}');
-    }
-    if (validation.containsKey('max')) {
-      rules.add('Max: ${validation['max']}');
-    }
-    if (validation.containsKey('pattern')) {
-      rules.add('Pattern required');
-    }
-    return rules.join(', ');
-  }
-
-  int _getTotalFields(CategoryTemplate template) {
-    return template.sections.fold(0, (sum, section) => sum + section.fields.length);
-  }
-
   IconData _getCategoryIcon(String categoryName) {
     final name = categoryName.toLowerCase();
     if (name.contains('car') || name.contains('vehicle') || name.contains('automotive')) {
@@ -372,10 +267,5 @@ class CategorySchemaScreen extends ConsumerWidget {
     } else {
       return Icons.category;
     }
-  }
-
-  void _proceedToAuction(BuildContext context) {
-    // Navigate to auction creation with the selected category
-    context.push('/create-auction', extra: category);
   }
 }

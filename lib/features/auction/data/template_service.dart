@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../../catalog/presentation/categories_provider.dart';
-import '../../catalog/domain/category.dart';
+import '../../catalog/domain/category.dart' as domain_category;
 import '../../../core/network/api_client.dart';
 
 /// Template data structure matching the API response
@@ -80,14 +81,35 @@ class TemplateField {
   });
 
   factory TemplateField.fromJson(Map<String, dynamic> json) {
+    // Merge ui_config/uiConfig, ui, and dynamic_options into uiConfig
+    final uiConfig = <String, dynamic>{};
+    
+    // Add ui_config or uiConfig
+    final existingUiConfig = json['ui_config'] ?? json['uiConfig'] ?? {};
+    if (existingUiConfig is Map<String, dynamic>) {
+      uiConfig.addAll(existingUiConfig);
+    }
+    
+    // Add ui section
+    final ui = json['ui'];
+    if (ui is Map<String, dynamic>) {
+      uiConfig.addAll(ui);
+    }
+    
+    // Add dynamic_options
+    final dynamicOptions = json['dynamic_options'];
+    if (dynamicOptions is Map<String, dynamic>) {
+      uiConfig['dynamic_options'] = dynamicOptions;
+    }
+
     return TemplateField(
       name: json['name'] ?? '',
       label: json['label'] ?? json['name'] ?? '',
       type: json['type'] ?? 'text',
       required: json['required'] ?? false,
       validation: json['validation'] ?? {},
-      uiConfig: json['ui_config'] ?? json['uiConfig'] ?? {},
-      conditionalLogic: json['conditional_logic'] ?? json['conditionalLogic'],
+      uiConfig: uiConfig,
+      conditionalLogic: json['conditional_logic'] ?? json['conditionalLogic'] ?? json['visibleIf'],
     );
   }
 }
@@ -102,105 +124,74 @@ class TemplateService {
   Future<CategoryTemplate?> loadTemplateFromApi(String categoryId) async {
     try {
       print('TemplateService: Loading template from API for category: $categoryId');
-      final response = await _apiClient.get('/api/v1/sell/category-schema/$categoryId');
+      final response = await _apiClient.get('/sell/category-schema/$categoryId');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         print('TemplateService: Successfully loaded template from API for category: $categoryId');
         return CategoryTemplate.fromJson(response.data['data']);
       }
 
-      print('TemplateService: API returned unsuccessful response for category: $categoryId, status: ${response.statusCode}');
+      print('TemplateService: API returned unsuccessful response for category: $categoryId, status: ${response.statusCode}, data: ${response.data}');
       return null;
     } catch (e) {
-      print('TemplateService: Error loading template from API for category $categoryId: $e');
+      print('🔴 TEMPLATE SERVICE CATCH BLOCK EXECUTED');
+      print('TemplateService: Error loading template from API for category $categoryId');
+      print('TemplateService: Exception type: ${e.runtimeType}');
+      print('TemplateService: Exception message: $e');
+      print('TemplateService: Is DioException? ${e is DioException}');
+
+      // Handle DioException specifically for detailed logging
+      if (e is DioException) {
+        print('TemplateService: DioException details:');
+        print('  - Request: ${e.requestOptions.method} ${e.requestOptions.uri}');
+        print('  - Status Code: ${e.response?.statusCode}');
+        print('  - Status Message: ${e.response?.statusMessage}');
+        print('  - Response Data: ${e.response?.data}');
+        print('  - Error Type: ${e.type}');
+        print('  - Error Message: ${e.message}');
+        if (e.response?.headers != null) {
+          print('  - Response Headers: ${e.response!.headers.map}');
+        }
+      }
+
       return null;
     }
   }
 
-  /// Load template for a specific category from category data (fallback)
-  CategoryTemplate? createTemplateFromCategoryData(Map<String, dynamic> categoryData) {
+  /// Create template from category input_schema
+  CategoryTemplate? createTemplateFromCategoryInputSchema(Map<String, dynamic> inputSchema) {
     try {
-      final inputSchema = categoryData['input_schema'];
+      print('TemplateService: Creating template from input_schema: $inputSchema');
 
-      List<TemplateField> fields;
-
-      if (inputSchema != null) {
-        // Use the defined input schema
-        fields = (inputSchema['fields'] as List<dynamic>?)
-            ?.map((field) => TemplateField.fromJson(field))
-            .toList() ?? [];
-      } else {
-        // Create default fields for categories without input_schema
-        fields = [
-          TemplateField(
-            name: 'title',
-            type: 'text',
-            label: 'Title',
-            required: true,
-            validation: {'maxLength': 100, 'minLength': 5},
-            uiConfig: {'placeholder': 'Enter item title'},
-            conditionalLogic: null,
-          ),
-          TemplateField(
-            name: 'description',
-            type: 'textarea',
-            label: 'Description',
-            required: true,
-            validation: {'maxLength': 1000, 'minLength': 10},
-            uiConfig: {'placeholder': 'Describe your item', 'rows': 4},
-            conditionalLogic: null,
-          ),
-          TemplateField(
-            name: 'price',
-            type: 'number',
-            label: 'Starting Price',
-            required: true,
-            validation: {'min': 1},
-            uiConfig: {'placeholder': 'Enter starting price', 'prefix': '₹'},
-            conditionalLogic: null,
-          ),
-          TemplateField(
-            name: 'condition',
-            type: 'select',
-            label: 'Condition',
-            required: false,
-            validation: {},
-            uiConfig: {
-              'placeholder': 'Select condition',
-              'options': ['New', 'Like New', 'Good', 'Fair', 'Poor']
-            },
-            conditionalLogic: null,
-          ),
-          TemplateField(
-            name: 'location',
-            type: 'text',
-            label: 'Location',
-            required: false,
-            validation: {'maxLength': 100},
-            uiConfig: {'placeholder': 'Enter location'},
-            conditionalLogic: null,
-          ),
-        ];
+      final fields = inputSchema['fields'] as List<dynamic>?;
+      if (fields == null || fields.isEmpty) {
+        print('TemplateService: No fields found in input_schema');
+        return null;
       }
 
-      // Create a single section for all fields
+      // Convert fields to TemplateField objects
+      final templateFields = fields.map((fieldJson) {
+        return TemplateField.fromJson(fieldJson as Map<String, dynamic>);
+      }).toList();
+
+      // Group fields into sections (for now, put all in one section)
       final section = TemplateSection(
-        title: 'Details',
+        title: 'Listing Details',
         order: 1,
-        description: 'Enter the details for this item',
+        description: 'Please provide the details for your listing',
         isCollapsible: false,
-        fields: fields,
+        fields: templateFields,
       );
 
       return CategoryTemplate(
-        name: categoryData['name'] ?? '',
-        description: categoryData['description'] ?? '',
-        categoryType: 'auction',
-        isActive: categoryData['is_active'] ?? true,
+        name: 'Dynamic Category Template',
+        description: 'Template generated from category input schema',
+        categoryType: 'dynamic',
+        isActive: true,
         sections: [section],
       );
     } catch (e) {
-      print('Error creating template from category data: $e');
+      print('TemplateService: Error creating template from input_schema: $e');
       return null;
     }
   }
@@ -279,20 +270,20 @@ final templateServiceProvider = Provider<TemplateService>((ref) {
 final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String>((ref, categoryId) async {
   final templateService = ref.watch(templateServiceProvider);
 
-  // Try to load template from API first
+  // Try to load template from API
   final apiTemplate = await templateService.loadTemplateFromApi(categoryId);
   if (apiTemplate != null) {
     return apiTemplate;
   }
 
-  // Fallback to local category data if API fails
-  print('API template loading failed, falling back to local category data for category: $categoryId');
+  // Fallback to category input_schema if API fails
+  print('API template loading failed, falling back to category input_schema for category: $categoryId');
 
-  // First get all categories
+  // Get all categories
   final categoriesAsync = await ref.watch(categoriesProvider.future);
 
   // Helper function to find category recursively
-  Category? findCategoryById(List<Category> categories, String id) {
+  domain_category.Category? findCategoryById(List<domain_category.Category> categories, String id) {
     for (final category in categories) {
       if (category.id == id) {
         return category;
@@ -307,18 +298,13 @@ final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String
   }
 
   final category = findCategoryById(categoriesAsync, categoryId);
-  if (category == null) {
+  if (category == null || category.inputSchema == null) {
+    print('Category not found or no input_schema for category: $categoryId');
     return null;
   }
 
-  // Create template from category data
-  final categoryData = {
-    'name': category.name,
-    'description': category.description,
-    'is_active': category.isActive,
-    'input_schema': category.inputSchema,
-  };
-
-  final template = templateService.createTemplateFromCategoryData(categoryData);
+  // Create template from category input_schema
+  print('Creating template from category input_schema for: ${category.name}');
+  final template = templateService.createTemplateFromCategoryInputSchema(category.inputSchema!);
   return template;
 });
