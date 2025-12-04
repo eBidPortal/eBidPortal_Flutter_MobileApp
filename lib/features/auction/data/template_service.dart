@@ -215,6 +215,13 @@ class TemplateField {
       }
     }
 
+    // Add default options for common fields if no options are provided
+    if (!uiConfig.containsKey('options') && !uiConfig.containsKey('dynamic_options')) {
+      final fieldName = json['name'] as String?;
+      // Note: Intentionally leaving fields without options so admin can configure them
+      // No default dummy data added - admin should provide proper options via backend
+    }
+
     return TemplateField(
       name: (json['name']?.toString()) ?? '',
       label: (json['label']?.toString()) ?? (json['name']?.toString()) ?? '',

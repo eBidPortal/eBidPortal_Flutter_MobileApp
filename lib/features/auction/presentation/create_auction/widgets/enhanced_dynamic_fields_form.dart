@@ -21,16 +21,23 @@ class EnhancedDynamicFieldsForm extends ConsumerStatefulWidget {
   });
 
   @override
-  ConsumerState<EnhancedDynamicFieldsForm> createState() => _EnhancedDynamicFieldsFormState();
+  EnhancedDynamicFieldsFormState createState() => EnhancedDynamicFieldsFormState();
+
+  /// Access to form validation from parent widgets
+  static bool validateForm(BuildContext context) {
+    final state = context.findAncestorStateOfType<EnhancedDynamicFieldsFormState>();
+    return state?.validateForm() ?? false;
+  }
 }
 
-class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFieldsForm> {
+class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFieldsForm> {
   final Map<String, bool> _expandedSections = {};
   final Map<String, List<Map<String, dynamic>>> _dynamicOptions = {};
   final Map<String, bool> _loadingOptions = {};
   final Map<String, String?> _optionsErrors = {};
   final Map<String, String> _fieldDependencies = {};
   final Map<String, TextEditingController> _controllers = {};
+  final GlobalKey<FormState> _formKey = GlobalKey<FormState>();
   bool _dynamicOptionsInitialized = false;
 
   @override
@@ -135,12 +142,15 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     // Sort sections by order
     final sortedSections = template.sections..sort((a, b) => a.order.compareTo(b.order));
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        // Render sections
-        ...sortedSections.map((section) => _buildSection(section)),
-      ],
+    return Form(
+      key: _formKey,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          // Render sections
+          ...sortedSections.map((section) => _buildSection(section)),
+        ],
+      ),
     );
   }
 
@@ -378,6 +388,108 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     );
   }
 
+  /// Validate the entire form
+  bool validateForm() {
+    return _formKey.currentState?.validate() ?? false;
+  }
+
+  /// Create validator function for a field based on its validation rules
+  String? Function(String?)? _createValidator(TemplateField field) {
+    return (String? value) {
+      // Required validation
+      if (field.required && (value == null || value.trim().isEmpty)) {
+        return '${field.label} is required';
+      }
+
+      // Skip other validations if field is empty and not required
+      if (value == null || value.trim().isEmpty) {
+        return null;
+      }
+
+      final validation = field.validation;
+      if (validation.isEmpty) return null;
+
+      // Min length validation
+      if (validation.containsKey('minLength')) {
+        final minLength = validation['minLength'];
+        if (minLength is int && value.length < minLength) {
+          return '${field.label} must be at least $minLength characters';
+        }
+      }
+
+      // Max length validation
+      if (validation.containsKey('maxLength')) {
+        final maxLength = validation['maxLength'];
+        if (maxLength is int && value.length > maxLength) {
+          return '${field.label} must be no more than $maxLength characters';
+        }
+      }
+
+      // Pattern validation
+      if (validation.containsKey('pattern')) {
+        final pattern = validation['pattern'];
+        if (pattern is String) {
+          try {
+            final regex = RegExp(pattern);
+            if (!regex.hasMatch(value)) {
+              return validation['patternMessage'] ?? '${field.label} format is invalid';
+            }
+          } catch (e) {
+            // Invalid regex pattern, skip validation
+          }
+        }
+      }
+
+      // Email validation
+      if (validation.containsKey('email') && validation['email'] == true) {
+        final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+        if (!emailRegex.hasMatch(value)) {
+          return 'Please enter a valid email address';
+        }
+      }
+
+      // URL validation
+      if (validation.containsKey('url') && validation['url'] == true) {
+        final urlRegex = RegExp(r'^https?://[^\s/$.?#].[^\s]*$');
+        if (!urlRegex.hasMatch(value)) {
+          return 'Please enter a valid URL';
+        }
+      }
+
+      // Phone validation
+      if (validation.containsKey('phone') && validation['phone'] == true) {
+        final phoneRegex = RegExp(r'^\+?[\d\s\-\(\)]{10,}$');
+        if (!phoneRegex.hasMatch(value)) {
+          return 'Please enter a valid phone number';
+        }
+      }
+
+      // Min value validation (for numbers)
+      if (validation.containsKey('min')) {
+        final min = validation['min'];
+        if (field.type == 'number') {
+          final numValue = num.tryParse(value);
+          if (numValue != null && min is num && numValue < min) {
+            return '${field.label} must be at least $min';
+          }
+        }
+      }
+
+      // Max value validation (for numbers)
+      if (validation.containsKey('max')) {
+        final max = validation['max'];
+        if (field.type == 'number') {
+          final numValue = num.tryParse(value);
+          if (numValue != null && max is num && numValue > max) {
+            return '${field.label} must be no more than $max';
+          }
+        }
+      }
+
+      return null;
+    };
+  }
+
   Widget _buildFieldInput(TemplateField field, dynamic currentValue) {
 
     switch (field.type) {
@@ -387,6 +499,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
         return TextFormField(
           controller: _controllers[field.name],
           enabled: true,
+          validator: _createValidator(field),
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
             border: const OutlineInputBorder(),
@@ -405,6 +518,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           controller: _controllers[field.name],
           maxLines: field.uiConfig['rows'] ?? 4,
           enabled: true,
+          validator: _createValidator(field),
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
             border: const OutlineInputBorder(),
@@ -423,6 +537,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           controller: _controllers[field.name],
           keyboardType: TextInputType.number,
           enabled: true,
+          validator: _createValidator(field),
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'],
             prefixText: field.uiConfig['prefix'],
@@ -495,6 +610,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           controller: _controllers[field.name],
           keyboardType: TextInputType.emailAddress,
           enabled: true,
+          validator: _createValidator(field),
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter email address',
             border: const OutlineInputBorder(),
@@ -514,6 +630,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           controller: _controllers[field.name],
           keyboardType: TextInputType.url,
           enabled: true,
+          validator: _createValidator(field),
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter URL',
             border: const OutlineInputBorder(),
@@ -533,6 +650,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           controller: _controllers[field.name],
           keyboardType: TextInputType.phone,
           enabled: true,
+          validator: _createValidator(field),
           decoration: InputDecoration(
             hintText: field.uiConfig['placeholder'] ?? 'Enter phone number',
             border: const OutlineInputBorder(),
@@ -572,94 +690,6 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
       default:
         return Text('Unsupported field type: ${field.type}');
     }
-  }
-
-  String? _validateField(TemplateField field, dynamic value) {
-    // Check required validation
-    if (field.required && (value == null || value.toString().trim().isEmpty)) {
-      return '${field.label} is required';
-    }
-
-    // Skip further validation if value is empty and field is not required
-    if (value == null || value.toString().trim().isEmpty) {
-      return null;
-    }
-
-    // Apply field-specific validation rules
-    final validationRules = field.validation['rules'] as List<dynamic>? ?? [];
-
-    for (final rule in validationRules) {
-      final ruleType = rule['type'] as String?;
-      final ruleValue = rule['value'];
-      final errorMessage = rule['message'] as String? ?? 'Validation failed';
-
-      switch (ruleType) {
-        case 'minLength':
-          if (value.toString().length < (ruleValue as num)) {
-            return errorMessage;
-          }
-          break;
-
-        case 'maxLength':
-          if (value.toString().length > (ruleValue as num)) {
-            return errorMessage;
-          }
-          break;
-
-        case 'min':
-          final numValue = num.tryParse(value.toString());
-          if (numValue == null || numValue < (ruleValue as num)) {
-            return errorMessage;
-          }
-          break;
-
-        case 'max':
-          final numValue = num.tryParse(value.toString());
-          if (numValue == null || numValue > (ruleValue as num)) {
-            return errorMessage;
-          }
-          break;
-
-        case 'pattern':
-          final pattern = RegExp(ruleValue as String);
-          if (!pattern.hasMatch(value.toString())) {
-            return errorMessage;
-          }
-          break;
-
-        case 'email':
-          final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
-          if (!emailRegex.hasMatch(value.toString())) {
-            return errorMessage;
-          }
-          break;
-
-        case 'url':
-          final urlRegex = RegExp(r'^https?://[^\s/$.?#].[^\s]*$');
-          if (!urlRegex.hasMatch(value.toString())) {
-            return errorMessage;
-          }
-          break;
-
-        case 'phone':
-          final phoneRegex = RegExp(r'^\+?[\d\s\-\(\)]{10,}$');
-          if (!phoneRegex.hasMatch(value.toString())) {
-            return errorMessage;
-          }
-          break;
-
-        case 'custom':
-          // For custom validation, we could call a function
-          // For now, skip custom validation
-          break;
-
-        default:
-          // Unknown validation rule, skip
-          break;
-      }
-    }
-
-    return null;
   }
 
   Widget _buildSelectField(TemplateField field, dynamic currentValue) {
@@ -736,6 +766,25 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
       }
       return null;
     }).whereType<Map<String, dynamic>>().toList();
+
+    // Handle empty options - convert to text field for manual input
+    if (normalizedOptions.isEmpty) {
+      // Convert select field to text field when no options are available
+      return TextFormField(
+        controller: _controllers[field.name],
+        enabled: true,
+        validator: _createValidator(field),
+        decoration: InputDecoration(
+          hintText: field.uiConfig['placeholder'] ?? 'Enter ${field.label.toLowerCase()}',
+          border: const OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        ),
+        onChanged: (value) {
+          print('EnhancedDynamicFieldsForm: Text field "${field.name}" changed to: $value');
+          _onFieldValueChanged(field.name, value);
+        },
+      );
+    }
 
     // Ensure the current value is valid, otherwise set to null
     final validValue = normalizedOptions.any((option) => option['value'] == currentValue) ? currentValue : null;
@@ -899,13 +948,20 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
     }
 
     if (options.isEmpty) {
-      return Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Text(field.label, style: const TextStyle(fontWeight: FontWeight.bold)),
-          const SizedBox(height: 8),
-          const Text('No options available', style: TextStyle(color: Colors.grey)),
-        ],
+      // Convert radio field to text field when no options are available
+      return TextFormField(
+        controller: _controllers[field.name],
+        enabled: true,
+        validator: _createValidator(field),
+        decoration: InputDecoration(
+          hintText: field.uiConfig['placeholder'] ?? 'Enter ${field.label.toLowerCase()}',
+          border: const OutlineInputBorder(),
+          contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+        ),
+        onChanged: (value) {
+          print('EnhancedDynamicFieldsForm: Text field "${field.name}" changed to: $value');
+          _onFieldValueChanged(field.name, value);
+        },
       );
     }
 
@@ -1062,6 +1118,7 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           child: TextFormField(
             key: ValueKey(colorValue),
             initialValue: colorValue,
+            validator: _createValidator(field),
             decoration: InputDecoration(
               hintText: field.uiConfig['placeholder'] ?? '#FF0000',
               border: const OutlineInputBorder(),
@@ -1251,47 +1308,47 @@ class _EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicField
           'value_field': 'id',
           'depends_on': 'model',
         };
-      case 'vehicle_type':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for vehicle_type field');
-        return {
-          'api_url': '/cars/vehicle-types',
-          'data_path': 'data',
-          'label_field': 'name',
-          'value_field': 'id',
-        };
-      case 'vehicle_condition':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for vehicle_condition field');
-        return {
-          'api_url': '/cars/conditions',
-          'data_path': 'data',
-          'label_field': 'name',
-          'value_field': 'id',
-        };
-      case 'fuel':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for fuel field');
-        return {
-          'api_url': '/cars/fuel-types',
-          'data_path': 'data',
-          'label_field': 'name',
-          'value_field': 'id',
-        };
-      case 'transmission':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for transmission field');
-        return {
-          'api_url': '/cars/transmission-types',
-          'data_path': 'data',
-          'label_field': 'name',
-          'value_field': 'id',
-        };
-      case 'ownership':
-      case 'owners':
-        print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for ownership field');
-        return {
-          'api_url': '/cars/owner-options',
-          'data_path': 'data',
-          'label_field': 'name',
-          'value_field': 'id',
-        };
+      // case 'vehicle_type':
+      //   print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for vehicle_type field');
+      //   return {
+      //     'api_url': '/cars/vehicle-types',
+      //     'data_path': 'data',
+      //     'label_field': 'name',
+      //     'value_field': 'id',
+      //   };
+      // case 'vehicle_condition':
+      //   print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for vehicle_condition field');
+      //   return {
+      //     'api_url': '/cars/conditions',
+      //     'data_path': 'data',
+      //     'label_field': 'name',
+      //     'value_field': 'id',
+      //   };
+      // case 'fuel':
+      //   print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for fuel field');
+      //   return {
+      //     'api_url': '/cars/fuel-types',
+      //     'data_path': 'data',
+      //     'label_field': 'name',
+      //     'value_field': 'id',
+      //   };
+      // case 'transmission':
+      //   print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for transmission field');
+      //   return {
+      //     'api_url': '/cars/transmission-types',
+      //     'data_path': 'data',
+      //     'label_field': 'name',
+      //     'value_field': 'id',
+      //   };
+      // case 'ownership':
+      // case 'owners':
+      //   print('EnhancedDynamicFieldsForm: Auto-configuring dynamic options for ownership field');
+      //   return {
+      //     'api_url': '/cars/owner-options',
+      //     'data_path': 'data',
+      //     'label_field': 'name',
+      //     'value_field': 'id',
+      //   };
       default:
         return null;
     }

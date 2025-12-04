@@ -17,11 +17,25 @@ class CategorySchemaScreen extends ConsumerStatefulWidget {
 class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
   final Map<String, dynamic> _formData = {};
   bool _isSubmitting = false;
+  final GlobalKey<EnhancedDynamicFieldsFormState> _formKey = GlobalKey<EnhancedDynamicFieldsFormState>();
 
   @override
   void initState() {
     super.initState();
     print('📋 SCREEN: CategorySchemaScreen - initState called (category: ${widget.category.name})');
+    print('📋 SCREEN: CategorySchemaScreen - Category details:');
+    print('  - ID: ${widget.category.id}');
+    print('  - Name: ${widget.category.name}');
+    print('  - Description: ${widget.category.description}');
+    print('  - Parent ID: ${widget.category.parentId}');
+    print('  - Image URL: ${widget.category.imageUrl}');
+    print('  - Is Active: ${widget.category.isActive}');
+  }
+
+  @override
+  void dispose() {
+    print('📋 SCREEN: CategorySchemaScreen - dispose called (category: ${widget.category.name})');
+    super.dispose();
   }
 
   void _onFieldChanged(String fieldName, dynamic value) {
@@ -32,8 +46,23 @@ class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
   }
 
   Future<void> _submitForm() async {
+    // Validate the form before submitting
+    final isFormValid = _formKey.currentState?.validateForm() ?? false;
+
+    if (!isFormValid) {
+      // Validation errors will be displayed directly on the fields
+      // No need for additional SnackBar since TextFormField validators show errors inline
+      return; // Don't proceed with submission
+    }
+
     setState(() {
       _isSubmitting = true;
+    });
+
+    print('📋 SCREEN: CategorySchemaScreen - Submitting form for category: ${widget.category.name}');
+    print('📋 SCREEN: CategorySchemaScreen - Form data:');
+    _formData.forEach((key, value) {
+      print('  - $key: $value');
     });
 
     try {
@@ -82,9 +111,34 @@ class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
         elevation: 0,
       ),
       body: templateAsync.when(
-        data: (template) => template != null
-            ? _buildFormView(context, template)
-            : _buildNoSchemaView(context),
+        data: (template) {
+          if (template != null) {
+            print('📋 SCREEN: CategorySchemaScreen - Template loaded successfully for category: ${widget.category.name} (${widget.category.id})');
+            print('📋 SCREEN: CategorySchemaScreen - Template details:');
+            print('  - Name: ${template.name}');
+            print('  - Description: ${template.description}');
+            print('  - Sections: ${template.sections.length}');
+            for (int i = 0; i < template.sections.length; i++) {
+              final section = template.sections[i];
+              print('    Section ${i + 1}: ${section.title} (${section.fields.length} fields)');
+              for (int j = 0; j < section.fields.length; j++) {
+                final field = section.fields[j];
+                print('      Field ${j + 1}: ${field.name} (${field.type}) - ${field.label}');
+                if (field.uiConfig.containsKey('options') && field.uiConfig['options'] != null) {
+                  final options = field.uiConfig['options'] as List;
+                  print('        Options: ${options.length} static options');
+                }
+                if (field.uiConfig.containsKey('dynamic_options') && field.uiConfig['dynamic_options'] != null) {
+                  print('        Dynamic options configured');
+                }
+              }
+            }
+            return _buildFormView(context, template);
+          } else {
+            print('📋 SCREEN: CategorySchemaScreen - No template found for category: ${widget.category.name} (${widget.category.id})');
+            return _buildNoSchemaView(context);
+          }
+        },
         loading: () => const Center(child: CircularProgressIndicator()),
         error: (error, stackTrace) => Center(
           child: Column(
@@ -169,6 +223,7 @@ class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
           const SizedBox(height: 16),
 
           EnhancedDynamicFieldsForm(
+            key: _formKey,
             categoryId: widget.category.id,
             values: _formData,
             errors: const {}, // Add error handling if needed
