@@ -63,8 +63,12 @@ class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFields
   }
 
   void _initializeControllers() {
-    // Initialize controllers for all current values
+    // Initialize controllers for all current values (skip checkbox fields)
     widget.values.forEach((fieldName, value) {
+      // Skip checkbox fields as they don't use text controllers
+      if (value is List) {
+        return;
+      }
       if (!_controllers.containsKey(fieldName)) {
         _controllers[fieldName] = TextEditingController(text: value?.toString() ?? '');
       }
@@ -74,6 +78,11 @@ class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFields
   void _updateControllers() {
     // Update existing controllers and create new ones for new fields
     widget.values.forEach((fieldName, value) {
+      // Skip checkbox fields as they don't use text controllers
+      if (value is List) {
+        return;
+      }
+
       if (_controllers.containsKey(fieldName)) {
         final currentText = _controllers[fieldName]!.text;
         final newText = value?.toString() ?? '';
@@ -97,10 +106,28 @@ class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFields
     // Initialize controllers for all template fields that don't have controllers yet
     for (final section in template.sections) {
       for (final field in section.fields) {
+        // Skip controller initialization for checkbox fields (they use List<String> values)
+        if (field.type == 'checkbox') {
+          continue;
+        }
+
         if (!_controllers.containsKey(field.name)) {
           final currentValue = widget.values[field.name];
           _controllers[field.name] = TextEditingController(text: currentValue?.toString() ?? '');
+        }
 
+        // Initialize controllers for object sub-fields
+        if (field.type == 'object') {
+          final objectValue = widget.values[field.name] as Map<String, dynamic>? ?? {};
+          final subFields = field.uiConfig['fields'] as List<dynamic>? ?? [];
+
+          for (final subFieldJson in subFields) {
+            final subField = _createSubFieldFromJson(subFieldJson, field.name);
+            if (!_controllers.containsKey(subField.name)) {
+              final subFieldValue = objectValue[subField.name.split('.').last];
+              _controllers[subField.name] = TextEditingController(text: subFieldValue?.toString() ?? '');
+            }
+          }
         }
       }
     }
@@ -369,14 +396,14 @@ class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFields
     );
   }
 
-  Widget _buildFieldWidget(TemplateField field) {
-    final currentValue = widget.values[field.name];
+  Widget _buildFieldWidget(TemplateField field, [dynamic currentValue]) {
+    final actualCurrentValue = currentValue ?? widget.values[field.name];
     final fieldError = widget.errors[field.name];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildFieldInput(field, currentValue),
+        _buildFieldInput(field, actualCurrentValue),
         if (fieldError != null && fieldError.isNotEmpty) ...[
           const SizedBox(height: 4),
           Text(
@@ -810,7 +837,25 @@ class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFields
   }
 
   void _onFieldValueChanged(String fieldName, dynamic value) {
-    widget.onValueChanged(fieldName, value);
+    // Handle nested object fields (e.g., "meeting_facilities.meeting_rooms_count")
+    if (fieldName.contains('.')) {
+      final parts = fieldName.split('.');
+      final parentFieldName = parts[0];
+      final subFieldName = parts[1];
+
+      // Get current parent object value
+      final currentParentValue = widget.values[parentFieldName] as Map<String, dynamic>? ?? {};
+
+      // Update the sub-field value
+      final updatedParentValue = Map<String, dynamic>.from(currentParentValue);
+      updatedParentValue[subFieldName] = value;
+
+      // Call the parent callback with the updated object
+      widget.onValueChanged(parentFieldName, updatedParentValue);
+    } else {
+      // Regular field
+      widget.onValueChanged(fieldName, value);
+    }
 
     // Reload dependent fields
     _reloadDependentFields(fieldName, value);
@@ -993,52 +1038,6 @@ class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFields
     );
   }
 
-  Widget _buildCheckboxField(TemplateField field, dynamic currentValue) {
-    final checkboxValue = currentValue as List<dynamic>? ?? [];
-    final options = field.uiConfig['options'] as List<dynamic>? ?? [];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ...options.map((option) {
-          String value, label;
-          if (option is String) {
-            value = option;
-            label = option;
-          } else if (option is Map) {
-            value = option['value'];
-            label = option['label'];
-          } else {
-            return const SizedBox.shrink();
-          }
-
-          final isChecked = checkboxValue.contains(value);
-
-          return Row(
-            children: [
-              Checkbox(
-                value: isChecked,
-                onChanged: (bool? checked) {
-                  final newValue = List<dynamic>.from(checkboxValue);
-                  if (checked == true) {
-                    if (!newValue.contains(value)) {
-                      newValue.add(value);
-                    }
-                  } else {
-                    newValue.remove(value);
-                  }
-                  _onFieldValueChanged(field.name, newValue);
-                },
-              ),
-              const SizedBox(width: 8),
-              Text(label),
-            ],
-          );
-        }).toList(),
-      ],
-    );
-  }
-
   Widget _buildFileField(TemplateField field, dynamic currentValue) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1183,20 +1182,211 @@ class EnhancedDynamicFieldsFormState extends ConsumerState<EnhancedDynamicFields
   }
 
   Widget _buildObjectField(TemplateField field, dynamic currentValue) {
-    // For now, show a placeholder for nested object fields
+    final objectValue = currentValue as Map<String, dynamic>? ?? {};
+    final subFields = field.uiConfig['fields'] as List<dynamic>? ?? [];
+
+    if (subFields.isEmpty) {
+      return Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          border: Border.all(color: Colors.grey),
+          borderRadius: BorderRadius.circular(8),
+        ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text('${field.label} (Object field)'),
+            const SizedBox(height: 8),
+            const Text('No sub-fields configured for this object field'),
+          ],
+        ),
+      );
+    }
+
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        border: Border.all(color: Colors.grey),
+        border: Border.all(color: Colors.grey.shade300),
         borderRadius: BorderRadius.circular(8),
+        color: Colors.grey.shade50,
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text('${field.label} (Object field)'),
+          Text(
+            field.label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...subFields.map((subFieldJson) {
+            final subField = _createSubFieldFromJson(subFieldJson, field.name);
+            final subFieldValue = objectValue[subField.name];
+
+            return Padding(
+              padding: const EdgeInsets.only(bottom: 12),
+              child: _buildFieldWidget(subField, subFieldValue),
+            );
+          }).toList(),
+        ],
+      ),
+    );
+  }
+
+  TemplateField _createSubFieldFromJson(Map<String, dynamic> json, String parentFieldName) {
+    final fieldName = '${parentFieldName}.${json['key']}';
+    final label = json['label'] ?? json['key'] ?? '';
+    final type = json['type'] ?? 'text';
+    final required = json['required'] ?? false;
+
+    // Create validation map
+    final validation = <String, dynamic>{};
+    if (required) {
+      validation['required'] = true;
+    }
+
+    if (json.containsKey('min') || json.containsKey('max')) {
+      final min = json['min'];
+      final max = json['max'];
+      if (min != null) validation['min'] = min;
+      if (max != null) validation['max'] = max;
+    }
+
+    if (json.containsKey('min_length') || json.containsKey('max_length')) {
+      final minLength = json['min_length'];
+      final maxLength = json['max_length'];
+      if (minLength != null) validation['min_length'] = minLength;
+      if (maxLength != null) validation['max_length'] = maxLength;
+    }
+
+    // Create UI config
+    final uiConfig = <String, dynamic>{};
+    if (json.containsKey('placeholder')) {
+      uiConfig['placeholder'] = json['placeholder'];
+    }
+    if (json.containsKey('help_text')) {
+      uiConfig['help_text'] = json['help_text'];
+    }
+    if (json.containsKey('prefix')) {
+      uiConfig['prefix'] = json['prefix'];
+    }
+    if (json.containsKey('suffix')) {
+      uiConfig['suffix'] = json['suffix'];
+    }
+    if (json.containsKey('options')) {
+      uiConfig['options'] = json['options'];
+    }
+
+    return TemplateField(
+      name: fieldName,
+      label: label,
+      type: type,
+      required: required,
+      validation: validation,
+      uiConfig: uiConfig,
+    );
+  }
+
+  Widget _buildCheckboxField(TemplateField field, dynamic currentValue) {
+    final selectedValues = currentValue as List<String>? ?? [];
+    final options = field.uiConfig['options'] as List<dynamic>? ?? [];
+
+    // If no predefined options, allow free-form input
+    if (options.isEmpty) {
+      final textValue = selectedValues.join(', ');
+
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            field.label,
+            style: const TextStyle(fontWeight: FontWeight.bold),
+          ),
           const SizedBox(height: 8),
-          const Text('Nested object fields not yet implemented'),
-          // TODO: Implement nested object field rendering
+          TextFormField(
+            initialValue: textValue,
+            decoration: InputDecoration(
+              hintText: 'Enter values separated by commas (e.g., Option 1, Option 2, Option 3)',
+              border: const OutlineInputBorder(),
+              contentPadding: const EdgeInsets.symmetric(horizontal: 12, vertical: 16),
+              helperText: 'Enter multiple values separated by commas',
+            ),
+            validator: field.required ? (value) {
+              if (value == null || value.trim().isEmpty) {
+                return '${field.label} is required';
+              }
+              return null;
+            } : null,
+            onChanged: (value) {
+              // Parse comma-separated values
+              final parsedValues = value
+                  .split(',')
+                  .map((s) => s.trim())
+                  .where((s) => s.isNotEmpty)
+                  .toList();
+              print('EnhancedDynamicFieldsForm: Checkbox field "${field.name}" changed to: $parsedValues');
+              _onFieldValueChanged(field.name, parsedValues);
+            },
+          ),
+        ],
+      );
+    }
+
+    // If options are available, show checkboxes
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        border: Border.all(color: Colors.grey.shade300),
+        borderRadius: BorderRadius.circular(8),
+        color: Colors.grey.shade50,
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            field.label,
+            style: const TextStyle(
+              fontWeight: FontWeight.bold,
+              fontSize: 16,
+            ),
+          ),
+          const SizedBox(height: 12),
+          ...options.map((option) {
+            String value, label;
+            if (option is String) {
+              value = option;
+              label = option;
+            } else if (option is Map<String, dynamic>) {
+              value = option['value']?.toString() ?? '';
+              label = option['label']?.toString() ?? value;
+            } else {
+              value = option.toString();
+              label = option.toString();
+            }
+            final isSelected = selectedValues.contains(value);
+
+            return CheckboxListTile(
+              title: Text(label),
+              value: isSelected,
+              onChanged: (bool? checked) {
+                final newSelectedValues = List<String>.from(selectedValues);
+                if (checked == true) {
+                  if (!newSelectedValues.contains(value)) {
+                    newSelectedValues.add(value);
+                  }
+                } else {
+                  newSelectedValues.remove(value);
+                }
+                print('EnhancedDynamicFieldsForm: Checkbox field "${field.name}" changed to: $newSelectedValues');
+                _onFieldValueChanged(field.name, newSelectedValues);
+              },
+              controlAffinity: ListTileControlAffinity.leading,
+              contentPadding: EdgeInsets.zero,
+              dense: true,
+            );
+          }).toList(),
         ],
       ),
     );

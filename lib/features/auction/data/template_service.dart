@@ -1,3 +1,5 @@
+import 'dart:convert';
+import 'package:flutter/services.dart' show rootBundle;
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../../catalog/presentation/categories_provider.dart';
@@ -217,7 +219,6 @@ class TemplateField {
 
     // Add default options for common fields if no options are provided
     if (!uiConfig.containsKey('options') && !uiConfig.containsKey('dynamic_options')) {
-      final fieldName = json['name'] as String?;
       // Note: Intentionally leaving fields without options so admin can configure them
       // No default dummy data added - admin should provide proper options via backend
     }
@@ -278,11 +279,78 @@ class TemplateService {
     }
   }
 
+  /// Load template from assets for specific categories
+  Future<CategoryTemplate?> loadTemplateFromAssets(String categoryId) async {
+    try {
+      print('TemplateService: Loading template from assets for category: $categoryId');
+
+      // Map category IDs to template files (can be extended dynamically)
+      final templateFiles = <String, String>{
+        'd71109b1-5715-4595-9774-8acc00adb19e': 'assets/templates/co-working-spaces-template.json',
+        // Add more mappings as needed - this can be made dynamic based on server data
+      };
+
+      // Try exact category ID match first
+      String? templateFile = templateFiles[categoryId];
+
+      // If no exact match, try to find by category type or other logic
+      if (templateFile == null) {
+        // For now, return null if no mapping exists
+        // In the future, this could be enhanced to dynamically discover templates
+        print('TemplateService: No template file mapped for category: $categoryId');
+        return null;
+      }
+
+      final jsonString = await rootBundle.loadString(templateFile);
+      final jsonData = jsonDecode(jsonString) as Map<String, dynamic>;
+
+      print('TemplateService: Successfully loaded template from assets for category: $categoryId');
+      return CategoryTemplate.fromJson(jsonData);
+    } catch (e) {
+      print('TemplateService: Error loading template from assets for category $categoryId: $e');
+      return null;
+    }
+  }
+
   /// Create template from category input_schema
   CategoryTemplate? createTemplateFromCategoryInputSchema(Map<String, dynamic> inputSchema) {
     try {
       print('TemplateService: Creating template from input_schema: $inputSchema');
 
+      // Check if inputSchema has sections (new format)
+      final sectionsJson = inputSchema['sections'] as List<dynamic>?;
+      if (sectionsJson != null && sectionsJson.isNotEmpty) {
+        print('TemplateService: Parsing template with sections format');
+        
+        final sections = <TemplateSection>[];
+        for (final sectionJson in sectionsJson) {
+          if (sectionJson is! Map<String, dynamic>) {
+            print('TemplateService: Skipping invalid section: $sectionJson');
+            continue;
+          }
+          try {
+            final section = TemplateSection.fromJson(sectionJson);
+            sections.add(section);
+          } catch (e) {
+            print('TemplateService: Error parsing section $sectionJson: $e');
+          }
+        }
+
+        if (sections.isEmpty) {
+          print('TemplateService: No valid sections found in input_schema');
+          return null;
+        }
+
+        return CategoryTemplate(
+          name: inputSchema['name'] ?? 'Dynamic Category Template',
+          description: inputSchema['description'] ?? 'Template generated from category input schema',
+          categoryType: inputSchema['category_type'] ?? 'dynamic',
+          isActive: inputSchema['is_active'] ?? true,
+          sections: sections,
+        );
+      }
+
+      // Fallback to old format with fields directly
       final fields = inputSchema['fields'] as List<dynamic>?;
       if (fields == null || fields.isEmpty) {
         print('TemplateService: No fields found in input_schema');
@@ -405,14 +473,22 @@ final templateServiceProvider = Provider<TemplateService>((ref) {
 final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String>((ref, categoryId) async {
   final templateService = ref.watch(templateServiceProvider);
 
-  // Try to load template from API
+  // First priority: Try to load template from API (handles both old and new formats dynamically)
   final apiTemplate = await templateService.loadTemplateFromApi(categoryId);
   if (apiTemplate != null) {
+    print('TemplateService: Using template from API for category: $categoryId (${apiTemplate.sections.length} sections)');
     return apiTemplate;
   }
 
-  // Fallback to category input_schema if API fails
-  print('API template loading failed, falling back to category input_schema for category: $categoryId');
+  // Second priority: Try to load template from assets for known categories
+  final assetTemplate = await templateService.loadTemplateFromAssets(categoryId);
+  if (assetTemplate != null) {
+    print('TemplateService: Using template from assets for category: $categoryId (${assetTemplate.sections.length} sections)');
+    return assetTemplate;
+  }
+
+  // Third priority: Fallback to category input_schema (handles both old and new formats dynamically)
+  print('TemplateService: API and assets failed, falling back to category input_schema for category: $categoryId');
 
   // Get all categories
   final categoriesAsync = await ref.watch(categoriesProvider.future);
@@ -434,12 +510,15 @@ final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String
 
   final category = findCategoryById(categoriesAsync, categoryId);
   if (category == null || category.inputSchema == null) {
-    print('Category not found or no input_schema for category: $categoryId');
+    print('TemplateService: Category not found or no input_schema for category: $categoryId');
     return null;
   }
 
-  // Create template from category input_schema
-  print('Creating template from category input_schema for: ${category.name}');
+  // Create template from category input_schema (handles both old and new formats dynamically)
+  print('TemplateService: Creating template from category input_schema for: ${category.name}');
   final template = templateService.createTemplateFromCategoryInputSchema(category.inputSchema!);
+  if (template != null) {
+    print('TemplateService: Created template with ${template.sections.length} sections from input_schema');
+  }
   return template;
 });

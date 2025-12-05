@@ -60,6 +60,7 @@ flutter:
   # Assets
   assets:
     - assets/images/
+    - assets/templates/
 
 # Native Splash Screen Configuration
 flutter_native_splash:
