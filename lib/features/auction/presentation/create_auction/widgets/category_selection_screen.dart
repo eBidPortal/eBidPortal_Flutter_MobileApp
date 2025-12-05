@@ -14,6 +14,7 @@ class CategorySelectionScreen extends ConsumerStatefulWidget {
 class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScreen> {
   final List<String> _expandedCategories = [];
   Category? _selectedCategory;
+  final List<Category> _breadcrumbPath = [];
 
   @override
   Widget build(BuildContext context) {
@@ -24,6 +25,7 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
       appBar: AppBar(
         title: const Text('Select Category'),
         elevation: 0,
+        bottom: _selectedCategory != null ? _buildBreadcrumbBar() : null,
       ),
       body: categoriesAsync.when(
         data: (categories) => _buildCategoryTree(categories),
@@ -68,6 +70,52 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
     );
   }
 
+  String _getBreadcrumbText() {
+    if (_breadcrumbPath.isEmpty) return _selectedCategory?.name ?? '';
+
+    final names = _breadcrumbPath.map((cat) => cat.name).toList();
+    if (_selectedCategory != null) {
+      names.add(_selectedCategory!.name);
+    }
+    return names.join(' > ');
+  }
+
+  PreferredSizeWidget _buildBreadcrumbBar() {
+    return PreferredSize(
+      preferredSize: const Size.fromHeight(48),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        color: Theme.of(context).primaryColor.withOpacity(0.1),
+        child: Row(
+          children: [
+            const Icon(Icons.location_on, size: 16, color: Colors.grey),
+            const SizedBox(width: 8),
+            Expanded(
+              child: Text(
+                _getBreadcrumbText(),
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      color: Colors.grey[700],
+                    ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+              ),
+            ),
+            IconButton(
+              icon: const Icon(Icons.clear, size: 20),
+              onPressed: () {
+                setState(() {
+                  _selectedCategory = null;
+                  _breadcrumbPath.clear();
+                });
+              },
+              tooltip: 'Clear selection',
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCategoryTree(List<Category> categories) {
     return ListView(
       padding: const EdgeInsets.all(16),
@@ -77,13 +125,21 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
           style: Theme.of(context).textTheme.titleMedium,
           textAlign: TextAlign.center,
         ),
+        const SizedBox(height: 8),
+        Text(
+          'You can select any category level - from broad categories to specific subcategories',
+          style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: Colors.grey[600],
+              ),
+          textAlign: TextAlign.center,
+        ),
         const SizedBox(height: 24),
-        ..._buildCategoryList(categories, 0),
+        ..._buildCategoryList(categories, 0, []),
       ],
     );
   }
 
-  List<Widget> _buildCategoryList(List<Category> categories, int depth) {
+  List<Widget> _buildCategoryList(List<Category> categories, int depth, List<Category> parentPath) {
     final widgets = <Widget>[];
 
     for (final category in categories) {
@@ -92,6 +148,7 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
       final isExpanded = _expandedCategories.contains(category.id);
       final hasChildren = category.children.isNotEmpty;
       final isSelected = category.id == _selectedCategory?.id;
+      final currentPath = [...parentPath, category];
 
       widgets.add(
         Card(
@@ -104,88 +161,137 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
               width: isSelected ? 2 : 0,
             ),
           ),
-          child: InkWell(
-            borderRadius: BorderRadius.circular(8),
-            onTap: () {
-              if (hasChildren) {
-                setState(() {
-                  if (isExpanded) {
-                    _expandedCategories.remove(category.id);
+          child: Column(
+            children: [
+              InkWell(
+                borderRadius: BorderRadius.circular(8),
+                onTap: () {
+                  if (hasChildren) {
+                    setState(() {
+                      if (isExpanded) {
+                        _expandedCategories.remove(category.id);
+                      } else {
+                        _expandedCategories.add(category.id);
+                      }
+                    });
                   } else {
-                    _expandedCategories.add(category.id);
+                    _selectCategory(category, currentPath);
                   }
-                });
-              } else {
-                setState(() {
-                  _selectedCategory = category;
-                });
-              }
-            },
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Row(
-                children: [
-                  // Category icon or image
-                  if (category.iconUrl != null)
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundImage: NetworkImage(category.iconUrl!),
-                    )
-                  else
-                    CircleAvatar(
-                      radius: 20,
-                      backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                      child: Icon(
-                        _getCategoryIcon(category.name),
-                        color: Theme.of(context).primaryColor,
-                      ),
-                    ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(
-                          category.name,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                                fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-                                color: isSelected ? Theme.of(context).primaryColor : null,
-                              ),
-                        ),
-                        if (category.description != null && category.description!.isNotEmpty)
-                          Text(
-                            category.description!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
-                            maxLines: 2,
-                            overflow: TextOverflow.ellipsis,
+                },
+                child: Padding(
+                  padding: const EdgeInsets.all(16),
+                  child: Row(
+                    children: [
+                      // Category icon or image
+                      if (category.iconUrl != null)
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundImage: NetworkImage(category.iconUrl!),
+                        )
+                      else
+                        CircleAvatar(
+                          radius: 20,
+                          backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
+                          child: Icon(
+                            _getCategoryIcon(category.name),
+                            color: Theme.of(context).primaryColor,
                           ),
-                      ],
+                        ),
+                      const SizedBox(width: 16),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Expanded(
+                                  child: Text(
+                                    category.name,
+                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                          fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+                                          color: isSelected ? Theme.of(context).primaryColor : null,
+                                        ),
+                                  ),
+                                ),
+                                if (depth > 0)
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                                    decoration: BoxDecoration(
+                                      color: Colors.grey.shade100,
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    child: Text(
+                                      'Level ${depth + 1}',
+                                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                            color: Colors.grey[600],
+                                            fontSize: 10,
+                                          ),
+                                    ),
+                                  ),
+                              ],
+                            ),
+                            if (category.description != null && category.description!.isNotEmpty)
+                              Text(
+                                category.description!,
+                                style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                      color: Colors.grey[600],
+                                    ),
+                                maxLines: 2,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                          ],
+                        ),
+                      ),
+                      if (hasChildren)
+                        Icon(
+                          isExpanded ? Icons.expand_less : Icons.expand_more,
+                          color: Colors.grey[600],
+                        )
+                      else if (isSelected)
+                        const Icon(Icons.check_circle, color: Colors.green)
+                      else
+                        Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
+                    ],
+                  ),
+                ),
+              ),
+              // Add "Select this category" button for categories with children
+              if (hasChildren && !isSelected)
+                Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    border: Border(top: BorderSide(color: Colors.grey.shade200)),
+                  ),
+                  child: TextButton.icon(
+                    onPressed: () => _selectCategory(category, currentPath),
+                    icon: const Icon(Icons.check, size: 16),
+                    label: const Text('Select this category'),
+                    style: TextButton.styleFrom(
+                      foregroundColor: Theme.of(context).primaryColor,
+                      textStyle: const TextStyle(fontSize: 12),
                     ),
                   ),
-                  if (hasChildren)
-                    Icon(
-                      isExpanded ? Icons.expand_less : Icons.expand_more,
-                      color: Colors.grey[600],
-                    )
-                  else if (isSelected)
-                    const Icon(Icons.check_circle, color: Colors.green)
-                  else
-                    Icon(Icons.arrow_forward_ios, size: 16, color: Colors.grey[400]),
-                ],
-              ),
-            ),
+                ),
+            ],
           ),
         ),
       );
 
       if (hasChildren && isExpanded) {
-        widgets.addAll(_buildCategoryList(category.children, depth + 1));
+        widgets.addAll(_buildCategoryList(category.children, depth + 1, currentPath));
       }
     }
 
     return widgets;
+  }
+
+  void _selectCategory(Category category, List<Category> path) {
+    setState(() {
+      _selectedCategory = category;
+      _breadcrumbPath.clear();
+      _breadcrumbPath.addAll(path.take(path.length - 1)); // Exclude the selected category itself
+    });
   }
 
   IconData _getCategoryIcon(String categoryName) {
