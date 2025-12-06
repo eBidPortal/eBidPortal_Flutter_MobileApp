@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:go_router/go_router.dart';
 import '../../../../catalog/domain/category.dart';
 import '../../../data/template_service.dart';
+import '../create_auction_provider.dart';
+import '../create_auction_state.dart';
 import 'enhanced_dynamic_fields_form.dart';
 
 class CategorySchemaScreen extends ConsumerStatefulWidget {
@@ -15,15 +16,13 @@ class CategorySchemaScreen extends ConsumerStatefulWidget {
 }
 
 class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
-  final Map<String, dynamic> _formData = {};
-  bool _isSubmitting = false;
   final GlobalKey<EnhancedDynamicFieldsFormState> _formKey = GlobalKey<EnhancedDynamicFieldsFormState>();
 
   @override
   void initState() {
     super.initState();
-    print('📋 SCREEN: CategorySchemaScreen - initState called (category: ${widget.category.name})');
-    print('📋 SCREEN: CategorySchemaScreen - Category details:');
+    print('📋 TAB: CategorySchemaScreen - initState called (category: ${widget.category.name})');
+    print('📋 TAB: CategorySchemaScreen - Category details:');
     print('  - ID: ${widget.category.id}');
     print('  - Name: ${widget.category.name}');
     print('  - Description: ${widget.category.description}');
@@ -34,87 +33,31 @@ class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
 
   @override
   void dispose() {
-    print('📋 SCREEN: CategorySchemaScreen - dispose called (category: ${widget.category.name})');
+    print('📋 TAB: CategorySchemaScreen - dispose called (category: ${widget.category.name})');
     super.dispose();
   }
 
   void _onFieldChanged(String fieldName, dynamic value) {
-    setState(() {
-      _formData[fieldName] = value;
-    });
+    // Update the main CreateAuctionProvider with dynamic field changes
+    ref.read(createAuctionProvider.notifier).setDynamicField(fieldName, value);
     print('📝 CategorySchemaScreen: Field "$fieldName" changed to: $value');
   }
 
-  Future<void> _submitForm() async {
-    // Validate the form before submitting
-    final isFormValid = _formKey.currentState?.validateForm() ?? false;
-
-    if (!isFormValid) {
-      // Validation errors will be displayed directly on the fields
-      // No need for additional SnackBar since TextFormField validators show errors inline
-      return; // Don't proceed with submission
-    }
-
-    setState(() {
-      _isSubmitting = true;
-    });
-
-    print('📋 SCREEN: CategorySchemaScreen - Submitting form for category: ${widget.category.name}');
-    print('📋 SCREEN: CategorySchemaScreen - Form data:');
-    _formData.forEach((key, value) {
-      print('  - $key: $value');
-    });
-
-    try {
-      // Here you would typically submit the form data
-      // For now, just show a success message
-      print('✅ CategorySchemaScreen: Form submitted with data: $_formData');
-
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('Auction created successfully!'),
-            backgroundColor: Colors.green,
-          ),
-        );
-
-        // Navigate back or to auction list
-        context.go('/');
-      }
-    } catch (e) {
-      print('❌ CategorySchemaScreen: Error submitting form: $e');
-      if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Error creating auction: $e'),
-            backgroundColor: Colors.red,
-          ),
-        );
-      }
-    } finally {
-      if (mounted) {
-        setState(() {
-          _isSubmitting = false;
-        });
-      }
-    }
+  bool validateForm() {
+    // Validate the current form and return the result
+    return _formKey.currentState?.validateForm() ?? false;
   }
 
   @override
   Widget build(BuildContext context) {
-
+    final state = ref.watch(createAuctionProvider);
     final templateAsync = ref.watch(categoryTemplateProvider(widget.category.id));
 
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Create ${widget.category.name} Auction'),
-        elevation: 0,
-      ),
-      body: templateAsync.when(
+    return templateAsync.when(
         data: (template) {
           if (template != null) {
-            print('📋 SCREEN: CategorySchemaScreen - Template loaded successfully for category: ${widget.category.name} (${widget.category.id})');
-            print('📋 SCREEN: CategorySchemaScreen - Template details:');
+            print('📋 TAB: CategorySchemaScreen - Template loaded successfully for category: ${widget.category.name} (${widget.category.id})');
+            print('📋 TAB: CategorySchemaScreen - Template details:');
             print('  - Name: ${template.name}');
             print('  - Description: ${template.description}');
             print('  - Sections: ${template.sections.length}');
@@ -133,9 +76,9 @@ class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
                 }
               }
             }
-            return _buildFormView(context, template);
+            return _buildFormView(context, template, state);
           } else {
-            print('📋 SCREEN: CategorySchemaScreen - No template found for category: ${widget.category.name} (${widget.category.id})');
+            print('📋 TAB: CategorySchemaScreen - No template found for category: ${widget.category.name} (${widget.category.id})');
             return _buildNoSchemaView(context);
           }
         },
@@ -157,111 +100,29 @@ class _CategorySchemaScreenState extends ConsumerState<CategorySchemaScreen> {
             ],
           ),
         ),
-      ),
-      bottomNavigationBar: templateAsync.maybeWhen(
-        data: (template) => template != null ? _buildSubmitButton() : null,
-        orElse: () => null,
-      ),
     );
   }
 
-  Widget _buildFormView(BuildContext context, CategoryTemplate template) {
-    return SingleChildScrollView(
-      padding: const EdgeInsets.all(16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildFormView(BuildContext context, CategoryTemplate template, CreateAuctionState state) {
+    return Container(
+      color: Theme.of(context).scaffoldBackgroundColor,
+      child: SingleChildScrollView(
+        padding: const EdgeInsets.all(5.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Category Header
-          Card(
-            child: Padding(
-              padding: const EdgeInsets.all(16),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Row(
-                    children: [
-                      CircleAvatar(
-                        radius: 24,
-                        backgroundColor: Theme.of(context).primaryColor.withOpacity(0.1),
-                        child: Icon(
-                          _getCategoryIcon(widget.category.name),
-                          color: Theme.of(context).primaryColor,
-                        ),
-                      ),
-                      const SizedBox(width: 16),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Create ${widget.category.name} Auction',
-                              style: Theme.of(context).textTheme.headlineSmall,
-                            ),
-                            if (widget.category.description != null)
-                              Text(
-                                widget.category.description!,
-                                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                                  color: Colors.grey[600],
-                                ),
-                              ),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ),
-          const SizedBox(height: 24),
-
-          // Dynamic Form Fields
-          Text(
-            'Auction Details',
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
-          const SizedBox(height: 16),
-
           EnhancedDynamicFieldsForm(
             key: _formKey,
             categoryId: widget.category.id,
-            values: _formData,
-            errors: const {}, // Add error handling if needed
+            values: state.dynamicFields,
+            errors: state.dynamicFieldErrors,
             onValueChanged: _onFieldChanged,
           ),
 
           const SizedBox(height: 32),
         ],
       ),
-    );
-  }
-
-  Widget _buildSubmitButton() {
-    return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Theme.of(context).scaffoldBackgroundColor,
-        border: Border(top: BorderSide(color: Colors.grey.shade300)),
-      ),
-      child: ElevatedButton(
-        onPressed: _isSubmitting ? null : _submitForm,
-        style: ElevatedButton.styleFrom(
-          minimumSize: const Size(double.infinity, 50),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(8),
-          ),
-        ),
-        child: _isSubmitting
-            ? const SizedBox(
-                height: 20,
-                width: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                ),
-              )
-            : const Text('Create Auction'),
-      ),
+    ),
     );
   }
 

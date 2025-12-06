@@ -246,6 +246,7 @@ class TemplateService {
     try {
       print('TemplateService: Loading template from API for category: $categoryId');
       final response = await _apiClient.get('/sell/category-schema/$categoryId');
+      print('TemplateService: API Response - Status: ${response.statusCode}, Success: ${response.data['success']}, Data keys: ${response.data.keys}');
 
       if (response.statusCode == 200 && response.data['success'] == true) {
         print('TemplateService: Successfully loaded template from API for category: $categoryId');
@@ -287,6 +288,7 @@ class TemplateService {
       // Map category IDs to template files (can be extended dynamically)
       final templateFiles = <String, String>{
         'd71109b1-5715-4595-9774-8acc00adb19e': 'assets/templates/co-working-spaces-template.json',
+        '958c195b-c2cf-4104-916d-3f1640d30619': 'assets/templates/apartment-template.json', // Apparment category
         // Add more mappings as needed - this can be made dynamic based on server data
       };
 
@@ -315,7 +317,8 @@ class TemplateService {
   /// Create template from category input_schema
   CategoryTemplate? createTemplateFromCategoryInputSchema(Map<String, dynamic> inputSchema) {
     try {
-      print('TemplateService: Creating template from input_schema: $inputSchema');
+      print('TemplateService: Creating template from input_schema keys: ${inputSchema.keys}');
+      print('TemplateService: Full input_schema: $inputSchema');
 
       // Check if inputSchema has sections (new format)
       final sectionsJson = inputSchema['sections'] as List<dynamic>?;
@@ -509,6 +512,12 @@ final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String
   }
 
   final category = findCategoryById(categoriesAsync, categoryId);
+  print('TemplateService: Found category: ${category?.name}, Has inputSchema: ${category?.inputSchema != null}');
+  if (category?.inputSchema != null) {
+    print('TemplateService: InputSchema keys: ${category!.inputSchema!.keys}');
+    print('TemplateService: InputSchema content: ${category.inputSchema}');
+  }
+  
   if (category == null || category.inputSchema == null) {
     print('TemplateService: Category not found or no input_schema for category: $categoryId');
     return null;
@@ -519,6 +528,59 @@ final categoryTemplateProvider = FutureProvider.family<CategoryTemplate?, String
   final template = templateService.createTemplateFromCategoryInputSchema(category.inputSchema!);
   if (template != null) {
     print('TemplateService: Created template with ${template.sections.length} sections from input_schema');
+    return template;
+  } else {
+    print('TemplateService: Failed to create template from input_schema for category: ${category.name}');
   }
-  return template;
+  
+  // Final fallback: Create a basic template with common fields
+  print('TemplateService: Creating basic fallback template for category: ${category.name}');
+  return CategoryTemplate(
+    name: 'Basic Template',
+    description: 'Default template for ${category.name}',
+    categoryType: 'basic',
+    isActive: true,
+    sections: [
+      TemplateSection(
+        title: '${category.name} Details',
+        order: 1,
+        description: 'Please provide the details for your ${category.name.toLowerCase()}',
+        isCollapsible: false,
+        fields: [
+          TemplateField(
+            name: 'title',
+            label: 'Title',
+            type: 'text',
+            required: true,
+            validation: {'rules': ['required']},
+            uiConfig: {'placeholder': 'Enter a title for your ${category.name.toLowerCase()}'},
+          ),
+          TemplateField(
+            name: 'description',
+            label: 'Description',
+            type: 'textarea',
+            required: true,
+            validation: {'rules': ['required']},
+            uiConfig: {'placeholder': 'Describe your ${category.name.toLowerCase()}', 'rows': 4},
+          ),
+          TemplateField(
+            name: 'condition',
+            label: 'Condition',
+            type: 'select',
+            required: true,
+            validation: {'rules': ['required']},
+            uiConfig: {
+              'options': [
+                {'label': 'New', 'value': 'new'},
+                {'label': 'Like New', 'value': 'like_new'},
+                {'label': 'Good', 'value': 'good'},
+                {'label': 'Fair', 'value': 'fair'},
+                {'label': 'Poor', 'value': 'poor'},
+              ]
+            },
+          ),
+        ],
+      ),
+    ],
+  );
 });

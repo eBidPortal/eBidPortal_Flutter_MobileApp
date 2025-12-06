@@ -36,6 +36,7 @@ class CreateAuctionState with _$CreateAuctionState {
 
     // Step 4: Additional Details
     @Default([]) List<String> tags,
+    String? returnPolicy,
 
     // Form State
     @Default(0) int currentStep,

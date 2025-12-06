@@ -12,14 +12,11 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   final ImageUploadService _imageService;
 
   CreateAuctionNotifier(this._auctionRepository, this._imageService)
-      : super(const CreateAuctionState());
+    : super(const CreateAuctionState());
 
   // Step 1: Basic Info
   void setTitle(String title) {
-    state = state.copyWith(
-      title: title,
-      titleError: _validateTitle(title),
-    );
+    state = state.copyWith(title: title, titleError: _validateTitle(title));
   }
 
   void setDescription(String description) {
@@ -30,7 +27,9 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   }
 
   void setCategory(Category category) {
-    print('CreateAuctionProvider: Setting category to ${category.id} (${category.name})');
+    print(
+      'CreateAuctionProvider: Setting category to ${category.id} (${category.name})',
+    );
     state = state.copyWith(
       categoryId: category.id,
       categoryError: null,
@@ -76,16 +75,11 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   void addImages(List<File> images) {
     final newImages = [...state.localImages, ...images];
     if (newImages.length > 10) {
-      state = state.copyWith(
-        imagesError: 'Maximum 10 images allowed',
-      );
+      state = state.copyWith(imagesError: 'Maximum 10 images allowed');
       return;
     }
 
-    state = state.copyWith(
-      localImages: newImages,
-      imagesError: null,
-    );
+    state = state.copyWith(localImages: newImages, imagesError: null);
   }
 
   void removeImage(int index) {
@@ -137,9 +131,52 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   }
 
   void removeTag(String tag) {
+    state = state.copyWith(tags: state.tags.where((t) => t != tag).toList());
+  }
+
+  void setTags(List<String> tags) {
+    state = state.copyWith(tags: tags);
+  }
+
+  void setReturnPolicy(String? policy) {
+    state = state.copyWith(returnPolicy: policy);
+  }
+
+  // Bulk update method for advanced settings
+  void updateAuctionSettings({
+    double? startPrice,
+    double? reservePrice,
+    DateTime? startTime,
+    DateTime? endTime,
+    String? auctionType,
+    List<String>? tags,
+    String? returnPolicy,
+  }) {
     state = state.copyWith(
-      tags: state.tags.where((t) => t != tag).toList(),
+      startPrice: startPrice?.toString(),
+      reservePrice: reservePrice?.toString(),
+      startTime: startTime,
+      endTime: endTime,
+      type: auctionType != null ? _parseAuctionType(auctionType) : state.type,
+      tags: tags ?? state.tags,
+      returnPolicy: returnPolicy,
     );
+  }
+
+  AuctionType _parseAuctionType(String type) {
+    switch (type.toLowerCase()) {
+      case 'english':
+        return AuctionType.english;
+      case 'dutch':
+        return AuctionType.dutch;
+      case 'sealed_bid':
+      case 'sealed':
+        return AuctionType.sealed;
+      case 'reverse':
+        return AuctionType.reverse;
+      default:
+        return AuctionType.english;
+    }
   }
 
   // Navigation
@@ -161,10 +198,40 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
 
   // Submission
   Future<bool> submitAuction() async {
+    print('🔄 CreateAuctionProvider: Starting auction submission');
+    print('🔄 State before validation:');
+    print('  - Category ID: ${state.categoryId}');
+    print('  - Start Price: ${state.startPrice}');
+    print('  - Reserve Price: ${state.reservePrice}');
+    print('  - Start Time: ${state.startTime}');
+    print('  - End Time: ${state.endTime}');
+    print('  - Dynamic Fields: ${state.dynamicFields}');
+    print('  - Tags: ${state.tags}');
+    print('  - Return Policy: ${state.returnPolicy}');
+
     if (!_validateAllSteps()) {
+      print('🔴 CreateAuctionProvider: Validation failed');
+      print('  - Category Error: ${state.categoryError}');
+      print('  - Start Price Error: ${state.startPriceError}');
+      print('  - Reserve Price Error: ${state.reservePriceError}');
+      print('  - Start Time Error: ${state.startTimeError}');
+      print('  - End Time Error: ${state.endTimeError}');
+      
+      // Set a more specific error message for validation failures
+      final validationErrors = [
+        if (state.categoryError != null) 'Category: ${state.categoryError!}',
+        if (state.startPriceError != null) 'Start Price: ${state.startPriceError!}',
+        if (state.reservePriceError != null) 'Reserve Price: ${state.reservePriceError!}',
+        if (state.startTimeError != null) 'Start Time: ${state.startTimeError!}',
+        if (state.endTimeError != null) 'End Time: ${state.endTimeError!}',
+        if (!_hasValidTitleField()) 'Product Name: Please fill in a title/name field',
+      ];
+      
+      state = state.copyWith(error: validationErrors.join('\n'));
       return false;
     }
 
+    print('✅ CreateAuctionProvider: Validation passed');
     state = state.copyWith(isSubmitting: true, error: null);
 
     try {
@@ -182,12 +249,16 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         isUploadingImages: false,
       );
 
-      // Create auction
+      // Create auction with simplified API structure
+      // All product data comes from dynamic template fields, not hardcoded title/description
       await _auctionRepository.createAuction(
-        title: state.title,
-        description: state.description,
+        title:
+            '', // Will be used as fallback only if productName not in template
+        description:
+            '', // Will be used as fallback only if description not in template
         startPrice: double.parse(state.startPrice!),
-        reservePrice: state.reservePrice != null && state.reservePrice!.isNotEmpty
+        reservePrice:
+            state.reservePrice != null && state.reservePrice!.isNotEmpty
             ? double.parse(state.reservePrice!)
             : null,
         categoryId: state.categoryId!,
@@ -196,16 +267,21 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         type: state.type.name,
         images: imageUrls,
         tags: state.tags,
-        dynamicFields: state.dynamicFields,
+        dynamicFields:
+            state.dynamicFields, // This contains all category template data
+        returnPolicy: state.returnPolicy,
       );
 
       state = state.copyWith(isSubmitting: false);
+      print('✅ CreateAuctionProvider: Auction created successfully');
       return true;
     } catch (e) {
-      state = state.copyWith(
-        isSubmitting: false,
-        error: e.toString(),
-      );
+      print('🔴 CreateAuctionProvider: Error creating auction: $e');
+      print('🔴 CreateAuctionProvider: Error type: ${e.runtimeType}');
+      if (e is Exception) {
+        print('🔴 CreateAuctionProvider: Exception details: ${e.toString()}');
+      }
+      state = state.copyWith(isSubmitting: false, error: e.toString());
       return false;
     }
   }
@@ -296,31 +372,32 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
 
   bool _validateCurrentStep() {
     switch (state.currentStep) {
-      case 0: // Basic Info
-        final titleError = _validateTitle(state.title);
-        final descriptionError = _validateDescription(state.description);
-        final categoryError =
-            state.categoryId == null ? 'Category is required' : null;
-        
+      case 0: // Category Template Fields - validation handled by EnhancedDynamicFieldsForm
+        final categoryError = state.categoryId == null
+            ? 'Category is required'
+            : null;
+
         // Dynamic field validation is now handled by EnhancedDynamicFieldsForm
-        final dynamicFieldErrors = <String, String>{};
+        // We only check if category is selected and at least productName exists in dynamic fields
+        final hasProductName =
+            state.dynamicFields.containsKey('productName') &&
+            state.dynamicFields['productName']?.toString().trim().isNotEmpty ==
+                true;
 
         state = state.copyWith(
-          titleError: titleError,
-          descriptionError: descriptionError,
           categoryError: categoryError,
-          dynamicFieldErrors: dynamicFieldErrors,
+          titleError: null, // Clear old title/description errors
+          descriptionError: null,
         );
 
-        return titleError == null &&
-            descriptionError == null &&
-            categoryError == null &&
-            dynamicFieldErrors.isEmpty;
+        return categoryError == null && hasProductName;
 
       case 1: // Pricing & Duration
         final startPriceError = _validateStartPrice(state.startPrice ?? '');
-        final reservePriceError =
-            _validateReservePrice(state.reservePrice, state.startPrice);
+        final reservePriceError = _validateReservePrice(
+          state.reservePrice,
+          state.startPrice,
+        );
         final startTimeError = _validateStartTime(state.startTime);
         final endTimeError = _validateEndTime(state.endTime, state.startTime);
 
@@ -338,9 +415,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
 
       case 2: // Images
         if (state.localImages.isEmpty) {
-          state = state.copyWith(
-            imagesError: 'At least one image is required',
-          );
+          state = state.copyWith(imagesError: 'At least one image is required');
           return false;
         }
         return true;
@@ -351,13 +426,102 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   }
 
   bool _validateAllSteps() {
-    return _validateCurrentStep();
+    // For tab-based UI, validate all required fields across both tabs
+
+    // Tab 1: Category Template Fields
+    final categoryError = state.categoryId == null
+        ? 'Category is required'
+        : null;
+    
+    // Check for title field - can be productName, property_title, listing_title, etc.
+    final hasTitle = _hasValidTitleField();
+    if (!hasTitle) {
+      print('🔴 CreateAuctionProvider: No valid title field found in dynamic fields: ${state.dynamicFields.keys}');
+    }
+
+    // Tab 2: Advanced Settings
+    final startPriceError = _validateStartPrice(state.startPrice ?? '');
+    final reservePriceError = _validateReservePrice(
+      state.reservePrice,
+      state.startPrice,
+    );
+    final startTimeError = _validateStartTime(state.startTime);
+    final endTimeError = _validateEndTime(state.endTime, state.startTime);
+
+    // Update state with any validation errors
+    state = state.copyWith(
+      categoryError: categoryError,
+      startPriceError: startPriceError,
+      reservePriceError: reservePriceError,
+      startTimeError: startTimeError,
+      endTimeError: endTimeError,
+      titleError: null, // Clear legacy errors
+      descriptionError: null,
+      imagesError: null, // Images are optional in new structure
+    );
+
+    final isValid = categoryError == null &&
+        hasTitle &&
+        startPriceError == null &&
+        reservePriceError == null &&
+        startTimeError == null &&
+        endTimeError == null;
+        
+    if (!isValid) {
+      print('🔴 CreateAuctionProvider: Validation failed details:');
+      print('  - Category valid: ${categoryError == null}');
+      print('  - Has title: $hasTitle');
+      print('  - Start price valid: ${startPriceError == null}');
+      print('  - Reserve price valid: ${reservePriceError == null}');
+      print('  - Start time valid: ${startTimeError == null}');
+      print('  - End time valid: ${endTimeError == null}');
+    }
+        
+    return isValid;
+  }
+  
+  bool _hasValidTitleField() {
+    // Check for common title field names used in different category templates
+    final titleFields = [
+      // Product-related titles
+      'productName',
+      'product_title',
+      'item_title',
+      
+      // Property-related titles  
+      'property_title',
+      'clear_title',
+      
+      // Vehicle/listing-related titles
+      'listing_title',
+      'ad_title',
+      
+      // Job-related titles
+      'job_title',
+      
+      // Space/service-related titles
+      'space_title',
+      'service_title',
+      
+      // Generic titles
+      'title',
+      'name',
+    ];
+    
+    for (String field in titleFields) {
+      if (state.dynamicFields.containsKey(field) &&
+          state.dynamicFields[field]?.toString().trim().isNotEmpty == true) {
+        return true;
+      }
+    }
+    
+    return false;
   }
 }
 
 final createAuctionProvider =
     StateNotifierProvider<CreateAuctionNotifier, CreateAuctionState>((ref) {
-  final auctionRepository = ref.watch(auctionRepositoryProvider);
-  final imageService = ref.watch(imageUploadServiceProvider);
-  return CreateAuctionNotifier(auctionRepository, imageService);
-});
+      final auctionRepository = ref.watch(auctionRepositoryProvider);
+      final imageService = ref.watch(imageUploadServiceProvider);
+      return CreateAuctionNotifier(auctionRepository, imageService);
+    });

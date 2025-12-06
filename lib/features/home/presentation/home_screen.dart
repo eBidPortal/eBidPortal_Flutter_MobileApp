@@ -127,58 +127,41 @@ class HomeScreen extends ConsumerWidget {
         borderRadius: BorderRadius.circular(AppTheme.radiusLg),
         boxShadow: AppTheme.shadowMd,
       ),
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(AppTheme.radiusLg),
-              child: Opacity(
-                opacity: 0.1,
-                child: Image.network(
-                  'https://via.placeholder.com/400x160',
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => Container(),
-                ),
+      child: Padding(
+        padding: const EdgeInsets.all(AppTheme.spacingMd),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              '🔥 Hot Auctions Live Now!',
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
               ),
             ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Text(
-                  '🔥 Hot Auctions Live Now!',
-                  style: TextStyle(
-                    color: Colors.white,
-                    fontSize: 18,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                const SizedBox(height: 4),
-                const Text(
-                  'Don\'t miss out on exclusive deals',
-                  style: TextStyle(
-                    color: Colors.white70,
-                    fontSize: 13,
-                  ),
-                ),
-                const SizedBox(height: 12),
-                ElevatedButton(
-                  onPressed: () {},
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.white,
-                    foregroundColor: AppTheme.primaryColor,
-                    elevation: 0,
-                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                  ),
-                  child: const Text('Explore Now', style: TextStyle(fontSize: 13)),
-                ),
-              ],
+            const SizedBox(height: 4),
+            const Text(
+              'Don\'t miss out on exclusive deals',
+              style: TextStyle(
+                color: Colors.white70,
+                fontSize: 13,
+              ),
             ),
-          ),
-        ],
+            const SizedBox(height: 12),
+            ElevatedButton(
+              onPressed: () {},
+              style: ElevatedButton.styleFrom(
+                backgroundColor: Colors.white,
+                foregroundColor: AppTheme.primaryColor,
+                elevation: 0,
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+              ),
+              child: const Text('Explore Now', style: TextStyle(fontSize: 13)),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -262,16 +245,10 @@ class HomeScreen extends ConsumerWidget {
               children: [
                 ClipRRect(
                   borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusMd)),
-                  child: Image.network(
-                    'https://via.placeholder.com/280x120',
+                  child: Container(
                     height: 120,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
-                      height: 120,
-                      color: AppTheme.borderColor,
-                      child: const Icon(Icons.image),
-                    ),
+                    color: AppTheme.borderColor,
+                    child: const Icon(Icons.image),
                   ),
                 ),
                 Padding(

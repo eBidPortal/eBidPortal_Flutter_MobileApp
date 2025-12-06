@@ -75,21 +75,40 @@ class AuctionRepository {
     required List<String> images,
     List<String> tags = const [],
     Map<String, dynamic> dynamicFields = const {},
+    String? returnPolicy,
   }) async {
     try {
+      // Use only dynamic fields from category template for dynamic_attributes
+      // Titlde are now handled as part of the dynamic template fields
+      final dynamicAttributes = Map<String, dynamic>.from(dynamicFields);
+
+      // Ensure productName exists in dynamic attributes (fallback to title if not provided by template)
+      if (!dynamicAttributes.containsKey('productName') && title.isNotEmpty) {
+        dynamicAttributes['productName'] = title;
+      }
+
+      // Ensure description exists in dynamic attributes (fallback if not provided by template)
+      if (!dynamicAttributes.containsKey('description') &&
+          description.isNotEmpty) {
+        dynamicAttributes['description'] = description;
+      }
+
       final requestBody = {
-        'title': title,
-        'description': description,
-        'start_price': startPrice,
-        if (reservePrice != null) 'reserve_price': reservePrice,
         'category_id': categoryId,
+        'dynamic_attributes': dynamicAttributes,
+        'start_price': startPrice,
+        'current_price':
+            startPrice, // Set current_price same as start_price initially
+        if (reservePrice != null) 'reserve_price': reservePrice,
         'start_time': startTime.toIso8601String(),
         'end_time': endTime.toIso8601String(),
         'type': type,
-        'images': images,
         if (tags.isNotEmpty) 'tags': tags,
-        if (dynamicFields.isNotEmpty) 'dynamic_fields': dynamicFields,
+        if (returnPolicy != null) 'return_policy': returnPolicy,
       };
+
+      print('🔄 AuctionRepository: Creating auction with payload:');
+      print(requestBody);
 
       final response = await _apiClient.post(
         ApiConstants.auctions,
@@ -111,10 +130,7 @@ class AuctionRepository {
     int limit = 20,
   }) async {
     try {
-      final queryParams = {
-        'page': page,
-        'limit': limit,
-      };
+      final queryParams = {'page': page, 'limit': limit};
 
       final response = await _apiClient.get(
         ApiConstants.watchlist,
@@ -125,7 +141,9 @@ class AuctionRepository {
         final List<dynamic> data = response.data['data']['watchlist'];
         return data.map((json) => WatchlistItem.fromJson(json)).toList();
       } else {
-        throw Exception(response.data['message'] ?? 'Failed to fetch watchlist');
+        throw Exception(
+          response.data['message'] ?? 'Failed to fetch watchlist',
+        );
       }
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Network error');
@@ -140,7 +158,9 @@ class AuctionRepository {
       );
 
       if (response.data['success'] != true) {
-        throw Exception(response.data['message'] ?? 'Failed to add to watchlist');
+        throw Exception(
+          response.data['message'] ?? 'Failed to add to watchlist',
+        );
       }
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Network error');
@@ -154,7 +174,9 @@ class AuctionRepository {
       );
 
       if (response.data['success'] != true) {
-        throw Exception(response.data['message'] ?? 'Failed to remove from watchlist');
+        throw Exception(
+          response.data['message'] ?? 'Failed to remove from watchlist',
+        );
       }
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Network error');

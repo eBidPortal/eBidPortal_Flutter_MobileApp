@@ -33,7 +33,8 @@ mixin _$CreateAuctionState {
   bool get isUploadingImages => throw _privateConstructorUsedError;
   double get uploadProgress =>
       throw _privateConstructorUsedError; // Step 4: Additional Details
-  List<String> get tags => throw _privateConstructorUsedError; // Form State
+  List<String> get tags => throw _privateConstructorUsedError;
+  String? get returnPolicy => throw _privateConstructorUsedError; // Form State
   int get currentStep => throw _privateConstructorUsedError;
   bool get isSubmitting => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError; // Validation Errors
@@ -77,6 +78,7 @@ abstract class $CreateAuctionStateCopyWith<$Res> {
     bool isUploadingImages,
     double uploadProgress,
     List<String> tags,
+    String? returnPolicy,
     int currentStep,
     bool isSubmitting,
     String? error,
@@ -121,6 +123,7 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
     Object? isUploadingImages = null,
     Object? uploadProgress = null,
     Object? tags = null,
+    Object? returnPolicy = freezed,
     Object? currentStep = null,
     Object? isSubmitting = null,
     Object? error = freezed,
@@ -192,6 +195,10 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
                 ? _value.tags
                 : tags // ignore: cast_nullable_to_non_nullable
                       as List<String>,
+            returnPolicy: freezed == returnPolicy
+                ? _value.returnPolicy
+                : returnPolicy // ignore: cast_nullable_to_non_nullable
+                      as String?,
             currentStep: null == currentStep
                 ? _value.currentStep
                 : currentStep // ignore: cast_nullable_to_non_nullable
@@ -270,6 +277,7 @@ abstract class _$$CreateAuctionStateImplCopyWith<$Res>
     bool isUploadingImages,
     double uploadProgress,
     List<String> tags,
+    String? returnPolicy,
     int currentStep,
     bool isSubmitting,
     String? error,
@@ -313,6 +321,7 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
     Object? isUploadingImages = null,
     Object? uploadProgress = null,
     Object? tags = null,
+    Object? returnPolicy = freezed,
     Object? currentStep = null,
     Object? isSubmitting = null,
     Object? error = freezed,
@@ -384,6 +393,10 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
             ? _value._tags
             : tags // ignore: cast_nullable_to_non_nullable
                   as List<String>,
+        returnPolicy: freezed == returnPolicy
+            ? _value.returnPolicy
+            : returnPolicy // ignore: cast_nullable_to_non_nullable
+                  as String?,
         currentStep: null == currentStep
             ? _value.currentStep
             : currentStep // ignore: cast_nullable_to_non_nullable
@@ -455,6 +468,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.isUploadingImages = false,
     this.uploadProgress = 0.0,
     final List<String> tags = const [],
+    this.returnPolicy,
     this.currentStep = 0,
     this.isSubmitting = false,
     this.error,
@@ -543,6 +557,8 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     return EqualUnmodifiableListView(_tags);
   }
 
+  @override
+  final String? returnPolicy;
   // Form State
   @override
   @JsonKey()
@@ -581,7 +597,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
 
   @override
   String toString() {
-    return 'CreateAuctionState(title: $title, description: $description, categoryId: $categoryId, type: $type, dynamicFields: $dynamicFields, startPrice: $startPrice, reservePrice: $reservePrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, dynamicFieldErrors: $dynamicFieldErrors)';
+    return 'CreateAuctionState(title: $title, description: $description, categoryId: $categoryId, type: $type, dynamicFields: $dynamicFields, startPrice: $startPrice, reservePrice: $reservePrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, returnPolicy: $returnPolicy, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, dynamicFieldErrors: $dynamicFieldErrors)';
   }
 
   @override
@@ -619,6 +635,8 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
             (identical(other.uploadProgress, uploadProgress) ||
                 other.uploadProgress == uploadProgress) &&
             const DeepCollectionEquality().equals(other._tags, _tags) &&
+            (identical(other.returnPolicy, returnPolicy) ||
+                other.returnPolicy == returnPolicy) &&
             (identical(other.currentStep, currentStep) ||
                 other.currentStep == currentStep) &&
             (identical(other.isSubmitting, isSubmitting) ||
@@ -663,6 +681,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     isUploadingImages,
     uploadProgress,
     const DeepCollectionEquality().hash(_tags),
+    returnPolicy,
     currentStep,
     isSubmitting,
     error,
@@ -705,6 +724,7 @@ abstract class _CreateAuctionState implements CreateAuctionState {
     final bool isUploadingImages,
     final double uploadProgress,
     final List<String> tags,
+    final String? returnPolicy,
     final int currentStep,
     final bool isSubmitting,
     final String? error,
@@ -747,7 +767,9 @@ abstract class _CreateAuctionState implements CreateAuctionState {
   @override
   double get uploadProgress; // Step 4: Additional Details
   @override
-  List<String> get tags; // Form State
+  List<String> get tags;
+  @override
+  String? get returnPolicy; // Form State
   @override
   int get currentStep;
   @override

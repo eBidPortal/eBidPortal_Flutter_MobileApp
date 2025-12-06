@@ -322,7 +322,7 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
   void _proceedToForm() {
     if (_selectedCategory == null) return;
 
-    // Navigate to the category schema screen with the selected category
-    context.push('/category-schema', extra: _selectedCategory);
+    // Navigate to the create auction screen with the selected category
+    context.push('/create-auction', extra: _selectedCategory);
   }
 }

@@ -4,11 +4,9 @@ import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import '../../../../core/theme/app_theme.dart';
 import 'create_auction_provider.dart';
-import 'steps/basic_info_step.dart';
-import 'steps/pricing_step.dart';
-import 'steps/images_step.dart';
 import '../../../catalog/domain/category.dart';
-import 'steps/review_step.dart';
+import 'widgets/category_schema_screen.dart';
+import '../screens/advanced_settings_tab.dart';
 
 class CreateAuctionScreen extends ConsumerStatefulWidget {
   final Category? initialCategory;
@@ -16,107 +14,160 @@ class CreateAuctionScreen extends ConsumerStatefulWidget {
   const CreateAuctionScreen({super.key, this.initialCategory});
 
   @override
-  ConsumerState<CreateAuctionScreen> createState() => _CreateAuctionScreenState();
+  ConsumerState<CreateAuctionScreen> createState() =>
+      _CreateAuctionScreenState();
 }
 
-class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
+class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen>
+    with SingleTickerProviderStateMixin {
+  late TabController _tabController;
+
   @override
   void initState() {
     super.initState();
+    _tabController = TabController(length: 2, vsync: this);
     print('🔄 SCREEN: CreateAuctionScreen - initState called');
     // Initialize with the selected category if provided
     if (widget.initialCategory != null) {
       WidgetsBinding.instance.addPostFrameCallback((_) {
-        ref.read(createAuctionProvider.notifier).setCategory(widget.initialCategory!);
+        ref
+            .read(createAuctionProvider.notifier)
+            .setCategory(widget.initialCategory!);
       });
     }
   }
 
   @override
+  void dispose() {
+    _tabController.dispose();
+    super.dispose();
+  }
+
+  @override
   Widget build(BuildContext context) {
     final state = ref.watch(createAuctionProvider);
-    final notifier = ref.read(createAuctionProvider.notifier);
+
+    // If no category selected and no initial category provided, redirect to category selection
+    if (widget.initialCategory == null &&
+        (state.categoryId == null || state.categoryId!.isEmpty)) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        context.go('/create-auction/category-selection');
+      });
+      return const Scaffold(body: Center(child: CircularProgressIndicator()));
+    }
+
+    // Use initialCategory if no categoryId in state yet
+    final currentCategory = widget.initialCategory;
+    if (currentCategory == null) {
+      return const Scaffold(
+        body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Icon(Icons.category, size: 64, color: Colors.grey),
+              SizedBox(height: 16),
+              Text('No category selected'),
+            ],
+          ),
+        ),
+      );
+    }
 
     return Scaffold(
+      backgroundColor: Theme.of(context).scaffoldBackgroundColor,
       appBar: AppBar(
         title: const Text('Create Auction'),
         elevation: 0,
+        bottom: TabBar(
+          controller: _tabController,
+          tabs: const [
+            Tab(icon: Icon(Icons.description), text: 'Category Details'),
+            Tab(icon: Icon(Icons.settings), text: 'Advanced Settings'),
+          ],
+        ),
       ),
-      body: Column(
+      body: TabBarView(
+        controller: _tabController,
         children: [
-          // Step Indicator
-          _StepIndicator(currentStep: state.currentStep),
-          
-          // Step Content
-          Expanded(
-            child: IndexedStack(
-              index: state.currentStep,
-              children: const [
-                BasicInfoStep(),
-                PricingStep(),
-                ImagesStep(),
-                ReviewStep(),
-              ],
-            ),
-          ),
-          
-          // Navigation Buttons
-          Container(
-            padding: const EdgeInsets.all(AppTheme.spacingLg),
-            decoration: BoxDecoration(
-              color: AppTheme.surfaceColor,
-              boxShadow: AppTheme.shadowMd,
-            ),
-            child: Row(
-              children: [
-                if (state.currentStep > 0)
-                  Expanded(
-                    child: OutlinedButton(
-                      onPressed: state.isSubmitting
-                          ? null
-                          : () => notifier.previousStep(),
-                      child: const Text('Back'),
-                    ),
-                  ),
-                if (state.currentStep > 0) const SizedBox(width: AppTheme.spacingMd),
-                Expanded(
-                  flex: 2,
-                  child: state.currentStep < 3
-                      ? ElevatedButton(
-                          onPressed: state.isSubmitting
-                              ? null
-                              : () => notifier.nextStep(),
-                          child: const Text('Next'),
-                        )
-                      : ElevatedButton(
-                          onPressed: state.isSubmitting
-                              ? null
-                              : () => _handleSubmit(context, ref),
-                          child: state.isSubmitting
-                              ? const SizedBox(
-                                  height: 20,
-                                  width: 20,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2,
-                                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-                                  ),
-                                )
-                              : const Text('Create Auction'),
-                        ),
-                ),
-              ],
-            ),
-          ),
+          // Tab 1: Category Schema Screen (Dynamic Fields)
+          CategorySchemaScreen(category: currentCategory),
+
+          // Tab 2: Advanced Settings Tab (Pricing, Timing, etc.)
+          const AdvancedSettingsTab(),
         ],
+      ),
+      bottomNavigationBar: Container(
+        padding: const EdgeInsets.all(AppTheme.spacingLg),
+        decoration: BoxDecoration(
+          color: AppTheme.surfaceColor,
+          boxShadow: AppTheme.shadowMd,
+        ),
+        child: ElevatedButton(
+          onPressed: state.isSubmitting
+              ? null
+              : () => _handleSubmit(context, ref, currentCategory),
+          style: ElevatedButton.styleFrom(
+            minimumSize: const Size(double.infinity, 50),
+          ),
+          child: state.isSubmitting
+              ? const SizedBox(
+                  height: 20,
+                  width: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
+                  ),
+                )
+              : const Text('Create Auction'),
+        ),
       ),
     );
   }
 
-  Future<void> _handleSubmit(BuildContext context, WidgetRef ref) async {
+  Future<void> _handleSubmit(
+    BuildContext context,
+    WidgetRef ref,
+    Category category,
+  ) async {
     final notifier = ref.read(createAuctionProvider.notifier);
-    
+    final state = ref.read(createAuctionProvider);
+
+    // Ensure category is set
+    if (state.categoryId != category.id) {
+      notifier.setCategory(category);
+    }
+
+    // Validate required fields
+    if (state.startPrice == null || state.startPrice!.isEmpty) {
+      toastification.show(
+        context: context,
+        type: ToastificationType.error,
+        title: const Text('Validation Error'),
+        description: const Text(
+          'Please fill in the start price in Advanced Settings tab',
+        ),
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      _tabController.animateTo(1); // Switch to Advanced Settings tab
+      return;
+    }
+
+    if (state.startTime == null || state.endTime == null) {
+      toastification.show(
+        context: context,
+        type: ToastificationType.error,
+        title: const Text('Validation Error'),
+        description: const Text(
+          'Please set auction start and end times in Advanced Settings tab',
+        ),
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+      _tabController.animateTo(1); // Switch to Advanced Settings tab
+      return;
+    }
+
     final success = await notifier.submitAuction();
-    
+
     if (success && context.mounted) {
       toastification.show(
         context: context,
@@ -124,7 +175,7 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
         title: const Text('Auction created successfully!'),
         autoCloseDuration: const Duration(seconds: 3),
       );
-      context.go('/home');
+      context.go('/');
     } else if (context.mounted) {
       final error = ref.read(createAuctionProvider).error;
       toastification.show(
@@ -135,96 +186,5 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen> {
         autoCloseDuration: const Duration(seconds: 5),
       );
     }
-  }
-}
-
-class _StepIndicator extends StatelessWidget {
-  final int currentStep;
-
-  const _StepIndicator({required this.currentStep});
-
-  @override
-  Widget build(BuildContext context) {
-    final steps = ['Basic', 'Pricing', 'Images', 'Review'];
-    
-    return Container(
-      padding: const EdgeInsets.symmetric(
-        horizontal: AppTheme.spacingLg,
-        vertical: AppTheme.spacingMd,
-      ),
-      color: AppTheme.surfaceColor,
-      child: Row(
-        children: List.generate(steps.length * 2 - 1, (index) {
-          if (index.isOdd) {
-            // Connector line
-            final stepIndex = index ~/ 2;
-            return Expanded(
-              child: Container(
-                height: 2,
-                color: stepIndex < currentStep
-                    ? AppTheme.primaryColor
-                    : AppTheme.borderColor,
-              ),
-            );
-          }
-          
-          // Step circle
-          final stepIndex = index ~/ 2;
-          final isActive = stepIndex == currentStep;
-          final isCompleted = stepIndex < currentStep;
-          
-          return Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Container(
-                width: 32,
-                height: 32,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: isCompleted || isActive
-                      ? AppTheme.primaryColor
-                      : AppTheme.borderColor,
-                  border: Border.all(
-                    color: isActive
-                        ? AppTheme.primaryColor
-                        : Colors.transparent,
-                    width: 2,
-                  ),
-                ),
-                child: Center(
-                  child: isCompleted
-                      ? const Icon(
-                          Icons.check,
-                          size: 16,
-                          color: Colors.white,
-                        )
-                      : Text(
-                          '${stepIndex + 1}',
-                          style: TextStyle(
-                            color: isActive || isCompleted
-                                ? Colors.white
-                                : AppTheme.textMuted,
-                            fontWeight: FontWeight.bold,
-                            fontSize: 14,
-                          ),
-                        ),
-                ),
-              ),
-              const SizedBox(height: 4),
-              Text(
-                steps[stepIndex],
-                style: TextStyle(
-                  fontSize: 11,
-                  color: isActive
-                      ? AppTheme.primaryColor
-                      : AppTheme.textMuted,
-                  fontWeight: isActive ? FontWeight.bold : FontWeight.normal,
-                ),
-              ),
-            ],
-          );
-        }),
-      ),
-    );
   }
 }

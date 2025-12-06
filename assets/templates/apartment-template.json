@@ -1,0 +1,239 @@
+{
+  "name": "Apartment Template",
+  "description": "Template for apartment and housing listings",
+  "category_type": "apartment",
+  "is_active": true,
+  "sections": [
+    {
+      "title": "Property Information",
+      "order": 1,
+      "description": "Basic property details and specifications",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "property_title",
+          "label": "Property Title",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "min_length:15", "max_length:120"],
+          "ui_config": {
+            "placeholder": "e.g., Spacious 2BHK Apartment in Prime Location with Modern Amenities",
+            "help_text": "Create an attractive title that highlights your property's unique features and location"
+          }
+        },
+        {
+          "name": "property_type",
+          "label": "Property Type",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "apartment", "label": "Apartment"},
+              {"value": "flat", "label": "Flat"},
+              {"value": "studio", "label": "Studio Apartment"},
+              {"value": "penthouse", "label": "Penthouse"},
+              {"value": "duplex", "label": "Duplex"},
+              {"value": "villa", "label": "Villa"},
+              {"value": "house", "label": "House"}
+            ]
+          }
+        },
+        {
+          "name": "bedrooms",
+          "label": "Number of Bedrooms",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "0", "label": "Studio (0 BHK)"},
+              {"value": "1", "label": "1 BHK"},
+              {"value": "2", "label": "2 BHK"},
+              {"value": "3", "label": "3 BHK"},
+              {"value": "4", "label": "4 BHK"},
+              {"value": "5+", "label": "5+ BHK"}
+            ]
+          }
+        },
+        {
+          "name": "bathrooms",
+          "label": "Number of Bathrooms",
+          "type": "number",
+          "required": true,
+          "validation": ["required", "min:1", "max:10"],
+          "ui_config": {
+            "placeholder": "Number of bathrooms"
+          }
+        },
+        {
+          "name": "area",
+          "label": "Area (sq ft)",
+          "type": "number",
+          "required": true,
+          "validation": ["required", "min:100"],
+          "ui_config": {
+            "placeholder": "Property area in square feet"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Location Details",
+      "order": 2,
+      "description": "Property location and address information",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "address",
+          "label": "Full Address",
+          "type": "textarea",
+          "required": true,
+          "validation": ["required", "min_length:10"],
+          "ui_config": {
+            "placeholder": "Enter complete address",
+            "rows": 3
+          }
+        },
+        {
+          "name": "city",
+          "label": "City",
+          "type": "text",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "placeholder": "City name"
+          }
+        },
+        {
+          "name": "state",
+          "label": "State",
+          "type": "text",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "placeholder": "State name"
+          }
+        },
+        {
+          "name": "pincode",
+          "label": "Pin Code",
+          "type": "text",
+          "required": true,
+          "validation": ["required", "regex:^[1-9][0-9]{5}$"],
+          "ui_config": {
+            "placeholder": "6-digit pin code"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Property Features",
+      "order": 3,
+      "description": "Property features and amenities",
+      "is_collapsible": true,
+      "fields": [
+        {
+          "name": "furnishing",
+          "label": "Furnishing Status",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "unfurnished", "label": "Unfurnished"},
+              {"value": "semi_furnished", "label": "Semi Furnished"},
+              {"value": "fully_furnished", "label": "Fully Furnished"}
+            ]
+          }
+        },
+        {
+          "name": "parking",
+          "label": "Parking Available",
+          "type": "checkbox",
+          "required": false,
+          "ui_config": {
+            "label": "Parking space available"
+          }
+        },
+        {
+          "name": "balcony",
+          "label": "Balcony",
+          "type": "checkbox",
+          "required": false,
+          "ui_config": {
+            "label": "Has balcony"
+          }
+        },
+        {
+          "name": "lift",
+          "label": "Lift/Elevator",
+          "type": "checkbox",
+          "required": false,
+          "ui_config": {
+            "label": "Lift available"
+          }
+        },
+        {
+          "name": "security",
+          "label": "Security",
+          "type": "checkbox",
+          "required": false,
+          "ui_config": {
+            "label": "Security services available"
+          }
+        }
+      ]
+    },
+    {
+      "title": "Description & Condition",
+      "order": 4,
+      "description": "Detailed description and condition of the property",
+      "is_collapsible": false,
+      "fields": [
+        {
+          "name": "description",
+          "label": "Property Description",
+          "type": "textarea",
+          "required": true,
+          "validation": ["required", "min_length:50", "max_length:2000"],
+          "ui_config": {
+            "placeholder": "Describe the property in detail, including unique features, neighborhood information, and any other relevant details",
+            "rows": 6
+          }
+        },
+        {
+          "name": "age",
+          "label": "Property Age",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "0-1", "label": "0-1 years (New)"},
+              {"value": "1-5", "label": "1-5 years"},
+              {"value": "5-10", "label": "5-10 years"},
+              {"value": "10-15", "label": "10-15 years"},
+              {"value": "15+", "label": "15+ years"}
+            ]
+          }
+        },
+        {
+          "name": "condition",
+          "label": "Overall Condition",
+          "type": "select",
+          "required": true,
+          "validation": ["required"],
+          "ui_config": {
+            "options": [
+              {"value": "excellent", "label": "Excellent"},
+              {"value": "good", "label": "Good"},
+              {"value": "fair", "label": "Fair"},
+              {"value": "needs_renovation", "label": "Needs Renovation"}
+            ]
+          }
+        }
+      ]
+    }
+  ]
+}
