@@ -60,14 +60,13 @@ class AuctionListState {
   factory AuctionListState.fromResponse(Map<String, dynamic> response) {
     final data = response['data'] as Map<String, dynamic>;
     final auctionsList = data['auctions'] as List;
-    final pagination = data['pagination'] as Map<String, dynamic>;
 
     return AuctionListState(
-      auctions: auctionsList.map((json) => Auction.fromJson(json)).toList(),
-      currentPage: pagination['current_page'],
-      totalPages: pagination['total_pages'],
-      totalCount: pagination['total'],
-      hasNextPage: pagination['has_next_page'],
+      auctions: auctionsList.map((json) => Auction.fromJson(json as Map<String, dynamic>)).toList(),
+      currentPage: data['page'] ?? 1,
+      totalPages: ((data['total'] ?? 0) / (data['limit'] ?? 20)).ceil(),
+      totalCount: data['total'] ?? 0,
+      hasNextPage: ((data['page'] ?? 1) * (data['limit'] ?? 20)) < (data['total'] ?? 0),
     );
   }
 

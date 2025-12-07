@@ -23,6 +23,8 @@ class AuctionRepository {
     String? status,
   }) async {
     try {
+      print('🏛️ AUCTION_REPO: getAuctions called with categoryId: $categoryId, search: $search, status: $status');
+      
       final queryParams = {
         'page': page,
         'limit': limit,
@@ -31,19 +33,54 @@ class AuctionRepository {
         if (status != null) 'status': status,
       };
 
+      print('🏛️ AUCTION_REPO: Query params: $queryParams');
+      print('🏛️ AUCTION_REPO: Calling endpoint: ${ApiConstants.auctions}');
+
       final response = await _apiClient.get(
-        '${ApiConstants.auctions}/search', // Using search endpoint for advanced filtering
+        ApiConstants.auctions, // Use basic auctions endpoint instead of search
         queryParameters: queryParams,
       );
 
+      print('🏛️ AUCTION_REPO: Response status: ${response.statusCode}');
+      print('🏛️ AUCTION_REPO: Response data type: ${response.data.runtimeType}');
+      print('🏛️ AUCTION_REPO: Response data: ${response.data}');
+      print('🏛️ AUCTION_REPO: Response data is null: ${response.data == null}');
+      print('🏛️ AUCTION_REPO: Response data is Map: ${response.data is Map}');
+
+      // Check if response.data exists and is a Map
+      if (response.data == null) {
+        print('🏛️ AUCTION_REPO: Response data is null, returning empty list');
+        return [];
+      }
+
+      if (response.data is! Map<String, dynamic>) {
+        print('🏛️ AUCTION_REPO: Response data is not a Map, type: ${response.data.runtimeType}');
+        throw Exception('Invalid response format: expected Map, got ${response.data.runtimeType}');
+      }
+
       if (response.data['success'] == true) {
-        final List<dynamic> data = response.data['data']['auctions'];
-        return data.map((json) => Auction.fromJson(json)).toList();
+        print('🏛️ AUCTION_REPO: API call successful');
+        
+        // Check if data exists and has auctions
+        if (response.data['data'] != null && response.data['data']['auctions'] != null) {
+          final List<dynamic> data = response.data['data']['auctions'];
+          print('🏛️ AUCTION_REPO: Found ${data.length} auctions');
+          return data.map((json) => Auction.fromJson(json)).toList();
+        } else {
+          print('🏛️ AUCTION_REPO: No auctions data found in response');
+          return []; // Return empty list instead of throwing error
+        }
       } else {
+        print('🏛️ AUCTION_REPO: API returned success=false: ${response.data['message']}');
         throw Exception(response.data['message'] ?? 'Failed to fetch auctions');
       }
     } on DioException catch (e) {
+      print('🏛️ AUCTION_REPO: DioException: ${e.message}');
+      print('🏛️ AUCTION_REPO: Response data: ${e.response?.data}');
       throw Exception(e.response?.data['message'] ?? 'Network error');
+    } catch (e) {
+      print('🏛️ AUCTION_REPO: Unexpected error: $e');
+      throw Exception('Unexpected error: $e');
     }
   }
 

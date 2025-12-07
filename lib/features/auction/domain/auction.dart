@@ -34,31 +34,58 @@ class Auction {
   });
 
   factory Auction.fromJson(Map<String, dynamic> json) {
-    return Auction(
-      id: json['id'],
-      sellerId: json['seller_id'],
-      categoryId: json['category_id'],
-      dynamicAttributes: json['dynamic_attributes'] ?? {},
-      startPrice: (json['start_price'] as num).toDouble(),
-      currentPrice: (json['current_price'] as num).toDouble(),
-      reservePrice: json['reserve_price'] != null 
-          ? (json['reserve_price'] as num).toDouble() 
-          : null,
-      startTime: DateTime.parse(json['start_time']),
-      endTime: DateTime.parse(json['end_time']),
-      status: AuctionStatus.values.firstWhere(
-        (e) => e.name == json['status'],
-        orElse: () => AuctionStatus.pending,
-      ),
-      type: AuctionType.values.firstWhere(
-        (e) => e.name == json['type'],
-        orElse: () => AuctionType.english,
-      ),
-      tags: List<String>.from(json['tags'] ?? []),
-      returnPolicy: json['return_policy'],
-      createdAt: DateTime.parse(json['created_at']),
-      updatedAt: DateTime.parse(json['updated_at']),
-    );
+    try {
+      print('🏛️ AUCTION: Parsing auction JSON: ${json['id']}');
+      print('🏛️ AUCTION: Full JSON: $json');
+      
+      return Auction(
+        id: json['id'] ?? '',
+        sellerId: json['seller_id'],
+        categoryId: json['category_id'] ?? '',
+        dynamicAttributes: json['dynamic_attributes'] is Map<String, dynamic> 
+            ? json['dynamic_attributes'] 
+            : {},
+        startPrice: _parseDouble(json['start_price']) ?? 0.0,
+        currentPrice: _parseDouble(json['current_price']) ?? 0.0,
+        reservePrice: _parseDouble(json['reserve_price']),
+        startTime: json['start_time'] != null 
+            ? DateTime.parse(json['start_time']) 
+            : json['startTime'] != null 
+                ? DateTime.parse(json['startTime']) 
+                : DateTime.now(),
+        endTime: json['end_time'] != null 
+            ? DateTime.parse(json['end_time']) 
+            : json['endTime'] != null 
+                ? DateTime.parse(json['endTime']) 
+                : DateTime.now().add(const Duration(days: 7)),
+        status: AuctionStatus.values.firstWhere(
+          (e) => e.name == json['status'],
+          orElse: () => AuctionStatus.pending,
+        ),
+        type: AuctionType.values.firstWhere(
+          (e) => e.name == json['type'],
+          orElse: () => AuctionType.english,
+        ),
+        tags: json['tags'] is List 
+            ? List<String>.from(json['tags']) 
+            : [],
+        returnPolicy: json['return_policy'],
+        createdAt: json['created_at'] != null 
+            ? DateTime.parse(json['created_at']) 
+            : json['createdAt'] != null 
+                ? DateTime.parse(json['createdAt']) 
+                : DateTime.now(),
+        updatedAt: json['updated_at'] != null 
+            ? DateTime.parse(json['updated_at']) 
+            : json['updatedAt'] != null 
+                ? DateTime.parse(json['updatedAt']) 
+                : DateTime.now(),
+      );
+    } catch (e) {
+      print('🏛️ AUCTION: Error parsing auction JSON: $e');
+      print('🏛️ AUCTION: JSON data: $json');
+      rethrow;
+    }
   }
 
   Map<String, dynamic> toJson() {
@@ -79,6 +106,23 @@ class Auction {
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
     };
+  }
+
+  // Helper method to parse double values that might be strings or numbers
+  static double? _parseDouble(dynamic value) {
+    if (value == null) return null;
+    if (value is double) return value;
+    if (value is int) return value.toDouble();
+    if (value is String) {
+      try {
+        return double.parse(value);
+      } catch (e) {
+        print('🏛️ AUCTION: Failed to parse string as double: $value');
+        return null;
+      }
+    }
+    print('🏛️ AUCTION: Unexpected type for double parsing: ${value.runtimeType}');
+    return null;
   }
 
   // Helper getters

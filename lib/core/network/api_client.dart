@@ -33,9 +33,21 @@ class ApiClient {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
+          print('🌐 API_CLIENT: Making ${options.method} request to: ${options.uri}');
+          print('🌐 API_CLIENT: Headers: ${options.headers}');
           return handler.next(options);
         },
+        onResponse: (response, handler) {
+          print('🌐 API_CLIENT: Response received - Status: ${response.statusCode}');
+          print('🌐 API_CLIENT: Response data type: ${response.data.runtimeType}');
+          print('🌐 API_CLIENT: Response data: ${response.data}');
+          return handler.next(response);
+        },
         onError: (DioException e, handler) {
+          print('🌐 API_CLIENT: Error occurred - ${e.message}');
+          print('🌐 API_CLIENT: Error type: ${e.type}');
+          print('🌐 API_CLIENT: Error response: ${e.response?.data}');
+          print('🌐 API_CLIENT: Error status: ${e.response?.statusCode}');
           // Handle global errors (e.g., 401 Unauthorized)
           if (e.response?.statusCode == 401) {
             // TODO: Trigger logout or refresh token flow
