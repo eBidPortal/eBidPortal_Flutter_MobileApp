@@ -13,6 +13,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    print('🏠 SCAFFOLD: Building scaffold with navbar, currentIndex: ${navigationShell.currentIndex}');
     return Scaffold(
       body: navigationShell,
       bottomNavigationBar: Container(
@@ -64,9 +65,9 @@ class ScaffoldWithNavBar extends StatelessWidget {
       ),
       floatingActionButton: navigationShell.currentIndex == 0 || navigationShell.currentIndex == 2
           ? FloatingActionButton.extended(
-              onPressed: () => _showCreateOptions(context),
+              onPressed: () => _showAuctionOptions(context),
               icon: const Icon(Icons.add),
-              label: const Text('Create'),
+              label: const Text('Auction'),
             )
           : null,
     );
@@ -87,7 +88,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
     );
   }
 
-  void _showCreateOptions(BuildContext context) {
+  void _showAuctionOptions(BuildContext context) {
     showModalBottomSheet(
       context: context,
       backgroundColor: Colors.transparent,
@@ -115,7 +116,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
               ),
               const SizedBox(height: AppTheme.spacingXl),
               Text(
-                'What would you like to create?',
+                'Auction Management',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
@@ -124,7 +125,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
               _buildCreateOption(
                 context,
                 icon: Icons.gavel,
-                title: 'Create Auction',
+                title: 'Create New Auction',
                 subtitle: 'List an item for bidding',
                 color: AppTheme.primaryColor,
                 onTap: () {
@@ -135,16 +136,25 @@ class ScaffoldWithNavBar extends StatelessWidget {
               const SizedBox(height: AppTheme.spacingMd),
               _buildCreateOption(
                 context,
-                icon: Icons.shopping_bag,
-                title: 'Sell Product',
-                subtitle: 'List an item for direct sale',
-                color: AppTheme.successColor,
+                icon: Icons.list_alt,
+                title: 'My Auctions',
+                subtitle: 'Manage your auction listings',
+                color: Colors.blue,
                 onTap: () {
                   Navigator.of(context).pop();
-                  // TODO: Navigate to sell product screen
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('Sell Product - Coming soon!')),
-                  );
+                  context.push('/my-auctions');
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              _buildCreateOption(
+                context,
+                icon: Icons.search,
+                title: 'Browse All Auctions',
+                subtitle: 'Search and filter live auctions',
+                color: Colors.green,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  navigationShell.goBranch(2); // Go to auctions tab
                 },
               ),
               const SizedBox(height: AppTheme.spacingXl),

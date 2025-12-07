@@ -136,7 +136,7 @@ class _AuctionDetailView extends ConsumerWidget {
                         ),
                       ),
                     ),
-                    _buildStatusChip(auction.status),
+                    _buildStatusChip(auction.status.displayName),
                   ],
                 ),
 

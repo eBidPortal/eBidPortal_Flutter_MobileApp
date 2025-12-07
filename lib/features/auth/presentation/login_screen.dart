@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import 'auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
@@ -50,14 +51,32 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   Future<void> _login() async {
     if (!_formKey.currentState!.validate()) return;
 
+    print('🔐 LOGIN: Starting login process...');
     setState(() => _isLoading = true);
 
     try {
+      print('🔐 LOGIN: Calling auth provider login...');
       await ref.read(authProvider.notifier).login(
             _emailController.text.trim(),
             _passwordController.text,
           );
+      print('🔐 LOGIN: Login successful, checking auth state...');
+      
+      // Check if login was successful - use a small delay to ensure state is updated
+      await Future.delayed(const Duration(milliseconds: 100));
+      
+      if (mounted) {
+        final authState = ref.read(authProvider);
+        print('🔐 LOGIN: Auth state after login: ${authState.value}');
+        
+        if (authState.value != null) {
+          print('🔐 LOGIN: User is authenticated, should navigate to home');
+          // Navigation will be handled by router redirect
+          print('🔐 LOGIN: Login completed successfully');
+        }
+      }
     } catch (e) {
+      print('🔐 LOGIN: Login failed with error: $e');
       if (mounted) {
         toastification.show(
           context: context,
@@ -287,6 +306,42 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               ),
             ],
           ),
+          const SizedBox(height: AppTheme.spacingMd),
+          // Test Credentials Info
+          Container(
+            padding: const EdgeInsets.all(AppTheme.spacingMd),
+            decoration: BoxDecoration(
+              color: Colors.blue.shade50,
+              borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+              border: Border.all(color: Colors.blue.shade200),
+            ),
+            child: Column(
+              children: [
+                Row(
+                  children: [
+                    Icon(Icons.info_outline, color: Colors.blue.shade600, size: 20),
+                    const SizedBox(width: 8),
+                    Text(
+                      'Test Credentials',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.blue.shade700,
+                      ),
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'Email: admin@ebidportal.com\nPassword: admin123\n\nOr: engineering@ebidportal.com\nPassword: demo123',
+                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                    color: Colors.blue.shade600,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+
         ],
       ),
     );

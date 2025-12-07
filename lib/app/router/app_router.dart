@@ -8,6 +8,9 @@ import '../../features/catalog/presentation/category_screen.dart';
 import '../../features/auction/presentation/auction_list_screen.dart';
 import '../../features/auction/presentation/auction_detail_screen.dart';
 import '../../features/auction/presentation/watchlist_screen.dart';
+import '../../features/auction/presentation/all_auctions_screen.dart';
+import '../../features/auction/presentation/my_auctions_screen.dart';
+import '../../features/auction/presentation/auction_details_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/catalog/domain/category.dart';
 import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
@@ -17,13 +20,19 @@ import '../../features/splash/presentation/splash_screen.dart';
 import 'scaffold_with_navbar.dart';
 
 final routerProvider = Provider<GoRouter>((ref) {
+  print('🧭 ROUTER: Creating router provider...');
+  
   final authState = ref.watch(authProvider);
+  print('🧭 ROUTER: Auth state - isLoading: ${authState.isLoading}, hasValue: ${authState.hasValue}, hasError: ${authState.hasError}');
+  
   final rootNavigatorKey = GlobalKey<NavigatorState>();
   final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
   final shellNavigatorCategoriesKey = GlobalKey<NavigatorState>(debugLabel: 'shellCategories');
   final shellNavigatorAuctionsKey = GlobalKey<NavigatorState>(debugLabel: 'shellAuctions');
   final shellNavigatorWatchlistKey = GlobalKey<NavigatorState>(debugLabel: 'shellWatchlist');
   final shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
+  
+  print('🧭 ROUTER: Navigator keys created successfully');
 
   return GoRouter(
     navigatorKey: rootNavigatorKey,
@@ -32,21 +41,37 @@ final routerProvider = Provider<GoRouter>((ref) {
       final isSplashScreen = state.uri.path == '/splash';
       final isLoginScreen = state.uri.path == '/login';
       final isLoggedIn = authState.value != null;
+      final isAuthLoading = authState.isLoading;
+
+      print('🧭 ROUTER: Redirect check - Path: ${state.uri.path}, AuthLoading: $isAuthLoading, LoggedIn: $isLoggedIn');
+
+      // Don't redirect while auth is loading
+      if (isAuthLoading) {
+        print('🧭 ROUTER: Auth loading, staying on current path');
+        return null;
+      }
 
       // Allow splash screen to show initially
       if (isSplashScreen) {
+        print('🧭 ROUTER: On splash screen, allowing access');
         return null;
       }
 
       // After splash, handle auth-based routing
       if (!isLoggedIn && !isLoginScreen) {
+        print('🧭 ROUTER: Not logged in, redirecting to login');
         return '/login';
       }
       if (isLoggedIn && isLoginScreen) {
-        return '/';
+        print('🧭 ROUTER: Logged in on login screen, redirecting to home');
+        return '/home';
       }
 
+      print('🧭 ROUTER: No redirect needed');
       return null;
+    },
+    onException: (context, state, router) {
+      print('🧭 ROUTER: Exception occurred - ${state.error}');
     },
     routes: [
       GoRoute(
@@ -90,14 +115,7 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/auctions',
                 name: 'auctions',
-                builder: (context, state) {
-                  final categoryId = state.uri.queryParameters['categoryId'];
-                  final search = state.uri.queryParameters['search'];
-                  return AuctionListScreen(
-                    categoryId: categoryId,
-                    search: search,
-                  );
-                },
+                builder: (context, state) => const AllAuctionsScreen(),
                 routes: [
                   GoRoute(
                     path: ':auctionId',
@@ -105,7 +123,7 @@ final routerProvider = Provider<GoRouter>((ref) {
                     parentNavigatorKey: rootNavigatorKey, // Hide bottom nav
                     builder: (context, state) {
                       final auctionId = state.pathParameters['auctionId']!;
-                      return AuctionDetailScreen(auctionId: auctionId);
+                      return AuctionDetailsScreen(auctionId: auctionId);
                     },
                   ),
                 ],
@@ -163,6 +181,23 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final category = state.extra as Category?;
           return CreateAuctionScreen(initialCategory: category);
+        },
+      ),
+      // My Auctions Management
+      GoRoute(
+        path: '/my-auctions',
+        name: 'my-auctions',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const MyAuctionsScreen(),
+      ),
+      // Auction Search
+      GoRoute(
+        path: '/auction-search',
+        name: 'auction-search',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final query = state.uri.queryParameters['q'] ?? '';
+          return AllAuctionsScreen();
         },
       ),
     ],

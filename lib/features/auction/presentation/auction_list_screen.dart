@@ -296,7 +296,7 @@ class _AuctionCard extends StatelessWidget {
                       boxShadow: AppTheme.shadowSm,
                     ),
                     child: Text(
-                      auction.status.toUpperCase(),
+                      auction.status.displayName.toUpperCase(),
                       style: const TextStyle(
                         color: Colors.white,
                         fontSize: 11,
@@ -454,13 +454,15 @@ class _AuctionCard extends StatelessWidget {
   }
 
   Color _getStatusColor() {
-    switch (auction.status.toLowerCase()) {
-      case 'active':
+    switch (auction.status) {
+      case AuctionStatus.active:
         return AppTheme.successColor;
-      case 'ending_soon':
+      case AuctionStatus.pending:
         return AppTheme.warningColor;
-      case 'ended':
+      case AuctionStatus.ended:
         return AppTheme.textMuted;
+      case AuctionStatus.cancelled:
+        return AppTheme.errorColor;
       default:
         return AppTheme.infoColor;
     }

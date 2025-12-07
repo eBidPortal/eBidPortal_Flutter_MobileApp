@@ -91,6 +91,7 @@ class AppTheme {
 
   // Theme Data
   static ThemeData get lightTheme {
+    print('🎨 THEME: Creating light theme with primary color: $primaryColor');
     return ThemeData(
       useMaterial3: true,
       primaryColor: primaryColor,

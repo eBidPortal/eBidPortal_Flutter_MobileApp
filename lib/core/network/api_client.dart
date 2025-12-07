@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../constants/api_constants.dart';
+import 'api_constants.dart';
 import '../storage/storage_service.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
@@ -15,7 +15,7 @@ class ApiClient {
   ApiClient(this._storageService) {
     _dio = Dio(
       BaseOptions(
-        baseUrl: ApiConstants.baseUrl,
+        baseUrl: ApiConstants.apiBaseUrl,
         connectTimeout: const Duration(milliseconds: ApiConstants.connectTimeout),
         receiveTimeout: const Duration(milliseconds: ApiConstants.receiveTimeout),
         headers: {
@@ -97,6 +97,21 @@ class ApiClient {
     Options? options,
   }) async {
     return await _dio.delete(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
+  }
+
+  // PATCH Request
+  Future<Response> patch(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) async {
+    return await _dio.patch(
       path,
       data: data,
       queryParameters: queryParameters,

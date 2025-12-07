@@ -51,7 +51,9 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
 
   void _initializeApp() {
     // Delay initialization to avoid modifying provider during build
-    Future.microtask(() async {
+    Future.delayed(const Duration(seconds: 2), () async {
+      if (!mounted) return;
+      
       await ref.read(splashProvider.notifier).initialize();
       
       // After initialization, navigate based on auth state
@@ -59,14 +61,18 @@ class _SplashScreenState extends ConsumerState<SplashScreen>
         final authState = ref.read(authProvider);
         final isLoggedIn = authState.value != null;
         
+        print('🔄 SPLASH: Auth check complete. isLoggedIn=$isLoggedIn');
+        
         if (isLoggedIn) {
           // Navigate to home
           if (context.mounted) {
+            print('🔄 SPLASH: Navigating to home');
             context.go('/');
           }
         } else {
           // Navigate to login
           if (context.mounted) {
+            print('🔄 SPLASH: Navigating to login');
             context.go('/login');
           }
         }
