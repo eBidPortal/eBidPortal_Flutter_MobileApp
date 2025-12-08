@@ -68,7 +68,9 @@ class Auction {
         ),
         tags: json['tags'] is List 
             ? List<String>.from(json['tags']) 
-            : [],
+            : json['tags'] is String 
+                ? [json['tags']] 
+                : [],
         returnPolicy: json['return_policy'],
         createdAt: json['created_at'] != null 
             ? DateTime.parse(json['created_at']) 
@@ -130,7 +132,16 @@ class Auction {
   String? get brand => dynamicAttributes['brand'];
   String? get condition => dynamicAttributes['condition'];
   String? get description => dynamicAttributes['description'];
-  List<String> get images => List<String>.from(dynamicAttributes['images'] ?? []);
+  List<String> get images {
+    final imagesData = dynamicAttributes['images'];
+    if (imagesData is List) {
+      return List<String>.from(imagesData);
+    } else if (imagesData is String && imagesData.isNotEmpty) {
+      // Handle case where images is a single string
+      return [imagesData];
+    }
+    return [];
+  }
 
   // Legacy compatibility
   String get title => productName;
