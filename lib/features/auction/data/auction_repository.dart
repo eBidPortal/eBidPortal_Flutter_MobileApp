@@ -104,6 +104,7 @@ class AuctionRepository {
     required String title,
     required String description,
     required double startPrice,
+    double? currentPrice,
     double? reservePrice,
     required String categoryId,
     required DateTime startTime,
@@ -113,6 +114,27 @@ class AuctionRepository {
     List<String> tags = const [],
     Map<String, dynamic> dynamicFields = const {},
     String? returnPolicy,
+    // Professional auction fields
+    bool authenticationRequired = false,
+    bool shippingIncluded = false,
+    double? bidIncrement,
+    double? commissionRate,
+    double? buyerPremium,
+    String? timezone,
+    Map<String, dynamic> paymentTerms = const {},
+    String? lotNumber,
+    bool reserveVisible = false,
+    String? businessLicense,
+    String? sellerRating,
+    String? catalogReference,
+    String? auctioneerNotes,
+    Map<String, dynamic> conditionReport = const {},
+    String? appraisalCertificate,
+    Map<String, dynamic> biddingRules = const {},
+    List<Map<String, dynamic>> financingOptions = const [],
+    bool insuranceRequired = false,
+    bool pickupAvailable = false,
+    String? status,
   }) async {
     try {
       // Use only dynamic fields from category template for dynamic_attributes
@@ -134,14 +156,34 @@ class AuctionRepository {
         'category_id': categoryId,
         'dynamic_attributes': dynamicAttributes,
         'start_price': startPrice,
-        'current_price':
-            startPrice, // Set current_price same as start_price initially
+        'current_price': currentPrice ?? startPrice, // Use provided current_price or default to start_price
         if (reservePrice != null) 'reserve_price': reservePrice,
         'start_time': startTime.toIso8601String(),
         'end_time': endTime.toIso8601String(),
         'type': type,
         if (tags.isNotEmpty) 'tags': tags,
         if (returnPolicy != null) 'return_policy': returnPolicy,
+        // Professional auction fields
+        'authentication_required': authenticationRequired,
+        'shipping_included': shippingIncluded,
+        if (bidIncrement != null) 'bid_increment': bidIncrement,
+        if (commissionRate != null) 'commission_rate': commissionRate,
+        if (buyerPremium != null) 'buyer_premium': buyerPremium,
+        if (timezone != null) 'timezone': timezone,
+        if (paymentTerms.isNotEmpty) 'payment_terms': paymentTerms,
+        if (lotNumber != null) 'lot_number': lotNumber,
+        'reserve_visible': reserveVisible,
+        if (businessLicense != null) 'business_license': businessLicense,
+        if (sellerRating != null) 'seller_rating': double.tryParse(sellerRating),
+        if (catalogReference != null) 'catalog_reference': catalogReference,
+        if (auctioneerNotes != null) 'auctioneer_notes': auctioneerNotes,
+        if (conditionReport.isNotEmpty) 'condition_report': conditionReport,
+        if (appraisalCertificate != null) 'appraisal_certificate': appraisalCertificate,
+        if (biddingRules.isNotEmpty) 'bidding_rules': biddingRules,
+        if (financingOptions.isNotEmpty) 'financing_options': financingOptions,
+        'insurance_required': insuranceRequired,
+        'pickup_available': pickupAvailable,
+        if (status != null) 'status': status,
       };
 
       print('🔄 AuctionRepository: Creating auction with payload:');

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/widgets/app_bar_custom.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../core/widgets/error_widget.dart';
@@ -7,7 +8,6 @@ import '../providers/auction_providers.dart';
 import '../domain/auction.dart';
 import '../widgets/auction_card.dart';
 import '../widgets/auction_edit_dialog.dart';
-import 'auction_details_screen.dart';
 
 class MyAuctionsScreen extends ConsumerStatefulWidget {
   const MyAuctionsScreen({super.key});
@@ -397,18 +397,11 @@ class _MyAuctionsScreenState extends ConsumerState<MyAuctionsScreen>
   }
 
   void _navigateToDetails(String auctionId) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AuctionDetailsScreen(auctionId: auctionId),
-      ),
-    );
+    context.go('/auctions/$auctionId');
   }
 
   void _navigateToCreateAuction() {
     // Navigate to create auction screen
-    Navigator.of(context).pushNamed('/create-auction').then((_) {
-      // Refresh the list when returning
-      ref.read(myAuctionsProvider.notifier).refresh();
-    });
+    context.go('/create-auction');
   }
 }

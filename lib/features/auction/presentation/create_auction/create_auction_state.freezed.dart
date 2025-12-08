@@ -21,11 +21,14 @@ mixin _$CreateAuctionState {
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
   String? get categoryId => throw _privateConstructorUsedError;
-  AuctionType get type => throw _privateConstructorUsedError; // Dynamic Fields
+  AuctionType get type => throw _privateConstructorUsedError;
+  AuctionStatus get status =>
+      throw _privateConstructorUsedError; // Dynamic Fields
   Map<String, dynamic> get dynamicFields =>
       throw _privateConstructorUsedError; // Step 2: Pricing & Duration
   String? get startPrice => throw _privateConstructorUsedError;
   String? get reservePrice => throw _privateConstructorUsedError;
+  String? get currentPrice => throw _privateConstructorUsedError;
   DateTime? get startTime => throw _privateConstructorUsedError;
   DateTime? get endTime => throw _privateConstructorUsedError; // Step 3: Images
   List<File> get localImages => throw _privateConstructorUsedError;
@@ -34,7 +37,29 @@ mixin _$CreateAuctionState {
   double get uploadProgress =>
       throw _privateConstructorUsedError; // Step 4: Additional Details
   List<String> get tags => throw _privateConstructorUsedError;
-  String? get returnPolicy => throw _privateConstructorUsedError; // Form State
+  String? get returnPolicy =>
+      throw _privateConstructorUsedError; // Professional Auction Fields
+  bool get authenticationRequired => throw _privateConstructorUsedError;
+  bool get shippingIncluded => throw _privateConstructorUsedError;
+  String? get bidIncrement => throw _privateConstructorUsedError;
+  String? get commissionRate => throw _privateConstructorUsedError;
+  String? get buyerPremium => throw _privateConstructorUsedError;
+  String? get timezone => throw _privateConstructorUsedError;
+  Map<String, dynamic> get paymentTerms => throw _privateConstructorUsedError;
+  String? get lotNumber => throw _privateConstructorUsedError;
+  bool get reserveVisible => throw _privateConstructorUsedError;
+  String? get businessLicense => throw _privateConstructorUsedError;
+  String? get sellerRating => throw _privateConstructorUsedError;
+  String? get catalogReference => throw _privateConstructorUsedError;
+  String? get auctioneerNotes => throw _privateConstructorUsedError;
+  Map<String, dynamic> get conditionReport =>
+      throw _privateConstructorUsedError;
+  String? get appraisalCertificate => throw _privateConstructorUsedError;
+  Map<String, dynamic> get biddingRules => throw _privateConstructorUsedError;
+  List<Map<String, dynamic>> get financingOptions =>
+      throw _privateConstructorUsedError;
+  bool get insuranceRequired => throw _privateConstructorUsedError;
+  bool get pickupAvailable => throw _privateConstructorUsedError; // Form State
   int get currentStep => throw _privateConstructorUsedError;
   bool get isSubmitting => throw _privateConstructorUsedError;
   String? get error => throw _privateConstructorUsedError; // Validation Errors
@@ -43,9 +68,20 @@ mixin _$CreateAuctionState {
   String? get categoryError => throw _privateConstructorUsedError;
   String? get startPriceError => throw _privateConstructorUsedError;
   String? get reservePriceError => throw _privateConstructorUsedError;
+  String? get currentPriceError => throw _privateConstructorUsedError;
   String? get startTimeError => throw _privateConstructorUsedError;
   String? get endTimeError => throw _privateConstructorUsedError;
   String? get imagesError => throw _privateConstructorUsedError;
+  String? get bidIncrementError => throw _privateConstructorUsedError;
+  String? get commissionRateError => throw _privateConstructorUsedError;
+  String? get buyerPremiumError => throw _privateConstructorUsedError;
+  String? get timezoneError => throw _privateConstructorUsedError;
+  String? get lotNumberError => throw _privateConstructorUsedError;
+  String? get businessLicenseError => throw _privateConstructorUsedError;
+  String? get sellerRatingError => throw _privateConstructorUsedError;
+  String? get catalogReferenceError => throw _privateConstructorUsedError;
+  String? get auctioneerNotesError => throw _privateConstructorUsedError;
+  String? get appraisalCertificateError => throw _privateConstructorUsedError;
   Map<String, String> get dynamicFieldErrors =>
       throw _privateConstructorUsedError;
 
@@ -68,9 +104,11 @@ abstract class $CreateAuctionStateCopyWith<$Res> {
     String description,
     String? categoryId,
     AuctionType type,
+    AuctionStatus status,
     Map<String, dynamic> dynamicFields,
     String? startPrice,
     String? reservePrice,
+    String? currentPrice,
     DateTime? startTime,
     DateTime? endTime,
     List<File> localImages,
@@ -79,6 +117,25 @@ abstract class $CreateAuctionStateCopyWith<$Res> {
     double uploadProgress,
     List<String> tags,
     String? returnPolicy,
+    bool authenticationRequired,
+    bool shippingIncluded,
+    String? bidIncrement,
+    String? commissionRate,
+    String? buyerPremium,
+    String? timezone,
+    Map<String, dynamic> paymentTerms,
+    String? lotNumber,
+    bool reserveVisible,
+    String? businessLicense,
+    String? sellerRating,
+    String? catalogReference,
+    String? auctioneerNotes,
+    Map<String, dynamic> conditionReport,
+    String? appraisalCertificate,
+    Map<String, dynamic> biddingRules,
+    List<Map<String, dynamic>> financingOptions,
+    bool insuranceRequired,
+    bool pickupAvailable,
     int currentStep,
     bool isSubmitting,
     String? error,
@@ -87,9 +144,20 @@ abstract class $CreateAuctionStateCopyWith<$Res> {
     String? categoryError,
     String? startPriceError,
     String? reservePriceError,
+    String? currentPriceError,
     String? startTimeError,
     String? endTimeError,
     String? imagesError,
+    String? bidIncrementError,
+    String? commissionRateError,
+    String? buyerPremiumError,
+    String? timezoneError,
+    String? lotNumberError,
+    String? businessLicenseError,
+    String? sellerRatingError,
+    String? catalogReferenceError,
+    String? auctioneerNotesError,
+    String? appraisalCertificateError,
     Map<String, String> dynamicFieldErrors,
   });
 }
@@ -113,9 +181,11 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
     Object? description = null,
     Object? categoryId = freezed,
     Object? type = null,
+    Object? status = null,
     Object? dynamicFields = null,
     Object? startPrice = freezed,
     Object? reservePrice = freezed,
+    Object? currentPrice = freezed,
     Object? startTime = freezed,
     Object? endTime = freezed,
     Object? localImages = null,
@@ -124,6 +194,25 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
     Object? uploadProgress = null,
     Object? tags = null,
     Object? returnPolicy = freezed,
+    Object? authenticationRequired = null,
+    Object? shippingIncluded = null,
+    Object? bidIncrement = freezed,
+    Object? commissionRate = freezed,
+    Object? buyerPremium = freezed,
+    Object? timezone = freezed,
+    Object? paymentTerms = null,
+    Object? lotNumber = freezed,
+    Object? reserveVisible = null,
+    Object? businessLicense = freezed,
+    Object? sellerRating = freezed,
+    Object? catalogReference = freezed,
+    Object? auctioneerNotes = freezed,
+    Object? conditionReport = null,
+    Object? appraisalCertificate = freezed,
+    Object? biddingRules = null,
+    Object? financingOptions = null,
+    Object? insuranceRequired = null,
+    Object? pickupAvailable = null,
     Object? currentStep = null,
     Object? isSubmitting = null,
     Object? error = freezed,
@@ -132,9 +221,20 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
     Object? categoryError = freezed,
     Object? startPriceError = freezed,
     Object? reservePriceError = freezed,
+    Object? currentPriceError = freezed,
     Object? startTimeError = freezed,
     Object? endTimeError = freezed,
     Object? imagesError = freezed,
+    Object? bidIncrementError = freezed,
+    Object? commissionRateError = freezed,
+    Object? buyerPremiumError = freezed,
+    Object? timezoneError = freezed,
+    Object? lotNumberError = freezed,
+    Object? businessLicenseError = freezed,
+    Object? sellerRatingError = freezed,
+    Object? catalogReferenceError = freezed,
+    Object? auctioneerNotesError = freezed,
+    Object? appraisalCertificateError = freezed,
     Object? dynamicFieldErrors = null,
   }) {
     return _then(
@@ -155,6 +255,10 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
                 ? _value.type
                 : type // ignore: cast_nullable_to_non_nullable
                       as AuctionType,
+            status: null == status
+                ? _value.status
+                : status // ignore: cast_nullable_to_non_nullable
+                      as AuctionStatus,
             dynamicFields: null == dynamicFields
                 ? _value.dynamicFields
                 : dynamicFields // ignore: cast_nullable_to_non_nullable
@@ -166,6 +270,10 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
             reservePrice: freezed == reservePrice
                 ? _value.reservePrice
                 : reservePrice // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            currentPrice: freezed == currentPrice
+                ? _value.currentPrice
+                : currentPrice // ignore: cast_nullable_to_non_nullable
                       as String?,
             startTime: freezed == startTime
                 ? _value.startTime
@@ -199,6 +307,82 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
                 ? _value.returnPolicy
                 : returnPolicy // ignore: cast_nullable_to_non_nullable
                       as String?,
+            authenticationRequired: null == authenticationRequired
+                ? _value.authenticationRequired
+                : authenticationRequired // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            shippingIncluded: null == shippingIncluded
+                ? _value.shippingIncluded
+                : shippingIncluded // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            bidIncrement: freezed == bidIncrement
+                ? _value.bidIncrement
+                : bidIncrement // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            commissionRate: freezed == commissionRate
+                ? _value.commissionRate
+                : commissionRate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            buyerPremium: freezed == buyerPremium
+                ? _value.buyerPremium
+                : buyerPremium // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            timezone: freezed == timezone
+                ? _value.timezone
+                : timezone // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            paymentTerms: null == paymentTerms
+                ? _value.paymentTerms
+                : paymentTerms // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>,
+            lotNumber: freezed == lotNumber
+                ? _value.lotNumber
+                : lotNumber // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            reserveVisible: null == reserveVisible
+                ? _value.reserveVisible
+                : reserveVisible // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            businessLicense: freezed == businessLicense
+                ? _value.businessLicense
+                : businessLicense // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sellerRating: freezed == sellerRating
+                ? _value.sellerRating
+                : sellerRating // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            catalogReference: freezed == catalogReference
+                ? _value.catalogReference
+                : catalogReference // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            auctioneerNotes: freezed == auctioneerNotes
+                ? _value.auctioneerNotes
+                : auctioneerNotes // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            conditionReport: null == conditionReport
+                ? _value.conditionReport
+                : conditionReport // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>,
+            appraisalCertificate: freezed == appraisalCertificate
+                ? _value.appraisalCertificate
+                : appraisalCertificate // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            biddingRules: null == biddingRules
+                ? _value.biddingRules
+                : biddingRules // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>,
+            financingOptions: null == financingOptions
+                ? _value.financingOptions
+                : financingOptions // ignore: cast_nullable_to_non_nullable
+                      as List<Map<String, dynamic>>,
+            insuranceRequired: null == insuranceRequired
+                ? _value.insuranceRequired
+                : insuranceRequired // ignore: cast_nullable_to_non_nullable
+                      as bool,
+            pickupAvailable: null == pickupAvailable
+                ? _value.pickupAvailable
+                : pickupAvailable // ignore: cast_nullable_to_non_nullable
+                      as bool,
             currentStep: null == currentStep
                 ? _value.currentStep
                 : currentStep // ignore: cast_nullable_to_non_nullable
@@ -231,6 +415,10 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
                 ? _value.reservePriceError
                 : reservePriceError // ignore: cast_nullable_to_non_nullable
                       as String?,
+            currentPriceError: freezed == currentPriceError
+                ? _value.currentPriceError
+                : currentPriceError // ignore: cast_nullable_to_non_nullable
+                      as String?,
             startTimeError: freezed == startTimeError
                 ? _value.startTimeError
                 : startTimeError // ignore: cast_nullable_to_non_nullable
@@ -242,6 +430,46 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
             imagesError: freezed == imagesError
                 ? _value.imagesError
                 : imagesError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            bidIncrementError: freezed == bidIncrementError
+                ? _value.bidIncrementError
+                : bidIncrementError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            commissionRateError: freezed == commissionRateError
+                ? _value.commissionRateError
+                : commissionRateError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            buyerPremiumError: freezed == buyerPremiumError
+                ? _value.buyerPremiumError
+                : buyerPremiumError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            timezoneError: freezed == timezoneError
+                ? _value.timezoneError
+                : timezoneError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            lotNumberError: freezed == lotNumberError
+                ? _value.lotNumberError
+                : lotNumberError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            businessLicenseError: freezed == businessLicenseError
+                ? _value.businessLicenseError
+                : businessLicenseError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            sellerRatingError: freezed == sellerRatingError
+                ? _value.sellerRatingError
+                : sellerRatingError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            catalogReferenceError: freezed == catalogReferenceError
+                ? _value.catalogReferenceError
+                : catalogReferenceError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            auctioneerNotesError: freezed == auctioneerNotesError
+                ? _value.auctioneerNotesError
+                : auctioneerNotesError // ignore: cast_nullable_to_non_nullable
+                      as String?,
+            appraisalCertificateError: freezed == appraisalCertificateError
+                ? _value.appraisalCertificateError
+                : appraisalCertificateError // ignore: cast_nullable_to_non_nullable
                       as String?,
             dynamicFieldErrors: null == dynamicFieldErrors
                 ? _value.dynamicFieldErrors
@@ -267,9 +495,11 @@ abstract class _$$CreateAuctionStateImplCopyWith<$Res>
     String description,
     String? categoryId,
     AuctionType type,
+    AuctionStatus status,
     Map<String, dynamic> dynamicFields,
     String? startPrice,
     String? reservePrice,
+    String? currentPrice,
     DateTime? startTime,
     DateTime? endTime,
     List<File> localImages,
@@ -278,6 +508,25 @@ abstract class _$$CreateAuctionStateImplCopyWith<$Res>
     double uploadProgress,
     List<String> tags,
     String? returnPolicy,
+    bool authenticationRequired,
+    bool shippingIncluded,
+    String? bidIncrement,
+    String? commissionRate,
+    String? buyerPremium,
+    String? timezone,
+    Map<String, dynamic> paymentTerms,
+    String? lotNumber,
+    bool reserveVisible,
+    String? businessLicense,
+    String? sellerRating,
+    String? catalogReference,
+    String? auctioneerNotes,
+    Map<String, dynamic> conditionReport,
+    String? appraisalCertificate,
+    Map<String, dynamic> biddingRules,
+    List<Map<String, dynamic>> financingOptions,
+    bool insuranceRequired,
+    bool pickupAvailable,
     int currentStep,
     bool isSubmitting,
     String? error,
@@ -286,9 +535,20 @@ abstract class _$$CreateAuctionStateImplCopyWith<$Res>
     String? categoryError,
     String? startPriceError,
     String? reservePriceError,
+    String? currentPriceError,
     String? startTimeError,
     String? endTimeError,
     String? imagesError,
+    String? bidIncrementError,
+    String? commissionRateError,
+    String? buyerPremiumError,
+    String? timezoneError,
+    String? lotNumberError,
+    String? businessLicenseError,
+    String? sellerRatingError,
+    String? catalogReferenceError,
+    String? auctioneerNotesError,
+    String? appraisalCertificateError,
     Map<String, String> dynamicFieldErrors,
   });
 }
@@ -311,9 +571,11 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
     Object? description = null,
     Object? categoryId = freezed,
     Object? type = null,
+    Object? status = null,
     Object? dynamicFields = null,
     Object? startPrice = freezed,
     Object? reservePrice = freezed,
+    Object? currentPrice = freezed,
     Object? startTime = freezed,
     Object? endTime = freezed,
     Object? localImages = null,
@@ -322,6 +584,25 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
     Object? uploadProgress = null,
     Object? tags = null,
     Object? returnPolicy = freezed,
+    Object? authenticationRequired = null,
+    Object? shippingIncluded = null,
+    Object? bidIncrement = freezed,
+    Object? commissionRate = freezed,
+    Object? buyerPremium = freezed,
+    Object? timezone = freezed,
+    Object? paymentTerms = null,
+    Object? lotNumber = freezed,
+    Object? reserveVisible = null,
+    Object? businessLicense = freezed,
+    Object? sellerRating = freezed,
+    Object? catalogReference = freezed,
+    Object? auctioneerNotes = freezed,
+    Object? conditionReport = null,
+    Object? appraisalCertificate = freezed,
+    Object? biddingRules = null,
+    Object? financingOptions = null,
+    Object? insuranceRequired = null,
+    Object? pickupAvailable = null,
     Object? currentStep = null,
     Object? isSubmitting = null,
     Object? error = freezed,
@@ -330,9 +611,20 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
     Object? categoryError = freezed,
     Object? startPriceError = freezed,
     Object? reservePriceError = freezed,
+    Object? currentPriceError = freezed,
     Object? startTimeError = freezed,
     Object? endTimeError = freezed,
     Object? imagesError = freezed,
+    Object? bidIncrementError = freezed,
+    Object? commissionRateError = freezed,
+    Object? buyerPremiumError = freezed,
+    Object? timezoneError = freezed,
+    Object? lotNumberError = freezed,
+    Object? businessLicenseError = freezed,
+    Object? sellerRatingError = freezed,
+    Object? catalogReferenceError = freezed,
+    Object? auctioneerNotesError = freezed,
+    Object? appraisalCertificateError = freezed,
     Object? dynamicFieldErrors = null,
   }) {
     return _then(
@@ -353,6 +645,10 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
             ? _value.type
             : type // ignore: cast_nullable_to_non_nullable
                   as AuctionType,
+        status: null == status
+            ? _value.status
+            : status // ignore: cast_nullable_to_non_nullable
+                  as AuctionStatus,
         dynamicFields: null == dynamicFields
             ? _value._dynamicFields
             : dynamicFields // ignore: cast_nullable_to_non_nullable
@@ -364,6 +660,10 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
         reservePrice: freezed == reservePrice
             ? _value.reservePrice
             : reservePrice // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        currentPrice: freezed == currentPrice
+            ? _value.currentPrice
+            : currentPrice // ignore: cast_nullable_to_non_nullable
                   as String?,
         startTime: freezed == startTime
             ? _value.startTime
@@ -397,6 +697,82 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
             ? _value.returnPolicy
             : returnPolicy // ignore: cast_nullable_to_non_nullable
                   as String?,
+        authenticationRequired: null == authenticationRequired
+            ? _value.authenticationRequired
+            : authenticationRequired // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        shippingIncluded: null == shippingIncluded
+            ? _value.shippingIncluded
+            : shippingIncluded // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        bidIncrement: freezed == bidIncrement
+            ? _value.bidIncrement
+            : bidIncrement // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        commissionRate: freezed == commissionRate
+            ? _value.commissionRate
+            : commissionRate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        buyerPremium: freezed == buyerPremium
+            ? _value.buyerPremium
+            : buyerPremium // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        timezone: freezed == timezone
+            ? _value.timezone
+            : timezone // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        paymentTerms: null == paymentTerms
+            ? _value._paymentTerms
+            : paymentTerms // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>,
+        lotNumber: freezed == lotNumber
+            ? _value.lotNumber
+            : lotNumber // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        reserveVisible: null == reserveVisible
+            ? _value.reserveVisible
+            : reserveVisible // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        businessLicense: freezed == businessLicense
+            ? _value.businessLicense
+            : businessLicense // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sellerRating: freezed == sellerRating
+            ? _value.sellerRating
+            : sellerRating // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        catalogReference: freezed == catalogReference
+            ? _value.catalogReference
+            : catalogReference // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        auctioneerNotes: freezed == auctioneerNotes
+            ? _value.auctioneerNotes
+            : auctioneerNotes // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        conditionReport: null == conditionReport
+            ? _value._conditionReport
+            : conditionReport // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>,
+        appraisalCertificate: freezed == appraisalCertificate
+            ? _value.appraisalCertificate
+            : appraisalCertificate // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        biddingRules: null == biddingRules
+            ? _value._biddingRules
+            : biddingRules // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>,
+        financingOptions: null == financingOptions
+            ? _value._financingOptions
+            : financingOptions // ignore: cast_nullable_to_non_nullable
+                  as List<Map<String, dynamic>>,
+        insuranceRequired: null == insuranceRequired
+            ? _value.insuranceRequired
+            : insuranceRequired // ignore: cast_nullable_to_non_nullable
+                  as bool,
+        pickupAvailable: null == pickupAvailable
+            ? _value.pickupAvailable
+            : pickupAvailable // ignore: cast_nullable_to_non_nullable
+                  as bool,
         currentStep: null == currentStep
             ? _value.currentStep
             : currentStep // ignore: cast_nullable_to_non_nullable
@@ -429,6 +805,10 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
             ? _value.reservePriceError
             : reservePriceError // ignore: cast_nullable_to_non_nullable
                   as String?,
+        currentPriceError: freezed == currentPriceError
+            ? _value.currentPriceError
+            : currentPriceError // ignore: cast_nullable_to_non_nullable
+                  as String?,
         startTimeError: freezed == startTimeError
             ? _value.startTimeError
             : startTimeError // ignore: cast_nullable_to_non_nullable
@@ -440,6 +820,46 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
         imagesError: freezed == imagesError
             ? _value.imagesError
             : imagesError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        bidIncrementError: freezed == bidIncrementError
+            ? _value.bidIncrementError
+            : bidIncrementError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        commissionRateError: freezed == commissionRateError
+            ? _value.commissionRateError
+            : commissionRateError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        buyerPremiumError: freezed == buyerPremiumError
+            ? _value.buyerPremiumError
+            : buyerPremiumError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        timezoneError: freezed == timezoneError
+            ? _value.timezoneError
+            : timezoneError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        lotNumberError: freezed == lotNumberError
+            ? _value.lotNumberError
+            : lotNumberError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        businessLicenseError: freezed == businessLicenseError
+            ? _value.businessLicenseError
+            : businessLicenseError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        sellerRatingError: freezed == sellerRatingError
+            ? _value.sellerRatingError
+            : sellerRatingError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        catalogReferenceError: freezed == catalogReferenceError
+            ? _value.catalogReferenceError
+            : catalogReferenceError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        auctioneerNotesError: freezed == auctioneerNotesError
+            ? _value.auctioneerNotesError
+            : auctioneerNotesError // ignore: cast_nullable_to_non_nullable
+                  as String?,
+        appraisalCertificateError: freezed == appraisalCertificateError
+            ? _value.appraisalCertificateError
+            : appraisalCertificateError // ignore: cast_nullable_to_non_nullable
                   as String?,
         dynamicFieldErrors: null == dynamicFieldErrors
             ? _value._dynamicFieldErrors
@@ -458,9 +878,11 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.description = '',
     this.categoryId,
     this.type = AuctionType.english,
+    this.status = AuctionStatus.pending,
     final Map<String, dynamic> dynamicFields = const {},
     this.startPrice,
     this.reservePrice,
+    this.currentPrice,
     this.startTime,
     this.endTime,
     final List<File> localImages = const [],
@@ -469,6 +891,25 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.uploadProgress = 0.0,
     final List<String> tags = const [],
     this.returnPolicy,
+    this.authenticationRequired = false,
+    this.shippingIncluded = false,
+    this.bidIncrement,
+    this.commissionRate,
+    this.buyerPremium,
+    this.timezone,
+    final Map<String, dynamic> paymentTerms = const {},
+    this.lotNumber,
+    this.reserveVisible = false,
+    this.businessLicense,
+    this.sellerRating,
+    this.catalogReference,
+    this.auctioneerNotes,
+    final Map<String, dynamic> conditionReport = const {},
+    this.appraisalCertificate,
+    final Map<String, dynamic> biddingRules = const {},
+    final List<Map<String, dynamic>> financingOptions = const [],
+    this.insuranceRequired = false,
+    this.pickupAvailable = false,
     this.currentStep = 0,
     this.isSubmitting = false,
     this.error,
@@ -477,14 +918,29 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.categoryError,
     this.startPriceError,
     this.reservePriceError,
+    this.currentPriceError,
     this.startTimeError,
     this.endTimeError,
     this.imagesError,
+    this.bidIncrementError,
+    this.commissionRateError,
+    this.buyerPremiumError,
+    this.timezoneError,
+    this.lotNumberError,
+    this.businessLicenseError,
+    this.sellerRatingError,
+    this.catalogReferenceError,
+    this.auctioneerNotesError,
+    this.appraisalCertificateError,
     final Map<String, String> dynamicFieldErrors = const {},
   }) : _dynamicFields = dynamicFields,
        _localImages = localImages,
        _uploadedImageUrls = uploadedImageUrls,
        _tags = tags,
+       _paymentTerms = paymentTerms,
+       _conditionReport = conditionReport,
+       _biddingRules = biddingRules,
+       _financingOptions = financingOptions,
        _dynamicFieldErrors = dynamicFieldErrors;
 
   //  Step 1: Basic Info
@@ -499,6 +955,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
   @override
   @JsonKey()
   final AuctionType type;
+  @override
+  @JsonKey()
+  final AuctionStatus status;
   // Dynamic Fields
   final Map<String, dynamic> _dynamicFields;
   // Dynamic Fields
@@ -515,6 +974,8 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
   final String? startPrice;
   @override
   final String? reservePrice;
+  @override
+  final String? currentPrice;
   @override
   final DateTime? startTime;
   @override
@@ -559,6 +1020,79 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
 
   @override
   final String? returnPolicy;
+  // Professional Auction Fields
+  @override
+  @JsonKey()
+  final bool authenticationRequired;
+  @override
+  @JsonKey()
+  final bool shippingIncluded;
+  @override
+  final String? bidIncrement;
+  @override
+  final String? commissionRate;
+  @override
+  final String? buyerPremium;
+  @override
+  final String? timezone;
+  final Map<String, dynamic> _paymentTerms;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get paymentTerms {
+    if (_paymentTerms is EqualUnmodifiableMapView) return _paymentTerms;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_paymentTerms);
+  }
+
+  @override
+  final String? lotNumber;
+  @override
+  @JsonKey()
+  final bool reserveVisible;
+  @override
+  final String? businessLicense;
+  @override
+  final String? sellerRating;
+  @override
+  final String? catalogReference;
+  @override
+  final String? auctioneerNotes;
+  final Map<String, dynamic> _conditionReport;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get conditionReport {
+    if (_conditionReport is EqualUnmodifiableMapView) return _conditionReport;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_conditionReport);
+  }
+
+  @override
+  final String? appraisalCertificate;
+  final Map<String, dynamic> _biddingRules;
+  @override
+  @JsonKey()
+  Map<String, dynamic> get biddingRules {
+    if (_biddingRules is EqualUnmodifiableMapView) return _biddingRules;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(_biddingRules);
+  }
+
+  final List<Map<String, dynamic>> _financingOptions;
+  @override
+  @JsonKey()
+  List<Map<String, dynamic>> get financingOptions {
+    if (_financingOptions is EqualUnmodifiableListView)
+      return _financingOptions;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableListView(_financingOptions);
+  }
+
+  @override
+  @JsonKey()
+  final bool insuranceRequired;
+  @override
+  @JsonKey()
+  final bool pickupAvailable;
   // Form State
   @override
   @JsonKey()
@@ -580,11 +1114,33 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
   @override
   final String? reservePriceError;
   @override
+  final String? currentPriceError;
+  @override
   final String? startTimeError;
   @override
   final String? endTimeError;
   @override
   final String? imagesError;
+  @override
+  final String? bidIncrementError;
+  @override
+  final String? commissionRateError;
+  @override
+  final String? buyerPremiumError;
+  @override
+  final String? timezoneError;
+  @override
+  final String? lotNumberError;
+  @override
+  final String? businessLicenseError;
+  @override
+  final String? sellerRatingError;
+  @override
+  final String? catalogReferenceError;
+  @override
+  final String? auctioneerNotesError;
+  @override
+  final String? appraisalCertificateError;
   final Map<String, String> _dynamicFieldErrors;
   @override
   @JsonKey()
@@ -597,7 +1153,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
 
   @override
   String toString() {
-    return 'CreateAuctionState(title: $title, description: $description, categoryId: $categoryId, type: $type, dynamicFields: $dynamicFields, startPrice: $startPrice, reservePrice: $reservePrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, returnPolicy: $returnPolicy, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, dynamicFieldErrors: $dynamicFieldErrors)';
+    return 'CreateAuctionState(title: $title, description: $description, categoryId: $categoryId, type: $type, status: $status, dynamicFields: $dynamicFields, startPrice: $startPrice, reservePrice: $reservePrice, currentPrice: $currentPrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, returnPolicy: $returnPolicy, authenticationRequired: $authenticationRequired, shippingIncluded: $shippingIncluded, bidIncrement: $bidIncrement, commissionRate: $commissionRate, buyerPremium: $buyerPremium, timezone: $timezone, paymentTerms: $paymentTerms, lotNumber: $lotNumber, reserveVisible: $reserveVisible, businessLicense: $businessLicense, sellerRating: $sellerRating, catalogReference: $catalogReference, auctioneerNotes: $auctioneerNotes, conditionReport: $conditionReport, appraisalCertificate: $appraisalCertificate, biddingRules: $biddingRules, financingOptions: $financingOptions, insuranceRequired: $insuranceRequired, pickupAvailable: $pickupAvailable, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, currentPriceError: $currentPriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, bidIncrementError: $bidIncrementError, commissionRateError: $commissionRateError, buyerPremiumError: $buyerPremiumError, timezoneError: $timezoneError, lotNumberError: $lotNumberError, businessLicenseError: $businessLicenseError, sellerRatingError: $sellerRatingError, catalogReferenceError: $catalogReferenceError, auctioneerNotesError: $auctioneerNotesError, appraisalCertificateError: $appraisalCertificateError, dynamicFieldErrors: $dynamicFieldErrors)';
   }
 
   @override
@@ -611,6 +1167,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
             (identical(other.categoryId, categoryId) ||
                 other.categoryId == categoryId) &&
             (identical(other.type, type) || other.type == type) &&
+            (identical(other.status, status) || other.status == status) &&
             const DeepCollectionEquality().equals(
               other._dynamicFields,
               _dynamicFields,
@@ -619,6 +1176,8 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
                 other.startPrice == startPrice) &&
             (identical(other.reservePrice, reservePrice) ||
                 other.reservePrice == reservePrice) &&
+            (identical(other.currentPrice, currentPrice) ||
+                other.currentPrice == currentPrice) &&
             (identical(other.startTime, startTime) ||
                 other.startTime == startTime) &&
             (identical(other.endTime, endTime) || other.endTime == endTime) &&
@@ -637,6 +1196,52 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
             const DeepCollectionEquality().equals(other._tags, _tags) &&
             (identical(other.returnPolicy, returnPolicy) ||
                 other.returnPolicy == returnPolicy) &&
+            (identical(other.authenticationRequired, authenticationRequired) ||
+                other.authenticationRequired == authenticationRequired) &&
+            (identical(other.shippingIncluded, shippingIncluded) ||
+                other.shippingIncluded == shippingIncluded) &&
+            (identical(other.bidIncrement, bidIncrement) ||
+                other.bidIncrement == bidIncrement) &&
+            (identical(other.commissionRate, commissionRate) ||
+                other.commissionRate == commissionRate) &&
+            (identical(other.buyerPremium, buyerPremium) ||
+                other.buyerPremium == buyerPremium) &&
+            (identical(other.timezone, timezone) ||
+                other.timezone == timezone) &&
+            const DeepCollectionEquality().equals(
+              other._paymentTerms,
+              _paymentTerms,
+            ) &&
+            (identical(other.lotNumber, lotNumber) ||
+                other.lotNumber == lotNumber) &&
+            (identical(other.reserveVisible, reserveVisible) ||
+                other.reserveVisible == reserveVisible) &&
+            (identical(other.businessLicense, businessLicense) ||
+                other.businessLicense == businessLicense) &&
+            (identical(other.sellerRating, sellerRating) ||
+                other.sellerRating == sellerRating) &&
+            (identical(other.catalogReference, catalogReference) ||
+                other.catalogReference == catalogReference) &&
+            (identical(other.auctioneerNotes, auctioneerNotes) ||
+                other.auctioneerNotes == auctioneerNotes) &&
+            const DeepCollectionEquality().equals(
+              other._conditionReport,
+              _conditionReport,
+            ) &&
+            (identical(other.appraisalCertificate, appraisalCertificate) ||
+                other.appraisalCertificate == appraisalCertificate) &&
+            const DeepCollectionEquality().equals(
+              other._biddingRules,
+              _biddingRules,
+            ) &&
+            const DeepCollectionEquality().equals(
+              other._financingOptions,
+              _financingOptions,
+            ) &&
+            (identical(other.insuranceRequired, insuranceRequired) ||
+                other.insuranceRequired == insuranceRequired) &&
+            (identical(other.pickupAvailable, pickupAvailable) ||
+                other.pickupAvailable == pickupAvailable) &&
             (identical(other.currentStep, currentStep) ||
                 other.currentStep == currentStep) &&
             (identical(other.isSubmitting, isSubmitting) ||
@@ -652,12 +1257,37 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
                 other.startPriceError == startPriceError) &&
             (identical(other.reservePriceError, reservePriceError) ||
                 other.reservePriceError == reservePriceError) &&
+            (identical(other.currentPriceError, currentPriceError) ||
+                other.currentPriceError == currentPriceError) &&
             (identical(other.startTimeError, startTimeError) ||
                 other.startTimeError == startTimeError) &&
             (identical(other.endTimeError, endTimeError) ||
                 other.endTimeError == endTimeError) &&
             (identical(other.imagesError, imagesError) ||
                 other.imagesError == imagesError) &&
+            (identical(other.bidIncrementError, bidIncrementError) ||
+                other.bidIncrementError == bidIncrementError) &&
+            (identical(other.commissionRateError, commissionRateError) ||
+                other.commissionRateError == commissionRateError) &&
+            (identical(other.buyerPremiumError, buyerPremiumError) ||
+                other.buyerPremiumError == buyerPremiumError) &&
+            (identical(other.timezoneError, timezoneError) ||
+                other.timezoneError == timezoneError) &&
+            (identical(other.lotNumberError, lotNumberError) ||
+                other.lotNumberError == lotNumberError) &&
+            (identical(other.businessLicenseError, businessLicenseError) ||
+                other.businessLicenseError == businessLicenseError) &&
+            (identical(other.sellerRatingError, sellerRatingError) ||
+                other.sellerRatingError == sellerRatingError) &&
+            (identical(other.catalogReferenceError, catalogReferenceError) ||
+                other.catalogReferenceError == catalogReferenceError) &&
+            (identical(other.auctioneerNotesError, auctioneerNotesError) ||
+                other.auctioneerNotesError == auctioneerNotesError) &&
+            (identical(
+                  other.appraisalCertificateError,
+                  appraisalCertificateError,
+                ) ||
+                other.appraisalCertificateError == appraisalCertificateError) &&
             const DeepCollectionEquality().equals(
               other._dynamicFieldErrors,
               _dynamicFieldErrors,
@@ -671,9 +1301,11 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     description,
     categoryId,
     type,
+    status,
     const DeepCollectionEquality().hash(_dynamicFields),
     startPrice,
     reservePrice,
+    currentPrice,
     startTime,
     endTime,
     const DeepCollectionEquality().hash(_localImages),
@@ -682,6 +1314,25 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     uploadProgress,
     const DeepCollectionEquality().hash(_tags),
     returnPolicy,
+    authenticationRequired,
+    shippingIncluded,
+    bidIncrement,
+    commissionRate,
+    buyerPremium,
+    timezone,
+    const DeepCollectionEquality().hash(_paymentTerms),
+    lotNumber,
+    reserveVisible,
+    businessLicense,
+    sellerRating,
+    catalogReference,
+    auctioneerNotes,
+    const DeepCollectionEquality().hash(_conditionReport),
+    appraisalCertificate,
+    const DeepCollectionEquality().hash(_biddingRules),
+    const DeepCollectionEquality().hash(_financingOptions),
+    insuranceRequired,
+    pickupAvailable,
     currentStep,
     isSubmitting,
     error,
@@ -690,9 +1341,20 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     categoryError,
     startPriceError,
     reservePriceError,
+    currentPriceError,
     startTimeError,
     endTimeError,
     imagesError,
+    bidIncrementError,
+    commissionRateError,
+    buyerPremiumError,
+    timezoneError,
+    lotNumberError,
+    businessLicenseError,
+    sellerRatingError,
+    catalogReferenceError,
+    auctioneerNotesError,
+    appraisalCertificateError,
     const DeepCollectionEquality().hash(_dynamicFieldErrors),
   ]);
 
@@ -714,9 +1376,11 @@ abstract class _CreateAuctionState implements CreateAuctionState {
     final String description,
     final String? categoryId,
     final AuctionType type,
+    final AuctionStatus status,
     final Map<String, dynamic> dynamicFields,
     final String? startPrice,
     final String? reservePrice,
+    final String? currentPrice,
     final DateTime? startTime,
     final DateTime? endTime,
     final List<File> localImages,
@@ -725,6 +1389,25 @@ abstract class _CreateAuctionState implements CreateAuctionState {
     final double uploadProgress,
     final List<String> tags,
     final String? returnPolicy,
+    final bool authenticationRequired,
+    final bool shippingIncluded,
+    final String? bidIncrement,
+    final String? commissionRate,
+    final String? buyerPremium,
+    final String? timezone,
+    final Map<String, dynamic> paymentTerms,
+    final String? lotNumber,
+    final bool reserveVisible,
+    final String? businessLicense,
+    final String? sellerRating,
+    final String? catalogReference,
+    final String? auctioneerNotes,
+    final Map<String, dynamic> conditionReport,
+    final String? appraisalCertificate,
+    final Map<String, dynamic> biddingRules,
+    final List<Map<String, dynamic>> financingOptions,
+    final bool insuranceRequired,
+    final bool pickupAvailable,
     final int currentStep,
     final bool isSubmitting,
     final String? error,
@@ -733,9 +1416,20 @@ abstract class _CreateAuctionState implements CreateAuctionState {
     final String? categoryError,
     final String? startPriceError,
     final String? reservePriceError,
+    final String? currentPriceError,
     final String? startTimeError,
     final String? endTimeError,
     final String? imagesError,
+    final String? bidIncrementError,
+    final String? commissionRateError,
+    final String? buyerPremiumError,
+    final String? timezoneError,
+    final String? lotNumberError,
+    final String? businessLicenseError,
+    final String? sellerRatingError,
+    final String? catalogReferenceError,
+    final String? auctioneerNotesError,
+    final String? appraisalCertificateError,
     final Map<String, String> dynamicFieldErrors,
   }) = _$CreateAuctionStateImpl;
 
@@ -747,13 +1441,17 @@ abstract class _CreateAuctionState implements CreateAuctionState {
   @override
   String? get categoryId;
   @override
-  AuctionType get type; // Dynamic Fields
+  AuctionType get type;
+  @override
+  AuctionStatus get status; // Dynamic Fields
   @override
   Map<String, dynamic> get dynamicFields; // Step 2: Pricing & Duration
   @override
   String? get startPrice;
   @override
   String? get reservePrice;
+  @override
+  String? get currentPrice;
   @override
   DateTime? get startTime;
   @override
@@ -769,7 +1467,45 @@ abstract class _CreateAuctionState implements CreateAuctionState {
   @override
   List<String> get tags;
   @override
-  String? get returnPolicy; // Form State
+  String? get returnPolicy; // Professional Auction Fields
+  @override
+  bool get authenticationRequired;
+  @override
+  bool get shippingIncluded;
+  @override
+  String? get bidIncrement;
+  @override
+  String? get commissionRate;
+  @override
+  String? get buyerPremium;
+  @override
+  String? get timezone;
+  @override
+  Map<String, dynamic> get paymentTerms;
+  @override
+  String? get lotNumber;
+  @override
+  bool get reserveVisible;
+  @override
+  String? get businessLicense;
+  @override
+  String? get sellerRating;
+  @override
+  String? get catalogReference;
+  @override
+  String? get auctioneerNotes;
+  @override
+  Map<String, dynamic> get conditionReport;
+  @override
+  String? get appraisalCertificate;
+  @override
+  Map<String, dynamic> get biddingRules;
+  @override
+  List<Map<String, dynamic>> get financingOptions;
+  @override
+  bool get insuranceRequired;
+  @override
+  bool get pickupAvailable; // Form State
   @override
   int get currentStep;
   @override
@@ -787,11 +1523,33 @@ abstract class _CreateAuctionState implements CreateAuctionState {
   @override
   String? get reservePriceError;
   @override
+  String? get currentPriceError;
+  @override
   String? get startTimeError;
   @override
   String? get endTimeError;
   @override
   String? get imagesError;
+  @override
+  String? get bidIncrementError;
+  @override
+  String? get commissionRateError;
+  @override
+  String? get buyerPremiumError;
+  @override
+  String? get timezoneError;
+  @override
+  String? get lotNumberError;
+  @override
+  String? get businessLicenseError;
+  @override
+  String? get sellerRatingError;
+  @override
+  String? get catalogReferenceError;
+  @override
+  String? get auctioneerNotesError;
+  @override
+  String? get appraisalCertificateError;
   @override
   Map<String, String> get dynamicFieldErrors;
 

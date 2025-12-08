@@ -10,6 +10,13 @@ enum AuctionType {
   reverse,
 }
 
+enum AuctionStatus {
+  pending,
+  active,
+  ended,
+  cancelled,
+}
+
 @freezed
 class CreateAuctionState with _$CreateAuctionState {
   const factory CreateAuctionState({
@@ -18,6 +25,7 @@ class CreateAuctionState with _$CreateAuctionState {
     @Default('') String description,
     String? categoryId,
     @Default(AuctionType.english) AuctionType type,
+    @Default(AuctionStatus.pending) AuctionStatus status,
 
     // Dynamic Fields
     @Default({}) Map<String, dynamic> dynamicFields,
@@ -25,6 +33,7 @@ class CreateAuctionState with _$CreateAuctionState {
     // Step 2: Pricing & Duration
     String? startPrice,
     String? reservePrice,
+    String? currentPrice,
     DateTime? startTime,
     DateTime? endTime,
 
@@ -38,6 +47,27 @@ class CreateAuctionState with _$CreateAuctionState {
     @Default([]) List<String> tags,
     String? returnPolicy,
 
+    // Professional Auction Fields
+    @Default(false) bool authenticationRequired,
+    @Default(false) bool shippingIncluded,
+    String? bidIncrement,
+    String? commissionRate,
+    String? buyerPremium,
+    String? timezone,
+    @Default({}) Map<String, dynamic> paymentTerms,
+    String? lotNumber,
+    @Default(false) bool reserveVisible,
+    String? businessLicense,
+    String? sellerRating,
+    String? catalogReference,
+    String? auctioneerNotes,
+    @Default({}) Map<String, dynamic> conditionReport,
+    String? appraisalCertificate,
+    @Default({}) Map<String, dynamic> biddingRules,
+    @Default([]) List<Map<String, dynamic>> financingOptions,
+    @Default(false) bool insuranceRequired,
+    @Default(false) bool pickupAvailable,
+
     // Form State
     @Default(0) int currentStep,
     @Default(false) bool isSubmitting,
@@ -49,9 +79,20 @@ class CreateAuctionState with _$CreateAuctionState {
     String? categoryError,
     String? startPriceError,
     String? reservePriceError,
+    String? currentPriceError,
     String? startTimeError,
     String? endTimeError,
     String? imagesError,
+    String? bidIncrementError,
+    String? commissionRateError,
+    String? buyerPremiumError,
+    String? timezoneError,
+    String? lotNumberError,
+    String? businessLicenseError,
+    String? sellerRatingError,
+    String? catalogReferenceError,
+    String? auctioneerNotesError,
+    String? appraisalCertificateError,
     @Default({}) Map<String, String> dynamicFieldErrors,
   }) = _CreateAuctionState;
 }

@@ -3,10 +3,11 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import '../../../../core/theme/app_theme.dart';
-import 'create_auction_provider.dart';
 import '../../../catalog/domain/category.dart';
+import 'create_auction_provider.dart';
 import 'widgets/category_schema_screen.dart';
 import '../screens/advanced_settings_tab.dart';
+import 'tabs/professional_settings_tab.dart';
 
 class CreateAuctionScreen extends ConsumerStatefulWidget {
   final Category? initialCategory;
@@ -25,7 +26,7 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 2, vsync: this);
+    _tabController = TabController(length: 3, vsync: this);
     print('🔄 SCREEN: CreateAuctionScreen - initState called');
     // Initialize with the selected category if provided
     if (widget.initialCategory != null) {
@@ -82,7 +83,8 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen>
           controller: _tabController,
           tabs: const [
             Tab(icon: Icon(Icons.description), text: 'Category Details'),
-            Tab(icon: Icon(Icons.settings), text: 'Advanced Settings'),
+            Tab(icon: Icon(Icons.settings), text: 'Basic Settings'),
+            Tab(icon: Icon(Icons.business), text: 'Professional'),
           ],
         ),
       ),
@@ -92,8 +94,11 @@ class _CreateAuctionScreenState extends ConsumerState<CreateAuctionScreen>
           // Tab 1: Category Schema Screen (Dynamic Fields)
           CategorySchemaScreen(category: currentCategory),
 
-          // Tab 2: Advanced Settings Tab (Pricing, Timing, etc.)
+          // Tab 2: Basic Settings Tab (Pricing, Timing, Tags, Return Policy)
           const AdvancedSettingsTab(),
+
+          // Tab 3: Professional Settings Tab (Authentication, Commission, etc.)
+          const ProfessionalSettingsTab(),
         ],
       ),
       bottomNavigationBar: Container(

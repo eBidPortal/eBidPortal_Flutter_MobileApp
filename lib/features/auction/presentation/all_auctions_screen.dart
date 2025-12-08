@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/widgets/app_bar_custom.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../core/widgets/error_widget.dart';
 import '../providers/auction_providers.dart';
-import '../domain/auction.dart';
 import '../widgets/auction_card.dart';
 import '../widgets/auction_filters_sheet.dart';
 import '../widgets/auction_search_bar.dart';
 import 'auction_details_screen.dart';
 
 class AllAuctionsScreen extends ConsumerStatefulWidget {
-  const AllAuctionsScreen({super.key});
+  final String? categoryId;
+
+  const AllAuctionsScreen({super.key, this.categoryId});
 
   @override
   ConsumerState<AllAuctionsScreen> createState() => _AllAuctionsScreenState();
@@ -28,6 +30,13 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
     super.initState();
     _tabController = TabController(length: 3, vsync: this);
     _scrollController.addListener(_onScroll);
+    
+    // Load auctions with category filter if provided
+    if (widget.categoryId != null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        ref.read(allAuctionsProvider.notifier).loadAuctions(categoryId: widget.categoryId);
+      });
+    }
   }
 
   @override
@@ -41,7 +50,11 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
     if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
       // Load more auctions when reaching bottom
       if (_tabController.index == 0) {
-        ref.read(allAuctionsProvider.notifier).loadMore();
+        if (widget.categoryId != null) {
+          ref.read(categoryAuctionsProvider(widget.categoryId!).notifier).loadMore();
+        } else {
+          ref.read(allAuctionsProvider.notifier).loadMore();
+        }
       }
     }
   }
@@ -50,8 +63,14 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBarCustom(
-        title: 'Live Auctions',
+        title: widget.categoryId != null ? 'Category Auctions' : 'Live Auctions',
         actions: [
+          if (widget.categoryId != null)
+            IconButton(
+              icon: const Icon(Icons.clear),
+              tooltip: 'Clear category filter',
+              onPressed: _clearCategoryFilter,
+            ),
           IconButton(
             icon: const Icon(Icons.filter_list),
             onPressed: _showFilters,
@@ -64,6 +83,9 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
       ),
       body: Column(
         children: [
+          // Category Header (when category is selected)
+          if (widget.categoryId != null) _buildCategoryHeader(),
+
           // Search Bar
           Padding(
             padding: const EdgeInsets.all(16.0),
@@ -159,7 +181,9 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
   Widget _buildAllAuctions() {
     return Consumer(
       builder: (context, ref, child) {
-        final auctionsState = ref.watch(allAuctionsProvider);
+        final auctionsState = widget.categoryId != null
+            ? ref.watch(categoryAuctionsProvider(widget.categoryId!))
+            : ref.watch(allAuctionsProvider);
         
         return auctionsState.when(
           data: (auctionListState) {
@@ -331,7 +355,11 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
       builder: (context) => const AuctionFiltersSheet(),
     ).then((_) {
       // Refresh auctions when filters are applied
-      ref.read(allAuctionsProvider.notifier).refresh();
+      if (widget.categoryId != null) {
+        ref.read(categoryAuctionsProvider(widget.categoryId!).notifier).refresh();
+      } else {
+        ref.read(allAuctionsProvider.notifier).refresh();
+      }
     });
   }
 
@@ -339,8 +367,51 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
     if (_searchQuery.isNotEmpty) {
       ref.read(auctionSearchProvider.notifier).searchAuctions(_searchQuery);
     } else {
-      ref.read(allAuctionsProvider.notifier).refresh();
+      if (widget.categoryId != null) {
+        ref.read(categoryAuctionsProvider(widget.categoryId!).notifier).refresh();
+      } else {
+        ref.read(allAuctionsProvider.notifier).refresh();
+      }
     }
+  }
+
+  Widget _buildCategoryHeader() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      color: Theme.of(context).primaryColor.withOpacity(0.1),
+      child: Row(
+        children: [
+          Icon(
+            Icons.category,
+            color: Theme.of(context).primaryColor,
+            size: 20,
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              'Showing auctions in selected category',
+              style: TextStyle(
+                color: Theme.of(context).primaryColor,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ),
+          TextButton.icon(
+            onPressed: _clearCategoryFilter,
+            icon: const Icon(Icons.clear, size: 16),
+            label: const Text('Clear'),
+            style: TextButton.styleFrom(
+              foregroundColor: Theme.of(context).primaryColor,
+              textStyle: const TextStyle(fontSize: 12),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _clearCategoryFilter() {
+    GoRouter.of(context).go('/auctions');
   }
 
   void _navigateToDetails(String auctionId) {

@@ -5,8 +5,6 @@ import '../../features/auth/presentation/auth_provider.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/catalog/presentation/category_screen.dart';
-import '../../features/auction/presentation/auction_list_screen.dart';
-import '../../features/auction/presentation/auction_detail_screen.dart';
 import '../../features/auction/presentation/watchlist_screen.dart';
 import '../../features/auction/presentation/all_auctions_screen.dart';
 import '../../features/auction/presentation/my_auctions_screen.dart';
@@ -115,7 +113,10 @@ final routerProvider = Provider<GoRouter>((ref) {
               GoRoute(
                 path: '/auctions',
                 name: 'auctions',
-                builder: (context, state) => const AllAuctionsScreen(),
+                builder: (context, state) {
+                  final categoryId = state.uri.queryParameters['categoryId'];
+                  return AllAuctionsScreen(categoryId: categoryId);
+                },
                 routes: [
                   GoRoute(
                     path: ':auctionId',
@@ -196,8 +197,7 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'auction-search',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) {
-          final query = state.uri.queryParameters['q'] ?? '';
-          return AllAuctionsScreen();
+          return const AllAuctionsScreen();
         },
       ),
     ],

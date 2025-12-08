@@ -15,6 +15,7 @@ class AdvancedSettingsTab extends ConsumerStatefulWidget {
 class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
   final _startPriceController = TextEditingController();
   final _reservePriceController = TextEditingController();
+  final _currentPriceController = TextEditingController();
   final _tagsController = TextEditingController();
   final _returnPolicyController = TextEditingController();
 
@@ -27,6 +28,7 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
       final state = ref.read(createAuctionProvider);
       _startPriceController.text = state.startPrice ?? '';
       _reservePriceController.text = state.reservePrice ?? '';
+      _currentPriceController.text = state.currentPrice ?? '';
       _tagsController.text = state.tags.join(', ');
       _returnPolicyController.text = state.returnPolicy ?? '';
     });
@@ -36,6 +38,7 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
   void dispose() {
     _startPriceController.dispose();
     _reservePriceController.dispose();
+    _currentPriceController.dispose();
     _tagsController.dispose();
     _returnPolicyController.dispose();
     super.dispose();
@@ -68,6 +71,16 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
                 errorText: state.startPriceError,
                 onChanged: (value) => notifier.setStartPrice(value),
                 required: true,
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              _buildTextField(
+                controller: _currentPriceController,
+                label: 'Current Price (Optional)',
+                hint: 'Enter current bid amount',
+                keyboardType: TextInputType.number,
+                prefixIcon: Icons.trending_up,
+                errorText: state.currentPriceError,
+                onChanged: (value) => notifier.setCurrentPrice(value),
               ),
               const SizedBox(height: AppTheme.spacingMd),
               _buildTextField(
@@ -122,6 +135,15 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
             title: 'Auction Type',
             icon: Icons.gavel,
             children: [_buildAuctionTypeSelector(state, notifier)],
+          ),
+
+          const SizedBox(height: AppTheme.spacingXl),
+
+          // Auction Status Section
+          _buildSection(
+            title: 'Auction Status',
+            icon: Icons.info,
+            children: [_buildAuctionStatusSelector(state, notifier)],
           ),
 
           const SizedBox(height: AppTheme.spacingXl),
@@ -307,6 +329,38 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
         return 'Sealed Bid';
       case AuctionType.reverse:
         return 'Reverse Auction';
+    }
+  }
+
+  Widget _buildAuctionStatusSelector(
+    CreateAuctionState state,
+    CreateAuctionNotifier notifier,
+  ) {
+    return Wrap(
+      spacing: AppTheme.spacingSm,
+      runSpacing: AppTheme.spacingSm,
+      children: AuctionStatus.values.map((status) {
+        final isSelected = state.status == status;
+        return ChoiceChip(
+          label: Text(_getStatusLabel(status)),
+          selected: isSelected,
+          onSelected: (_) => notifier.setStatus(status),
+          avatar: isSelected ? const Icon(Icons.check, size: 18) : null,
+        );
+      }).toList(),
+    );
+  }
+
+  String _getStatusLabel(AuctionStatus status) {
+    switch (status) {
+      case AuctionStatus.pending:
+        return 'Pending';
+      case AuctionStatus.active:
+        return 'Active';
+      case AuctionStatus.ended:
+        return 'Ended';
+      case AuctionStatus.cancelled:
+        return 'Cancelled';
     }
   }
 

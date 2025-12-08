@@ -38,8 +38,119 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     );
   }
 
+  void setStatus(AuctionStatus status) {
+    state = state.copyWith(status: status);
+  }
+
   void setType(AuctionType type) {
     state = state.copyWith(type: type);
+  }
+
+  // Professional Auction Fields
+  void setAuthenticationRequired(bool required) {
+    state = state.copyWith(authenticationRequired: required);
+  }
+
+  void setShippingIncluded(bool included) {
+    state = state.copyWith(shippingIncluded: included);
+  }
+
+  void setBidIncrement(String increment) {
+    state = state.copyWith(
+      bidIncrement: increment,
+      bidIncrementError: _validateBidIncrement(increment),
+    );
+  }
+
+  void setCommissionRate(String rate) {
+    state = state.copyWith(
+      commissionRate: rate,
+      commissionRateError: _validateCommissionRate(rate),
+    );
+  }
+
+  void setBuyerPremium(String premium) {
+    state = state.copyWith(
+      buyerPremium: premium,
+      buyerPremiumError: _validateBuyerPremium(premium),
+    );
+  }
+
+  void setTimezone(String timezone) {
+    state = state.copyWith(
+      timezone: timezone,
+      timezoneError: _validateTimezone(timezone),
+    );
+  }
+
+  void setPaymentTerms(Map<String, dynamic> terms) {
+    state = state.copyWith(paymentTerms: terms);
+  }
+
+  void setLotNumber(String lotNumber) {
+    state = state.copyWith(
+      lotNumber: lotNumber,
+      lotNumberError: _validateLotNumber(lotNumber),
+    );
+  }
+
+  void setReserveVisible(bool visible) {
+    state = state.copyWith(reserveVisible: visible);
+  }
+
+  void setBusinessLicense(String license) {
+    state = state.copyWith(
+      businessLicense: license,
+      businessLicenseError: _validateBusinessLicense(license),
+    );
+  }
+
+  void setSellerRating(String rating) {
+    state = state.copyWith(
+      sellerRating: rating,
+      sellerRatingError: _validateSellerRating(rating),
+    );
+  }
+
+  void setCatalogReference(String reference) {
+    state = state.copyWith(
+      catalogReference: reference,
+      catalogReferenceError: _validateCatalogReference(reference),
+    );
+  }
+
+  void setAuctioneerNotes(String notes) {
+    state = state.copyWith(
+      auctioneerNotes: notes,
+      auctioneerNotesError: _validateAuctioneerNotes(notes),
+    );
+  }
+
+  void setConditionReport(Map<String, dynamic> report) {
+    state = state.copyWith(conditionReport: report);
+  }
+
+  void setAppraisalCertificate(String certificate) {
+    state = state.copyWith(
+      appraisalCertificate: certificate,
+      appraisalCertificateError: _validateAppraisalCertificate(certificate),
+    );
+  }
+
+  void setBiddingRules(Map<String, dynamic> rules) {
+    state = state.copyWith(biddingRules: rules);
+  }
+
+  void setFinancingOptions(List<Map<String, dynamic>> options) {
+    state = state.copyWith(financingOptions: options);
+  }
+
+  void setInsuranceRequired(bool required) {
+    state = state.copyWith(insuranceRequired: required);
+  }
+
+  void setPickupAvailable(bool available) {
+    state = state.copyWith(pickupAvailable: available);
   }
 
   // Step 2: Pricing & Duration
@@ -54,6 +165,13 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     state = state.copyWith(
       reservePrice: price,
       reservePriceError: _validateReservePrice(price, state.startPrice),
+    );
+  }
+
+  void setCurrentPrice(String price) {
+    state = state.copyWith(
+      currentPrice: price,
+      currentPriceError: _validateCurrentPrice(price, state.startPrice),
     );
   }
 
@@ -257,6 +375,9 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         description:
             '', // Will be used as fallback only if description not in template
         startPrice: double.parse(state.startPrice!),
+        currentPrice: state.currentPrice != null && state.currentPrice!.isNotEmpty
+            ? double.parse(state.currentPrice!)
+            : null,
         reservePrice:
             state.reservePrice != null && state.reservePrice!.isNotEmpty
             ? double.parse(state.reservePrice!)
@@ -270,6 +391,33 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         dynamicFields:
             state.dynamicFields, // This contains all category template data
         returnPolicy: state.returnPolicy,
+        // Professional auction fields
+        authenticationRequired: state.authenticationRequired,
+        shippingIncluded: state.shippingIncluded,
+        bidIncrement: state.bidIncrement != null && state.bidIncrement!.isNotEmpty
+            ? double.parse(state.bidIncrement!)
+            : null,
+        commissionRate: state.commissionRate != null && state.commissionRate!.isNotEmpty
+            ? double.parse(state.commissionRate!)
+            : null,
+        buyerPremium: state.buyerPremium != null && state.buyerPremium!.isNotEmpty
+            ? double.parse(state.buyerPremium!)
+            : null,
+        timezone: state.timezone,
+        paymentTerms: state.paymentTerms,
+        lotNumber: state.lotNumber,
+        reserveVisible: state.reserveVisible,
+        businessLicense: state.businessLicense,
+        sellerRating: state.sellerRating,
+        catalogReference: state.catalogReference,
+        auctioneerNotes: state.auctioneerNotes,
+        conditionReport: state.conditionReport,
+        appraisalCertificate: state.appraisalCertificate,
+        biddingRules: state.biddingRules,
+        financingOptions: state.financingOptions,
+        insuranceRequired: state.insuranceRequired,
+        pickupAvailable: state.pickupAvailable,
+        status: state.status.name,
       );
 
       state = state.copyWith(isSubmitting: false);
@@ -344,6 +492,26 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     return null;
   }
 
+  String? _validateCurrentPrice(String? currentPrice, String? startPrice) {
+    if (currentPrice == null || currentPrice.isEmpty) {
+      return null; // Current price is optional, will default to start price
+    }
+    final current = double.tryParse(currentPrice);
+    if (current == null) {
+      return 'Invalid price';
+    }
+    if (current <= 0) {
+      return 'Price must be greater than 0';
+    }
+    if (startPrice != null && startPrice.isNotEmpty) {
+      final start = double.tryParse(startPrice);
+      if (start != null && current < start) {
+        return 'Current price must be >= start price';
+      }
+    }
+    return null;
+  }
+
   String? _validateStartTime(DateTime? time) {
     if (time == null) {
       return 'Start time is required';
@@ -366,6 +534,67 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
       if (duration.inDays > 30) {
         return 'Duration  must not exceed 30 days';
       }
+    }
+    return null;
+  }
+
+  String? _validateBusinessLicense(String? license) {
+    if (license == null || license.isEmpty) {
+      return null; // Business license is optional
+    }
+    if (license.length < 3) {
+      return 'Business license must be at least 3 characters';
+    }
+    if (license.length > 50) {
+      return 'Business license must not exceed 50 characters';
+    }
+    return null;
+  }
+
+  String? _validateSellerRating(String? rating) {
+    if (rating == null || rating.isEmpty) {
+      return null; // Seller rating is optional
+    }
+    final parsed = double.tryParse(rating);
+    if (parsed == null) {
+      return 'Invalid rating';
+    }
+    if (parsed < 0 || parsed > 5) {
+      return 'Rating must be between 0 and 5';
+    }
+    return null;
+  }
+
+  String? _validateCatalogReference(String? reference) {
+    if (reference == null || reference.isEmpty) {
+      return null; // Catalog reference is optional
+    }
+    if (reference.length < 3) {
+      return 'Catalog reference must be at least 3 characters';
+    }
+    if (reference.length > 200) {
+      return 'Catalog reference must not exceed 200 characters';
+    }
+    return null;
+  }
+
+  String? _validateAuctioneerNotes(String? notes) {
+    if (notes == null || notes.isEmpty) {
+      return null; // Auctioneer notes are optional
+    }
+    if (notes.length > 1000) {
+      return 'Auctioneer notes must not exceed 1000 characters';
+    }
+    return null;
+  }
+
+  String? _validateAppraisalCertificate(String? certificate) {
+    if (certificate == null || certificate.isEmpty) {
+      return null; // Appraisal certificate is optional
+    }
+    // Basic URL validation
+    if (!certificate.startsWith('http://') && !certificate.startsWith('https://')) {
+      return 'Appraisal certificate must be a valid URL';
     }
     return null;
   }
@@ -516,6 +745,73 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     }
     
     return false;
+  }
+
+  // Validation methods for professional auction fields
+  String? _validateBidIncrement(String? increment) {
+    if (increment == null || increment.isEmpty) {
+      return null; // Optional field
+    }
+    final value = double.tryParse(increment);
+    if (value == null) {
+      return 'Bid increment must be a valid number';
+    }
+    if (value <= 0) {
+      return 'Bid increment must be greater than 0';
+    }
+    if (value > 1000000) {
+      return 'Bid increment must not exceed 1,000,000';
+    }
+    return null;
+  }
+
+  String? _validateCommissionRate(String? rate) {
+    if (rate == null || rate.isEmpty) {
+      return null; // Optional field
+    }
+    final value = double.tryParse(rate);
+    if (value == null) {
+      return 'Commission rate must be a valid number';
+    }
+    if (value < 0 || value > 1) {
+      return 'Commission rate must be between 0 and 1 (0% to 100%)';
+    }
+    return null;
+  }
+
+  String? _validateBuyerPremium(String? premium) {
+    if (premium == null || premium.isEmpty) {
+      return null; // Optional field
+    }
+    final value = double.tryParse(premium);
+    if (value == null) {
+      return 'Buyer premium must be a valid number';
+    }
+    if (value < 0 || value > 1) {
+      return 'Buyer premium must be between 0 and 1 (0% to 100%)';
+    }
+    return null;
+  }
+
+  String? _validateTimezone(String? timezone) {
+    if (timezone == null || timezone.isEmpty) {
+      return null; // Optional field
+    }
+    // Basic timezone validation - could be enhanced with a proper timezone library
+    if (timezone.length < 3 || timezone.length > 50) {
+      return 'Timezone must be between 3 and 50 characters';
+    }
+    return null;
+  }
+
+  String? _validateLotNumber(String? lotNumber) {
+    if (lotNumber == null || lotNumber.isEmpty) {
+      return null; // Optional field
+    }
+    if (lotNumber.length > 50) {
+      return 'Lot number must not exceed 50 characters';
+    }
+    return null;
   }
 }
 

@@ -13,6 +13,11 @@ final allAuctionsProvider = StateNotifierProvider<AllAuctionsNotifier, AsyncValu
   return AllAuctionsNotifier(auctionService);
 });
 
+final categoryAuctionsProvider = StateNotifierProvider.family<CategoryAuctionsNotifier, AsyncValue<AuctionListState>, String>((ref, categoryId) {
+  final auctionService = ref.read(auctionServiceProvider);
+  return CategoryAuctionsNotifier(auctionService, categoryId);
+});
+
 final myAuctionsProvider = StateNotifierProvider<MyAuctionsNotifier, AsyncValue<AuctionListState>>((ref) {
   final auctionService = ref.read(auctionServiceProvider);
   return MyAuctionsNotifier(auctionService);
@@ -143,6 +148,60 @@ class AllAuctionsNotifier extends StateNotifier<AsyncValue<AuctionListState>> {
     final currentState = state.valueOrNull;
     if (currentState != null && currentState.hasNextPage) {
       await loadAuctions(page: currentState.currentPage + 1);
+    }
+  }
+}
+
+class CategoryAuctionsNotifier extends StateNotifier<AsyncValue<AuctionListState>> {
+  final AuctionService _auctionService;
+  final String _categoryId;
+
+  CategoryAuctionsNotifier(this._auctionService, this._categoryId) : super(const AsyncValue.loading()) {
+    loadCategoryAuctions();
+  }
+
+  Future<void> loadCategoryAuctions({int page = 1}) async {
+    if (page == 1) {
+      state = const AsyncValue.loading();
+    }
+
+    try {
+      final response = await _auctionService.getAllAuctions(
+        page: page,
+        categoryId: _categoryId,
+        status: 'active',
+      );
+
+      final newState = AuctionListState.fromResponse(response);
+
+      if (page == 1) {
+        state = AsyncValue.data(newState);
+      } else {
+        state = state.when(
+          data: (currentState) => AsyncValue.data(
+            currentState.copyWith(
+              auctions: [...currentState.auctions, ...newState.auctions],
+              currentPage: newState.currentPage,
+              hasNextPage: newState.hasNextPage,
+            ),
+          ),
+          loading: () => AsyncValue.data(newState),
+          error: (error, stack) => AsyncValue.data(newState),
+        );
+      }
+    } catch (e, stack) {
+      state = AsyncValue.error(e, stack);
+    }
+  }
+
+  Future<void> refresh() async {
+    await loadCategoryAuctions(page: 1);
+  }
+
+  Future<void> loadMore() async {
+    final currentState = state.valueOrNull;
+    if (currentState != null && currentState.hasNextPage) {
+      await loadCategoryAuctions(page: currentState.currentPage + 1);
     }
   }
 }
