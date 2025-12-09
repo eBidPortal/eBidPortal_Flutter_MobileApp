@@ -269,6 +269,18 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     String? auctionType,
     List<String>? tags,
     String? returnPolicy,
+    String? bidIncrement,
+    String? commissionRate,
+    String? buyerPremium,
+    String? timezone,
+    String? lotNumber,
+    bool? authenticationRequired,
+    bool? shippingIncluded,
+    bool? reserveVisible,
+    Map<String, dynamic>? paymentTerms,
+    Map<String, dynamic>? conditionReport,
+    Map<String, dynamic>? biddingRules,
+    List<Map<String, dynamic>>? financingOptions,
   }) {
     state = state.copyWith(
       startPrice: startPrice?.toString(),
@@ -278,6 +290,18 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
       type: auctionType != null ? _parseAuctionType(auctionType) : state.type,
       tags: tags ?? state.tags,
       returnPolicy: returnPolicy,
+      bidIncrement: bidIncrement,
+      commissionRate: commissionRate,
+      buyerPremium: buyerPremium,
+      timezone: timezone,
+      lotNumber: lotNumber,
+      authenticationRequired: authenticationRequired ?? state.authenticationRequired,
+      shippingIncluded: shippingIncluded ?? state.shippingIncluded,
+      reserveVisible: reserveVisible ?? state.reserveVisible,
+      paymentTerms: paymentTerms ?? state.paymentTerms,
+      conditionReport: conditionReport ?? state.conditionReport,
+      biddingRules: biddingRules ?? state.biddingRules,
+      financingOptions: financingOptions ?? state.financingOptions,
     );
   }
 
@@ -432,6 +456,12 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
       state = state.copyWith(isSubmitting: false, error: e.toString());
       return false;
     }
+  }
+
+  void updateDynamicField(String key, dynamic value) {
+    final updatedFields = Map<String, dynamic>.from(state.dynamicFields);
+    updatedFields[key] = value;
+    state = state.copyWith(dynamicFields: updatedFields);
   }
 
   // Validation helpers
