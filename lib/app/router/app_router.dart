@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/presentation/auth_provider.dart';
 import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/home/presentation/search_screen.dart';
 import '../../features/catalog/presentation/category_screen.dart';
 import '../../features/auction/presentation/watchlist_screen.dart';
 import '../../features/auction/presentation/all_auctions_screen.dart';
@@ -79,6 +80,10 @@ final routerProvider = Provider<GoRouter>((ref) {
       GoRoute(
         path: '/login',
         builder: (context, state) => const LoginScreen(),
+      ),
+      GoRoute(
+        path: '/search',
+        builder: (context, state) => const SearchScreen(),
       ),
       // StatefulShellRoute for persistent bottom navigation
       StatefulShellRoute.indexedStack(
