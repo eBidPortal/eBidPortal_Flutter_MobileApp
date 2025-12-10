@@ -23,6 +23,8 @@ class _ProfessionalSettingsTabState extends ConsumerState<ProfessionalSettingsTa
   final _catalogReferenceController = TextEditingController();
   final _auctioneerNotesController = TextEditingController();
   final _appraisalCertificateController = TextEditingController();
+  final _conditionReportController = TextEditingController();
+  final _biddingRulesController = TextEditingController();
 
   @override
   void initState() {
@@ -41,6 +43,8 @@ class _ProfessionalSettingsTabState extends ConsumerState<ProfessionalSettingsTa
       _catalogReferenceController.text = state.catalogReference ?? '';
       _auctioneerNotesController.text = state.auctioneerNotes ?? '';
       _appraisalCertificateController.text = state.appraisalCertificate ?? '';
+      _conditionReportController.text = state.conditionReport ?? '';
+      _biddingRulesController.text = state.biddingRules ?? '';
     });
   }
 
@@ -56,6 +60,8 @@ class _ProfessionalSettingsTabState extends ConsumerState<ProfessionalSettingsTa
     _catalogReferenceController.dispose();
     _auctioneerNotesController.dispose();
     _appraisalCertificateController.dispose();
+    _conditionReportController.dispose();
+    _biddingRulesController.dispose();
     super.dispose();
   }
 
@@ -250,7 +256,14 @@ class _ProfessionalSettingsTabState extends ConsumerState<ProfessionalSettingsTa
                     onChanged: (value) => notifier.setAppraisalCertificate(value),
                   ),
                   const SizedBox(height: AppTheme.spacingMd),
-                  _buildConditionReportField(state, notifier),
+                  _buildTextField(
+                    controller: _conditionReportController,
+                    label: 'Condition Report',
+                    hint: 'Describe the item\'s condition',
+                    maxLines: 3,
+                    prefixIcon: Icons.assignment,
+                    onChanged: (value) => notifier.setConditionReport(value),
+                  ),
                 ],
               ),
 
@@ -275,7 +288,14 @@ class _ProfessionalSettingsTabState extends ConsumerState<ProfessionalSettingsTa
                     onChanged: (value) => notifier.setPickupAvailable(value),
                   ),
                   const SizedBox(height: AppTheme.spacingMd),
-                  _buildBiddingRulesField(state, notifier),
+                  _buildTextField(
+                    controller: _biddingRulesController,
+                    label: 'Bidding Rules',
+                    hint: 'Describe bidding rules and restrictions',
+                    maxLines: 3,
+                    prefixIcon: Icons.rule,
+                    onChanged: (value) => notifier.setBiddingRules(value),
+                  ),
                   const SizedBox(height: AppTheme.spacingMd),
                   _buildFinancingOptionsField(state, notifier),
                 ],
@@ -521,58 +541,6 @@ class _ProfessionalSettingsTabState extends ConsumerState<ProfessionalSettingsTa
     );
   }
 
-  Widget _buildConditionReportField(
-    CreateAuctionState state,
-    CreateAuctionNotifier notifier,
-  ) {
-    return InkWell(
-      onTap: () => _showConditionReportDialog(context, state, notifier),
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Condition Report',
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.assignment),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: AppTheme.spacingMd,
-            vertical: AppTheme.spacingMd,
-          ),
-        ),
-        child: Text(
-          state.conditionReport.isNotEmpty
-              ? 'Report configured (${state.conditionReport.length} fields)'
-              : 'Configure condition report details',
-          style: TextStyle(color: state.conditionReport.isNotEmpty ? null : Colors.grey[600]),
-        ),
-      ),
-    );
-  }
-
-  Widget _buildBiddingRulesField(
-    CreateAuctionState state,
-    CreateAuctionNotifier notifier,
-  ) {
-    return InkWell(
-      onTap: () => _showBiddingRulesDialog(context, state, notifier),
-      child: InputDecorator(
-        decoration: const InputDecoration(
-          labelText: 'Bidding Rules',
-          border: OutlineInputBorder(),
-          prefixIcon: Icon(Icons.rule),
-          contentPadding: EdgeInsets.symmetric(
-            horizontal: AppTheme.spacingMd,
-            vertical: AppTheme.spacingMd,
-          ),
-        ),
-        child: Text(
-          state.biddingRules.isNotEmpty
-              ? 'Rules configured (${state.biddingRules.length} rules)'
-              : 'Configure bidding rules',
-          style: TextStyle(color: state.biddingRules.isNotEmpty ? null : Colors.grey[600]),
-        ),
-      ),
-    );
-  }
-
   Widget _buildFinancingOptionsField(
     CreateAuctionState state,
     CreateAuctionNotifier notifier,
@@ -595,203 +563,6 @@ class _ProfessionalSettingsTabState extends ConsumerState<ProfessionalSettingsTa
               : 'Configure financing options',
           style: TextStyle(color: state.financingOptions.isNotEmpty ? null : Colors.grey[600]),
         ),
-      ),
-    );
-  }
-
-  void _showConditionReportDialog(
-    BuildContext context,
-    CreateAuctionState state,
-    CreateAuctionNotifier notifier,
-  ) {
-    final overallGradeController = TextEditingController(
-      text: state.conditionReport['overall_grade']?.toString() ?? '',
-    );
-    final appraisedValueController = TextEditingController(
-      text: state.conditionReport['appraised_value']?.toString() ?? '',
-    );
-    final appraiserController = TextEditingController(
-      text: state.conditionReport['appraiser']?.toString() ?? '',
-    );
-    final reportDateController = TextEditingController(
-      text: state.conditionReport['report_date']?.toString() ?? '',
-    );
-    final flawsController = TextEditingController(
-      text: (state.conditionReport['flaws'] as List<dynamic>?)?.join(', ') ?? '',
-    );
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Condition Report'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              TextField(
-                controller: overallGradeController,
-                decoration: const InputDecoration(
-                  labelText: 'Overall Grade',
-                  hintText: 'e.g., A, B, C',
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingMd),
-              TextField(
-                controller: appraisedValueController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Appraised Value',
-                  hintText: 'e.g., 15000.00',
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingMd),
-              TextField(
-                controller: appraiserController,
-                decoration: const InputDecoration(
-                  labelText: 'Appraiser',
-                  hintText: 'Name of the appraiser',
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingMd),
-              TextField(
-                controller: reportDateController,
-                decoration: const InputDecoration(
-                  labelText: 'Report Date',
-                  hintText: 'YYYY-MM-DD',
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingMd),
-              TextField(
-                controller: flawsController,
-                maxLines: 2,
-                decoration: const InputDecoration(
-                  labelText: 'Flaws/Issues',
-                  hintText: 'Comma-separated list of flaws',
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final conditionReport = <String, dynamic>{};
-
-              if (overallGradeController.text.isNotEmpty) {
-                conditionReport['overall_grade'] = overallGradeController.text;
-              }
-
-              if (appraisedValueController.text.isNotEmpty) {
-                conditionReport['appraised_value'] = double.tryParse(appraisedValueController.text);
-              }
-
-              if (appraiserController.text.isNotEmpty) {
-                conditionReport['appraiser'] = appraiserController.text;
-              }
-
-              if (reportDateController.text.isNotEmpty) {
-                conditionReport['report_date'] = reportDateController.text;
-              }
-
-              if (flawsController.text.isNotEmpty) {
-                conditionReport['flaws'] = flawsController.text
-                    .split(',')
-                    .map((e) => e.trim())
-                    .where((e) => e.isNotEmpty)
-                    .toList();
-              }
-
-              notifier.setConditionReport(conditionReport);
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text('Save'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  void _showBiddingRulesDialog(
-    BuildContext context,
-    CreateAuctionState state,
-    CreateAuctionNotifier notifier,
-  ) {
-    final autoExtensionController = TextEditingController(
-      text: state.biddingRules['auto_extension']?.toString() ?? '',
-    );
-    final extensionMinutesController = TextEditingController(
-      text: state.biddingRules['extension_minutes']?.toString() ?? '',
-    );
-    final maxBidsController = TextEditingController(
-      text: state.biddingRules['max_bids_per_user']?.toString() ?? '',
-    );
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('Bidding Rules'),
-        content: SingleChildScrollView(
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              SwitchListTile(
-                title: const Text('Auto Extension'),
-                subtitle: const Text('Automatically extend auction when bids are placed near end'),
-                value: state.biddingRules['auto_extension'] == true,
-                onChanged: (value) {
-                  // This will be handled in the save button
-                },
-              ),
-              const SizedBox(height: AppTheme.spacingMd),
-              TextField(
-                controller: extensionMinutesController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Extension Minutes',
-                  hintText: 'Minutes to extend auction by',
-                ),
-              ),
-              const SizedBox(height: AppTheme.spacingMd),
-              TextField(
-                controller: maxBidsController,
-                keyboardType: TextInputType.number,
-                decoration: const InputDecoration(
-                  labelText: 'Max Bids Per User',
-                  hintText: 'Maximum bids allowed per user',
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.of(dialogContext).pop(),
-            child: const Text('Cancel'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              final biddingRules = <String, dynamic>{};
-
-              biddingRules['auto_extension'] = autoExtensionController.text.toLowerCase() == 'true';
-              
-              if (extensionMinutesController.text.isNotEmpty) {
-                biddingRules['extension_minutes'] = int.tryParse(extensionMinutesController.text);
-              }
-
-              if (maxBidsController.text.isNotEmpty) {
-                biddingRules['max_bids_per_user'] = int.tryParse(maxBidsController.text);
-              }
-
-              notifier.setBiddingRules(biddingRules);
-              Navigator.of(dialogContext).pop();
-            },
-            child: const Text('Save'),
-          ),
-        ],
       ),
     );
   }

@@ -52,10 +52,9 @@ mixin _$CreateAuctionState {
   String? get sellerRating => throw _privateConstructorUsedError;
   String? get catalogReference => throw _privateConstructorUsedError;
   String? get auctioneerNotes => throw _privateConstructorUsedError;
-  Map<String, dynamic> get conditionReport =>
-      throw _privateConstructorUsedError;
+  String? get conditionReport => throw _privateConstructorUsedError;
   String? get appraisalCertificate => throw _privateConstructorUsedError;
-  Map<String, dynamic> get biddingRules => throw _privateConstructorUsedError;
+  String? get biddingRules => throw _privateConstructorUsedError;
   List<Map<String, dynamic>> get financingOptions =>
       throw _privateConstructorUsedError;
   bool get insuranceRequired => throw _privateConstructorUsedError;
@@ -130,9 +129,9 @@ abstract class $CreateAuctionStateCopyWith<$Res> {
     String? sellerRating,
     String? catalogReference,
     String? auctioneerNotes,
-    Map<String, dynamic> conditionReport,
+    String? conditionReport,
     String? appraisalCertificate,
-    Map<String, dynamic> biddingRules,
+    String? biddingRules,
     List<Map<String, dynamic>> financingOptions,
     bool insuranceRequired,
     bool pickupAvailable,
@@ -207,9 +206,9 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
     Object? sellerRating = freezed,
     Object? catalogReference = freezed,
     Object? auctioneerNotes = freezed,
-    Object? conditionReport = null,
+    Object? conditionReport = freezed,
     Object? appraisalCertificate = freezed,
-    Object? biddingRules = null,
+    Object? biddingRules = freezed,
     Object? financingOptions = null,
     Object? insuranceRequired = null,
     Object? pickupAvailable = null,
@@ -359,18 +358,18 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
                 ? _value.auctioneerNotes
                 : auctioneerNotes // ignore: cast_nullable_to_non_nullable
                       as String?,
-            conditionReport: null == conditionReport
+            conditionReport: freezed == conditionReport
                 ? _value.conditionReport
                 : conditionReport // ignore: cast_nullable_to_non_nullable
-                      as Map<String, dynamic>,
+                      as String?,
             appraisalCertificate: freezed == appraisalCertificate
                 ? _value.appraisalCertificate
                 : appraisalCertificate // ignore: cast_nullable_to_non_nullable
                       as String?,
-            biddingRules: null == biddingRules
+            biddingRules: freezed == biddingRules
                 ? _value.biddingRules
                 : biddingRules // ignore: cast_nullable_to_non_nullable
-                      as Map<String, dynamic>,
+                      as String?,
             financingOptions: null == financingOptions
                 ? _value.financingOptions
                 : financingOptions // ignore: cast_nullable_to_non_nullable
@@ -521,9 +520,9 @@ abstract class _$$CreateAuctionStateImplCopyWith<$Res>
     String? sellerRating,
     String? catalogReference,
     String? auctioneerNotes,
-    Map<String, dynamic> conditionReport,
+    String? conditionReport,
     String? appraisalCertificate,
-    Map<String, dynamic> biddingRules,
+    String? biddingRules,
     List<Map<String, dynamic>> financingOptions,
     bool insuranceRequired,
     bool pickupAvailable,
@@ -597,9 +596,9 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
     Object? sellerRating = freezed,
     Object? catalogReference = freezed,
     Object? auctioneerNotes = freezed,
-    Object? conditionReport = null,
+    Object? conditionReport = freezed,
     Object? appraisalCertificate = freezed,
-    Object? biddingRules = null,
+    Object? biddingRules = freezed,
     Object? financingOptions = null,
     Object? insuranceRequired = null,
     Object? pickupAvailable = null,
@@ -749,18 +748,18 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
             ? _value.auctioneerNotes
             : auctioneerNotes // ignore: cast_nullable_to_non_nullable
                   as String?,
-        conditionReport: null == conditionReport
-            ? _value._conditionReport
+        conditionReport: freezed == conditionReport
+            ? _value.conditionReport
             : conditionReport // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>,
+                  as String?,
         appraisalCertificate: freezed == appraisalCertificate
             ? _value.appraisalCertificate
             : appraisalCertificate // ignore: cast_nullable_to_non_nullable
                   as String?,
-        biddingRules: null == biddingRules
-            ? _value._biddingRules
+        biddingRules: freezed == biddingRules
+            ? _value.biddingRules
             : biddingRules // ignore: cast_nullable_to_non_nullable
-                  as Map<String, dynamic>,
+                  as String?,
         financingOptions: null == financingOptions
             ? _value._financingOptions
             : financingOptions // ignore: cast_nullable_to_non_nullable
@@ -904,9 +903,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.sellerRating,
     this.catalogReference,
     this.auctioneerNotes,
-    final Map<String, dynamic> conditionReport = const {},
+    this.conditionReport,
     this.appraisalCertificate,
-    final Map<String, dynamic> biddingRules = const {},
+    this.biddingRules,
     final List<Map<String, dynamic>> financingOptions = const [],
     this.insuranceRequired = false,
     this.pickupAvailable = false,
@@ -938,8 +937,6 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
        _uploadedImageUrls = uploadedImageUrls,
        _tags = tags,
        _paymentTerms = paymentTerms,
-       _conditionReport = conditionReport,
-       _biddingRules = biddingRules,
        _financingOptions = financingOptions,
        _dynamicFieldErrors = dynamicFieldErrors;
 
@@ -1057,26 +1054,12 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
   final String? catalogReference;
   @override
   final String? auctioneerNotes;
-  final Map<String, dynamic> _conditionReport;
   @override
-  @JsonKey()
-  Map<String, dynamic> get conditionReport {
-    if (_conditionReport is EqualUnmodifiableMapView) return _conditionReport;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_conditionReport);
-  }
-
+  final String? conditionReport;
   @override
   final String? appraisalCertificate;
-  final Map<String, dynamic> _biddingRules;
   @override
-  @JsonKey()
-  Map<String, dynamic> get biddingRules {
-    if (_biddingRules is EqualUnmodifiableMapView) return _biddingRules;
-    // ignore: implicit_dynamic_type
-    return EqualUnmodifiableMapView(_biddingRules);
-  }
-
+  final String? biddingRules;
   final List<Map<String, dynamic>> _financingOptions;
   @override
   @JsonKey()
@@ -1224,16 +1207,12 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
                 other.catalogReference == catalogReference) &&
             (identical(other.auctioneerNotes, auctioneerNotes) ||
                 other.auctioneerNotes == auctioneerNotes) &&
-            const DeepCollectionEquality().equals(
-              other._conditionReport,
-              _conditionReport,
-            ) &&
+            (identical(other.conditionReport, conditionReport) ||
+                other.conditionReport == conditionReport) &&
             (identical(other.appraisalCertificate, appraisalCertificate) ||
                 other.appraisalCertificate == appraisalCertificate) &&
-            const DeepCollectionEquality().equals(
-              other._biddingRules,
-              _biddingRules,
-            ) &&
+            (identical(other.biddingRules, biddingRules) ||
+                other.biddingRules == biddingRules) &&
             const DeepCollectionEquality().equals(
               other._financingOptions,
               _financingOptions,
@@ -1327,9 +1306,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     sellerRating,
     catalogReference,
     auctioneerNotes,
-    const DeepCollectionEquality().hash(_conditionReport),
+    conditionReport,
     appraisalCertificate,
-    const DeepCollectionEquality().hash(_biddingRules),
+    biddingRules,
     const DeepCollectionEquality().hash(_financingOptions),
     insuranceRequired,
     pickupAvailable,
@@ -1402,9 +1381,9 @@ abstract class _CreateAuctionState implements CreateAuctionState {
     final String? sellerRating,
     final String? catalogReference,
     final String? auctioneerNotes,
-    final Map<String, dynamic> conditionReport,
+    final String? conditionReport,
     final String? appraisalCertificate,
-    final Map<String, dynamic> biddingRules,
+    final String? biddingRules,
     final List<Map<String, dynamic>> financingOptions,
     final bool insuranceRequired,
     final bool pickupAvailable,
@@ -1495,11 +1474,11 @@ abstract class _CreateAuctionState implements CreateAuctionState {
   @override
   String? get auctioneerNotes;
   @override
-  Map<String, dynamic> get conditionReport;
+  String? get conditionReport;
   @override
   String? get appraisalCertificate;
   @override
-  Map<String, dynamic> get biddingRules;
+  String? get biddingRules;
   @override
   List<Map<String, dynamic>> get financingOptions;
   @override

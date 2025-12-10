@@ -118,12 +118,12 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
       _paymentTermsController.text = auctionState.paymentTerms.toString();
     }
     
-    if (auctionState.conditionReport.isNotEmpty) {
-      _conditionReportController.text = auctionState.conditionReport.toString();
+    if (auctionState.conditionReport != null && auctionState.conditionReport!.isNotEmpty) {
+      _conditionReportController.text = auctionState.conditionReport!;
     }
     
-    if (auctionState.biddingRules.isNotEmpty) {
-      _biddingRulesController.text = auctionState.biddingRules.toString();
+    if (auctionState.biddingRules != null && auctionState.biddingRules!.isNotEmpty) {
+      _biddingRulesController.text = auctionState.biddingRules!;
     }
     
     if (auctionState.financingOptions.isNotEmpty) {
@@ -202,8 +202,8 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
       shippingIncluded: _shippingIncluded,
       reserveVisible: _reserveVisible,
       paymentTerms: _paymentTermsController.text.isNotEmpty ? {'description': _paymentTermsController.text} : null,
-      conditionReport: _conditionReportController.text.isNotEmpty ? {'description': _conditionReportController.text} : null,
-      biddingRules: _biddingRulesController.text.isNotEmpty ? {'description': _biddingRulesController.text} : null,
+      conditionReport: _conditionReportController.text.isNotEmpty ? _conditionReportController.text : null,
+      biddingRules: _biddingRulesController.text.isNotEmpty ? _biddingRulesController.text : null,
       financingOptions: _financingOptionsController.text.isNotEmpty ? [{'description': _financingOptionsController.text}] : null,
     );
     

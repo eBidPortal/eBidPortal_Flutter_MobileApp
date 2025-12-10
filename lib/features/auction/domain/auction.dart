@@ -15,6 +15,18 @@ class Auction {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  // Professional auction fields
+  final bool? authenticationRequired;
+  final bool? shippingIncluded;
+  final double? bidIncrement;
+  final double? commissionRate;
+  final double? buyerPremium;
+  final String? timezone;
+  final Map<String, dynamic>? paymentTerms;
+  final String? lotNumber;
+  final String? conditionReport;
+  final String? biddingRules;
+
   Auction({
     required this.id,
     this.sellerId,
@@ -31,6 +43,17 @@ class Auction {
     this.returnPolicy,
     required this.createdAt,
     required this.updatedAt,
+    // Professional auction fields
+    this.authenticationRequired,
+    this.shippingIncluded,
+    this.bidIncrement,
+    this.commissionRate,
+    this.buyerPremium,
+    this.timezone,
+    this.paymentTerms,
+    this.lotNumber,
+    this.conditionReport,
+    this.biddingRules,
   });
 
   factory Auction.fromJson(Map<String, dynamic> json) {
@@ -82,6 +105,19 @@ class Auction {
             : json['updatedAt'] != null 
                 ? DateTime.parse(json['updatedAt']) 
                 : DateTime.now(),
+        // Professional auction fields
+        authenticationRequired: json['authentication_required'],
+        shippingIncluded: json['shipping_included'],
+        bidIncrement: _parseDouble(json['bid_increment']),
+        commissionRate: _parseDouble(json['commission_rate']),
+        buyerPremium: _parseDouble(json['buyer_premium']),
+        timezone: json['timezone'],
+        paymentTerms: json['payment_terms'] is Map<String, dynamic> 
+            ? json['payment_terms'] 
+            : null,
+        lotNumber: json['lot_number'],
+        conditionReport: _parseConditionReport(json['condition_report']),
+        biddingRules: _parseBiddingRules(json['bidding_rules']),
       );
     } catch (e) {
       print('🏛️ AUCTION: Error parsing auction JSON: $e');
@@ -107,6 +143,17 @@ class Auction {
       'return_policy': returnPolicy,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
+      // Professional auction fields
+      'authentication_required': authenticationRequired,
+      'shipping_included': shippingIncluded,
+      'bid_increment': bidIncrement,
+      'commission_rate': commissionRate,
+      'buyer_premium': buyerPremium,
+      'timezone': timezone,
+      'payment_terms': paymentTerms,
+      'lot_number': lotNumber,
+      'condition_report': conditionReport,
+      'bidding_rules': biddingRules,
     };
   }
 
@@ -125,6 +172,28 @@ class Auction {
     }
     print('🏛️ AUCTION: Unexpected type for double parsing: ${value.runtimeType}');
     return null;
+  }
+
+  // Helper method to parse condition report (handles both Map and String formats)
+  static String? _parseConditionReport(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value;
+    if (value is Map<String, dynamic>) {
+      // Handle old format where condition_report was a Map with description
+      return value['description'] ?? value.toString();
+    }
+    return value.toString();
+  }
+
+  // Helper method to parse bidding rules (handles both Map and String formats)
+  static String? _parseBiddingRules(dynamic value) {
+    if (value == null) return null;
+    if (value is String) return value;
+    if (value is Map<String, dynamic>) {
+      // Handle old format where bidding_rules was a Map with description
+      return value['description'] ?? value.toString();
+    }
+    return value.toString();
   }
 
   // Helper getters
@@ -191,6 +260,17 @@ class Auction {
     String? returnPolicy,
     DateTime? createdAt,
     DateTime? updatedAt,
+    // Professional auction fields
+    bool? authenticationRequired,
+    bool? shippingIncluded,
+    double? bidIncrement,
+    double? commissionRate,
+    double? buyerPremium,
+    String? timezone,
+    Map<String, dynamic>? paymentTerms,
+    String? lotNumber,
+    String? conditionReport,
+    String? biddingRules,
   }) {
     return Auction(
       id: id ?? this.id,
@@ -208,6 +288,17 @@ class Auction {
       returnPolicy: returnPolicy ?? this.returnPolicy,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
+      // Professional auction fields
+      authenticationRequired: authenticationRequired ?? this.authenticationRequired,
+      shippingIncluded: shippingIncluded ?? this.shippingIncluded,
+      bidIncrement: bidIncrement ?? this.bidIncrement,
+      commissionRate: commissionRate ?? this.commissionRate,
+      buyerPremium: buyerPremium ?? this.buyerPremium,
+      timezone: timezone ?? this.timezone,
+      paymentTerms: paymentTerms ?? this.paymentTerms,
+      lotNumber: lotNumber ?? this.lotNumber,
+      conditionReport: conditionReport ?? this.conditionReport,
+      biddingRules: biddingRules ?? this.biddingRules,
     );
   }
 }

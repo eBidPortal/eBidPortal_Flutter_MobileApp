@@ -20,6 +20,9 @@ class _MyAuctionsScreenState extends ConsumerState<MyAuctionsScreen>
     with SingleTickerProviderStateMixin {
   late TabController _tabController;
   final ScrollController _scrollController = ScrollController();
+  bool _isLoadingMore = false;
+  static const double _scrollThreshold = 100.0; // Load more when within 100 pixels of bottom
+  DateTime? _lastScrollTime;
 
   @override
   void initState() {
@@ -36,10 +39,38 @@ class _MyAuctionsScreenState extends ConsumerState<MyAuctionsScreen>
   }
 
   void _onScroll() {
-    if (_scrollController.position.pixels == _scrollController.position.maxScrollExtent) {
-      ref.read(myAuctionsProvider.notifier).loadMyAuctions(
-        page: ref.read(myAuctionsProvider).valueOrNull?.currentPage ?? 1 + 1,
-      );
+    // Debounce scroll events (minimum 500ms between triggers)
+    final now = DateTime.now();
+    if (_lastScrollTime != null && now.difference(_lastScrollTime!).inMilliseconds < 500) {
+      return;
+    }
+    _lastScrollTime = now;
+
+    if (_isLoadingMore) return; // Prevent multiple simultaneous requests
+
+    final position = _scrollController.position;
+    final maxScroll = position.maxScrollExtent;
+    final currentScroll = position.pixels;
+    final distanceToBottom = maxScroll - currentScroll;
+
+    // Only trigger if we have content to scroll (maxScroll > 0) and we're close to the bottom
+    // Also ensure we're actually scrolling down (not just at the bottom from initial load)
+    if (maxScroll > _scrollThreshold && distanceToBottom <= _scrollThreshold) {
+      final currentState = ref.read(myAuctionsProvider).valueOrNull;
+      if (currentState != null && currentState.hasNextPage && !_isLoadingMore) {
+        _isLoadingMore = true;
+        final nextPage = currentState.currentPage + 1;
+
+        print('🔄 MY_AUCTIONS: Loading page $nextPage (current: ${currentState.currentPage}, hasNext: ${currentState.hasNextPage})');
+
+        ref.read(myAuctionsProvider.notifier).loadMyAuctions(page: nextPage).then((_) {
+          _isLoadingMore = false;
+          print('✅ MY_AUCTIONS: Page $nextPage loaded successfully');
+        }).catchError((error) {
+          _isLoadingMore = false;
+          print('❌ MY_AUCTIONS: Failed to load page $nextPage: $error');
+        });
+      }
     }
   }
 
@@ -57,9 +88,6 @@ class _MyAuctionsScreenState extends ConsumerState<MyAuctionsScreen>
       ),
       body: Column(
         children: [
-          // Statistics Card
-          _buildStatsCard(),
-
           // Tab Bar
           TabBar(
             controller: _tabController,
@@ -91,76 +119,6 @@ class _MyAuctionsScreenState extends ConsumerState<MyAuctionsScreen>
         icon: const Icon(Icons.add),
         label: const Text('Create Auction'),
       ),
-    );
-  }
-
-  Widget _buildStatsCard() {
-    return Consumer(
-      builder: (context, ref, child) {
-        final auctionsState = ref.watch(myAuctionsProvider);
-        
-        return auctionsState.when(
-          data: (auctionListState) {
-            final activeCount = auctionListState.auctions
-                .where((auction) => auction.status == AuctionStatus.active)
-                .length;
-            final pendingCount = auctionListState.auctions
-                .where((auction) => auction.status == AuctionStatus.pending)
-                .length;
-            final endedCount = auctionListState.auctions
-                .where((auction) => auction.status == AuctionStatus.ended)
-                .length;
-
-            return Container(
-              margin: const EdgeInsets.all(16),
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Theme.of(context).cardColor,
-                borderRadius: BorderRadius.circular(12),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.1),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceAround,
-                children: [
-                  _buildStatItem('Total', auctionListState.totalCount.toString()),
-                  _buildStatItem('Active', activeCount.toString()),
-                  _buildStatItem('Pending', pendingCount.toString()),
-                  _buildStatItem('Ended', endedCount.toString()),
-                ],
-              ),
-            );
-          },
-          loading: () => const SizedBox.shrink(),
-          error: (error, stack) => const SizedBox.shrink(),
-        );
-      },
-    );
-  }
-
-  Widget _buildStatItem(String label, String value) {
-    return Column(
-      children: [
-        Text(
-          value,
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.bold,
-            color: Theme.of(context).primaryColor,
-          ),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          label,
-          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-            color: Colors.grey[600],
-          ),
-        ),
-      ],
     );
   }
 

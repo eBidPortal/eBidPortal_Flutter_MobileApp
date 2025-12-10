@@ -126,7 +126,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     );
   }
 
-  void setConditionReport(Map<String, dynamic> report) {
+  void setConditionReport(String report) {
     state = state.copyWith(conditionReport: report);
   }
 
@@ -137,7 +137,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     );
   }
 
-  void setBiddingRules(Map<String, dynamic> rules) {
+  void setBiddingRules(String rules) {
     state = state.copyWith(biddingRules: rules);
   }
 
@@ -278,8 +278,8 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     bool? shippingIncluded,
     bool? reserveVisible,
     Map<String, dynamic>? paymentTerms,
-    Map<String, dynamic>? conditionReport,
-    Map<String, dynamic>? biddingRules,
+    String? conditionReport,
+    String? biddingRules,
     List<Map<String, dynamic>>? financingOptions,
   }) {
     state = state.copyWith(

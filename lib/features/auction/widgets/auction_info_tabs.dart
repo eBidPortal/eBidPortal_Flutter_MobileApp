@@ -20,7 +20,7 @@ class _AuctionInfoTabsState extends State<AuctionInfoTabs>
   @override
   void initState() {
     super.initState();
-    _tabController = TabController(length: 4, vsync: this);
+    _tabController = TabController(length: 5, vsync: this);
   }
 
   @override
@@ -41,6 +41,7 @@ class _AuctionInfoTabsState extends State<AuctionInfoTabs>
             Tab(text: 'Specifications'),
             Tab(text: 'Shipping'),
             Tab(text: 'Return Policy'),
+            Tab(text: 'Professional Details'),
           ],
         ),
         Expanded(
@@ -51,6 +52,7 @@ class _AuctionInfoTabsState extends State<AuctionInfoTabs>
               _buildSpecificationsTab(),
               _buildShippingTab(),
               _buildReturnPolicyTab(),
+              _buildProfessionalDetailsTab(),
             ],
           ),
         ),
@@ -289,6 +291,220 @@ class _AuctionInfoTabsState extends State<AuctionInfoTabs>
     );
   }
 
+  Widget _buildProfessionalDetailsTab() {
+    final hasProfessionalFields = widget.auction.authenticationRequired != null ||
+        widget.auction.shippingIncluded != null ||
+        widget.auction.bidIncrement != null ||
+        widget.auction.commissionRate != null ||
+        widget.auction.buyerPremium != null ||
+        widget.auction.timezone != null ||
+        widget.auction.paymentTerms != null ||
+        widget.auction.lotNumber != null ||
+        (widget.auction.conditionReport != null && widget.auction.conditionReport!.isNotEmpty) ||
+        (widget.auction.biddingRules != null && widget.auction.biddingRules!.isNotEmpty);
+
+    if (!hasProfessionalFields) {
+      return Center(
+        child: Column(
+          children: [
+            const SizedBox(height: 64),
+            Icon(
+              Icons.business_center,
+              size: 64,
+              color: Colors.grey[400],
+            ),
+            const SizedBox(height: 16),
+            Text(
+              'No professional details available',
+              style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                color: Colors.grey[600],
+              ),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'This auction does not have professional auction features configured.',
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: Colors.grey[500],
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      );
+    }
+
+    return SingleChildScrollView(
+      padding: const EdgeInsets.all(16),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          _buildSectionTitle('Professional Auction Settings'),
+          const SizedBox(height: 12),
+
+          // Authentication & Shipping
+          if (widget.auction.authenticationRequired != null || widget.auction.shippingIncluded != null)
+            _buildInfoCard([
+              if (widget.auction.authenticationRequired != null)
+                _buildInfoRow(
+                  'Authentication Required',
+                  widget.auction.authenticationRequired! ? 'Yes' : 'No',
+                ),
+              if (widget.auction.shippingIncluded != null)
+                _buildInfoRow(
+                  'Shipping Included',
+                  widget.auction.shippingIncluded! ? 'Yes' : 'No',
+                ),
+            ]),
+
+          if (widget.auction.authenticationRequired != null || widget.auction.shippingIncluded != null)
+            const SizedBox(height: 24),
+
+          // Bidding & Commission
+          if (widget.auction.bidIncrement != null || widget.auction.commissionRate != null || widget.auction.buyerPremium != null)
+            _buildSectionTitle('Bidding & Commission'),
+          if (widget.auction.bidIncrement != null || widget.auction.commissionRate != null || widget.auction.buyerPremium != null)
+            const SizedBox(height: 12),
+          if (widget.auction.bidIncrement != null || widget.auction.commissionRate != null || widget.auction.buyerPremium != null)
+            _buildInfoCard([
+              if (widget.auction.bidIncrement != null)
+                _buildInfoRow(
+                  'Bid Increment',
+                  '\$${widget.auction.bidIncrement!.toStringAsFixed(2)}',
+                ),
+              if (widget.auction.commissionRate != null)
+                _buildInfoRow(
+                  'Commission Rate',
+                  '${(widget.auction.commissionRate! * 100).toStringAsFixed(2)}%',
+                ),
+              if (widget.auction.buyerPremium != null)
+                _buildInfoRow(
+                  'Buyer\'s Premium',
+                  '${(widget.auction.buyerPremium! * 100).toStringAsFixed(2)}%',
+                ),
+            ]),
+
+          if (widget.auction.bidIncrement != null || widget.auction.commissionRate != null || widget.auction.buyerPremium != null)
+            const SizedBox(height: 24),
+
+          // Location & Timing
+          if (widget.auction.timezone != null || widget.auction.lotNumber != null)
+            _buildSectionTitle('Location & Catalog'),
+          if (widget.auction.timezone != null || widget.auction.lotNumber != null)
+            const SizedBox(height: 12),
+          if (widget.auction.timezone != null || widget.auction.lotNumber != null)
+            _buildInfoCard([
+              if (widget.auction.timezone != null)
+                _buildInfoRow('Timezone', widget.auction.timezone!),
+              if (widget.auction.lotNumber != null)
+                _buildInfoRow('Lot Number', widget.auction.lotNumber!),
+            ]),
+
+          if (widget.auction.timezone != null || widget.auction.lotNumber != null)
+            const SizedBox(height: 24),
+
+          if (widget.auction.paymentTerms != null && widget.auction.paymentTerms!.isNotEmpty) ...[
+            _buildSectionTitle('Payment Terms'),
+            const SizedBox(height: 12),
+            _buildInfoCard(
+              widget.auction.paymentTerms!.entries.map((entry) {
+                return _buildInfoRow(
+                  _formatSpecKey(entry.key),
+                  _formatPaymentTermValue(entry.value),
+                );
+              }).toList(),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Condition Report
+          if (widget.auction.conditionReport != null && widget.auction.conditionReport!.isNotEmpty) ...[
+            _buildSectionTitle('Condition Report'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                widget.auction.conditionReport!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Bidding Rules
+          if (widget.auction.biddingRules != null && widget.auction.biddingRules!.isNotEmpty) ...[
+            _buildSectionTitle('Bidding Rules'),
+            const SizedBox(height: 12),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Theme.of(context).primaryColor.withOpacity(0.1),
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: Theme.of(context).primaryColor.withOpacity(0.3),
+                ),
+              ),
+              child: Text(
+                widget.auction.biddingRules!,
+                style: Theme.of(context).textTheme.bodyMedium,
+              ),
+            ),
+            const SizedBox(height: 24),
+          ],
+
+          // Professional Badge
+          Container(
+            padding: const EdgeInsets.all(16),
+            decoration: BoxDecoration(
+              color: Theme.of(context).primaryColor.withOpacity(0.1),
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(
+                color: Theme.of(context).primaryColor.withOpacity(0.3),
+              ),
+            ),
+            child: Row(
+              children: [
+                Icon(
+                  Icons.verified,
+                  color: Theme.of(context).primaryColor,
+                  size: 24,
+                ),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Professional Auction',
+                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: Theme.of(context).primaryColor,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'This auction includes professional auction house features and standards.',
+                        style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                          color: Colors.grey[600],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
@@ -425,6 +641,16 @@ class _AuctionInfoTabsState extends State<AuctionInfoTabs>
     if (value == null) return 'N/A';
     if (value is List) return value.join(', ');
     if (value is Map) return value.toString();
+    return value.toString();
+  }
+
+  String _formatPaymentTermValue(dynamic value) {
+    if (value == null) return 'N/A';
+    if (value is List) return value.join(', ');
+    if (value is bool) return value ? 'Yes' : 'No';
+    if (value is Map) {
+      return value.entries.map((e) => '${_formatSpecKey(e.key)}: ${e.value}').join('; ');
+    }
     return value.toString();
   }
 }
