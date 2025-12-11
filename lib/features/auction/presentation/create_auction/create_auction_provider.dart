@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../catalog/domain/category.dart';
@@ -391,6 +392,19 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         isUploadingImages: false,
       );
 
+      // Prepare dynamic fields including bidding rules
+      final dynamicFieldsWithBiddingRules = Map<String, dynamic>.from(state.dynamicFields);
+      if (state.biddingRules != null && state.biddingRules!.isNotEmpty) {
+        // Try to parse as JSON, otherwise treat as string description
+        try {
+          dynamicFieldsWithBiddingRules['bidding_rules'] = state.biddingRules!.startsWith('{') 
+            ? jsonDecode(state.biddingRules!) 
+            : {'description': state.biddingRules};
+        } catch (e) {
+          dynamicFieldsWithBiddingRules['bidding_rules'] = {'description': state.biddingRules};
+        }
+      }
+
       // Create auction with simplified API structure
       // All product data comes from dynamic template fields, not hardcoded title/description
       await _auctionRepository.createAuction(
@@ -413,7 +427,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         images: imageUrls,
         tags: state.tags,
         dynamicFields:
-            state.dynamicFields, // This contains all category template data
+            dynamicFieldsWithBiddingRules, // This contains all category template data including bidding rules
         returnPolicy: state.returnPolicy,
         // Professional auction fields
         authenticationRequired: state.authenticationRequired,
@@ -437,7 +451,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         auctioneerNotes: state.auctioneerNotes,
         conditionReport: state.conditionReport,
         appraisalCertificate: state.appraisalCertificate,
-        biddingRules: state.biddingRules,
+        // biddingRules: state.biddingRules, // Removed - now part of dynamicFields
         financingOptions: state.financingOptions,
         insuranceRequired: state.insuranceRequired,
         pickupAvailable: state.pickupAvailable,

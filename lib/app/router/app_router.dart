@@ -6,11 +6,11 @@ import '../../features/auth/presentation/login_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/home/presentation/search_screen.dart';
 import '../../features/catalog/presentation/category_screen.dart';
-import '../../features/auction/presentation/watchlist_screen.dart';
 import '../../features/auction/presentation/all_auctions_screen.dart';
 import '../../features/auction/presentation/my_auctions_screen.dart';
 import '../../features/auction/presentation/auction_details_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/catalog/domain/category.dart';
 import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
 import '../../features/auction/presentation/create_auction/widgets/category_selection_screen.dart';
@@ -28,7 +28,6 @@ final routerProvider = Provider<GoRouter>((ref) {
   final shellNavigatorHomeKey = GlobalKey<NavigatorState>(debugLabel: 'shellHome');
   final shellNavigatorCategoriesKey = GlobalKey<NavigatorState>(debugLabel: 'shellCategories');
   final shellNavigatorAuctionsKey = GlobalKey<NavigatorState>(debugLabel: 'shellAuctions');
-  final shellNavigatorWatchlistKey = GlobalKey<NavigatorState>(debugLabel: 'shellWatchlist');
   final shellNavigatorProfileKey = GlobalKey<NavigatorState>(debugLabel: 'shellProfile');
   
   print('🧭 ROUTER: Navigator keys created successfully');
@@ -136,17 +135,6 @@ final routerProvider = Provider<GoRouter>((ref) {
               ),
             ],
           ),
-          // Watchlist Branch
-          StatefulShellBranch(
-            navigatorKey: shellNavigatorWatchlistKey,
-            routes: [
-              GoRoute(
-                path: '/watchlist',
-                name: 'watchlist',
-                builder: (context, state) => const WatchlistScreen(),
-              ),
-            ],
-          ),
           // Profile Branch
           StatefulShellBranch(
             navigatorKey: shellNavigatorProfileKey,
@@ -204,6 +192,13 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           return const AllAuctionsScreen();
         },
+      ),
+      // Notifications
+      GoRoute(
+        path: '/notifications',
+        name: 'notifications',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const NotificationsScreen(),
       ),
     ],
   );

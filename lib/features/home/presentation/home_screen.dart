@@ -2,8 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
-import '../../auth/presentation/auth_provider.dart';
-import '../../auth/domain/user.dart';
+import '../../../core/providers/location_provider.dart';
+import '../../../core/services/notification_service.dart';
 import '../../auction/domain/auction.dart';
 import '../../catalog/domain/category.dart';
 import '../providers/home_providers.dart';
@@ -16,7 +16,8 @@ class HomeScreen extends ConsumerWidget {
     print('🏠 SCREEN: HomeScreen - build called');
 
     final homeData = ref.watch(homeDataProvider);
-    final authState = ref.watch(authProvider);
+    final locationState = ref.watch(locationProvider);
+    final notifications = ref.watch(notificationsProvider);
 
     return Scaffold(
       body: homeData.isLoading
@@ -33,28 +34,77 @@ class HomeScreen extends ConsumerWidget {
                       snap: true,
                       backgroundColor: AppTheme.surfaceColor,
                       elevation: 0,
-                      title: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            _getGreetingText(authState.value),
-                            style: Theme.of(context).textTheme.titleLarge,
-                          ),
-                          Text(
-                            'Find your next treasure',
-                            style: Theme.of(context).textTheme.bodySmall,
-                          ),
-                        ],
+                      title: InkWell(
+                        onTap: () => _showLocationSelector(context, ref),
+                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.location_on,
+                                  size: 20,
+                                  color: AppTheme.primaryColor,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  _getLocationText(locationState),
+                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                    color: AppTheme.primaryColor,
+                                  ),
+                                ),
+                                Icon(
+                                  Icons.keyboard_arrow_down,
+                                  size: 20,
+                                  color: AppTheme.primaryColor,
+                                ),
+                              ],
+                            ),
+                            Text(
+                              'Find your next treasure',
+                              style: Theme.of(context).textTheme.bodySmall,
+                            ),
+                          ],
+                        ),
                       ),
                       actions: [
                         IconButton(
-                          icon: const Icon(Icons.notifications_outlined),
-                          onPressed: () {
-                            // TODO: Navigate to notifications
-                            ScaffoldMessenger.of(context).showSnackBar(
-                              const SnackBar(content: Text('Notifications coming soon!')),
-                            );
-                          },
+                          icon: const Icon(Icons.favorite_border),
+                          onPressed: () => context.go('/watchlist'),
+                        ),
+                        Stack(
+                          children: [
+                            IconButton(
+                              icon: const Icon(Icons.notifications_outlined),
+                              onPressed: () => context.go('/notifications'),
+                            ),
+                            if (notifications.isNotEmpty && ref.read(notificationsProvider.notifier).unreadCount > 0)
+                              Positioned(
+                                right: 8,
+                                top: 8,
+                                child: Container(
+                                  padding: const EdgeInsets.all(2),
+                                  decoration: BoxDecoration(
+                                    color: Colors.red,
+                                    borderRadius: BorderRadius.circular(10),
+                                  ),
+                                  constraints: const BoxConstraints(
+                                    minWidth: 16,
+                                    minHeight: 16,
+                                  ),
+                                  child: Text(
+                                    ref.read(notificationsProvider.notifier).unreadCount.toString(),
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    textAlign: TextAlign.center,
+                                  ),
+                                ),
+                              ),
+                          ],
                         ),
                       ],
                     ),
@@ -125,11 +175,61 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  String _getGreetingText(User? user) {
-    if (user != null) {
-      return 'Hello, ${user.name.split(' ').first}!';
+  String _getLocationText(LocationState locationState) {
+    if (locationState.isLoading) {
+      return 'Getting location...';
     }
-    return 'Hello, Guest!';
+    return locationState.locationName ?? 'Select Location';
+  }
+
+  void _showLocationSelector(BuildContext context, WidgetRef ref) {
+    final locationNotifier = ref.read(locationProvider.notifier);
+    final states = locationNotifier.getStatesList();
+
+    showModalBottomSheet(
+      context: context,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (context) {
+        return Container(
+          padding: const EdgeInsets.all(AppTheme.spacingMd),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                children: [
+                  const Icon(Icons.location_on, color: AppTheme.primaryColor),
+                  const SizedBox(width: AppTheme.spacingSm),
+                  Text(
+                    'Select Your State',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              Flexible(
+                child: ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: states.length,
+                  itemBuilder: (context, index) {
+                    final state = states[index];
+                    return ListTile(
+                      title: Text(state),
+                    onTap: () {
+                      final locationNotifier = ref.read(locationProvider.notifier);
+                      locationNotifier.updateLocationName(state);
+                      Navigator.of(context).pop();
+                    },
+                    );
+                  },
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    );
   }
 
   Widget _buildSearchBar(BuildContext context, WidgetRef ref) {

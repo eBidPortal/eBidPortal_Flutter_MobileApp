@@ -20,18 +20,18 @@ class CategoryScreen extends ConsumerWidget {
       ),
       body: categoriesAsync.when(
         data: (categories) => _CategoryGrid(categories: categories),
-        loading: () => _buildLoadingState(),
+        loading: () => _buildLoadingState(context),
         error: (err, stack) => _buildErrorState(context, err),
       ),
     );
   }
 
-  Widget _buildLoadingState() {
+  Widget _buildLoadingState(BuildContext context) {
     return GridView.builder(
       padding: const EdgeInsets.all(AppTheme.spacingMd),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.85,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+        childAspectRatio: 0.8,
         crossAxisSpacing: AppTheme.spacingMd,
         mainAxisSpacing: AppTheme.spacingMd,
       ),
@@ -113,9 +113,9 @@ class _CategoryGrid extends StatelessWidget {
 
     return GridView.builder(
       padding: const EdgeInsets.all(AppTheme.spacingMd),
-      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-        crossAxisCount: 2,
-        childAspectRatio: 0.85,
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: MediaQuery.of(context).size.width > 600 ? 3 : 2,
+        childAspectRatio: 0.8,
         crossAxisSpacing: AppTheme.spacingMd,
         mainAxisSpacing: AppTheme.spacingMd,
       ),
@@ -209,121 +209,137 @@ class _CategoryCardState extends State<_CategoryCard>
         onTapUp: _handleTapUp,
         onTapCancel: _handleTapCancel,
         onTap: () => _navigate(context),
-        child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.surfaceColor,
+        child: Card(
+          elevation: _isPressed ? 4 : 2,
+          margin: EdgeInsets.zero,
+          shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-            border: Border.all(
-              color: _isPressed
-                  ? categoryColor.withValues(alpha: 0.5)
-                  : AppTheme.borderColor,
-              width: _isPressed ? 2 : 1,
-            ),
-            boxShadow: _isPressed ? AppTheme.shadowMd : AppTheme.shadowSm,
           ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Image Container with Gradient Overlay
-              Expanded(
-                flex: 3,
-                child: Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      colors: [
-                        categoryColor.withValues(alpha: 0.8),
-                        categoryColor.withValues(alpha: 0.6),
-                      ],
-                      begin: Alignment.topLeft,
-                      end: Alignment.bottomRight,
-                    ),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(AppTheme.radiusMd),
-                    ),
-                  ),
-                  child: Stack(
-                    children: [
-                      if (widget.category.imageUrl != null)
-                        ClipRRect(
-                          borderRadius: const BorderRadius.vertical(
-                            top: Radius.circular(AppTheme.radiusMd),
-                          ),
-                          child: Image.network(
-                            widget.category.imageUrl!,
-                            width: double.infinity,
-                            height: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => _buildIconFallback(categoryColor),
-                            loadingBuilder: (context, child, loadingProgress) {
-                              if (loadingProgress == null) return child;
-                              return _buildIconFallback(categoryColor);
-                            },
-                          ),
-                        )
-                      else
-                        _buildIconFallback(categoryColor),
-                      // Badge for child count
-                      if (widget.category.children.isNotEmpty)
-                        Positioned(
-                          top: 8,
-                          right: 8,
-                          child: Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 4,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.white,
-                              borderRadius: BorderRadius.circular(
-                                AppTheme.radiusFull,
-                              ),
-                              boxShadow: AppTheme.shadowSm,
-                            ),
-                            child: Text(
-                              '${widget.category.children.length}',
-                              style: TextStyle(
-                                fontSize: 11,
-                                fontWeight: FontWeight.bold,
-                                color: categoryColor,
-                              ),
-                            ),
-                          ),
-                        ),
-                    ],
-                  ),
-                ),
+          child: Container(
+            constraints: const BoxConstraints(
+              minHeight: 120,
+              maxHeight: 180,
+            ),
+            decoration: BoxDecoration(
+              borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+              border: Border.all(
+                color: _isPressed
+                    ? categoryColor.withValues(alpha: 0.5)
+                    : AppTheme.borderColor,
+                width: _isPressed ? 2 : 1,
               ),
-              Expanded(
-                child: Padding(
-                  padding: const EdgeInsets.all(AppTheme.spacingMd),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Text(
-                        widget.category.name,
-                        style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              fontSize: 14,
-                            ),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // Image Container with Gradient Overlay
+                Expanded(
+                  flex: 3,
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          categoryColor.withValues(alpha: 0.8),
+                          categoryColor.withValues(alpha: 0.6),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      if (widget.category.description != null) ...[
-                        const SizedBox(height: 2),
-                        Text(
-                          widget.category.description!,
-                          style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                fontSize: 11,
+                      borderRadius: const BorderRadius.vertical(
+                        top: Radius.circular(AppTheme.radiusMd),
+                      ),
+                    ),
+                    child: Stack(
+                      children: [
+                        if (widget.category.imageUrl != null)
+                          ClipRRect(
+                            borderRadius: const BorderRadius.vertical(
+                              top: Radius.circular(AppTheme.radiusMd),
+                            ),
+                            child: Image.network(
+                              widget.category.imageUrl!,
+                              width: double.infinity,
+                              height: double.infinity,
+                              fit: BoxFit.cover,
+                              errorBuilder: (_, __, ___) => _buildIconFallback(categoryColor),
+                              loadingBuilder: (context, child, loadingProgress) {
+                                if (loadingProgress == null) return child;
+                                return _buildIconFallback(categoryColor);
+                              },
+                            ),
+                          )
+                        else
+                          _buildIconFallback(categoryColor),
+                        // Badge for child count
+                        if (widget.category.children.isNotEmpty)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 8,
+                                vertical: 4,
                               ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
+                              decoration: BoxDecoration(
+                                color: Colors.white,
+                                borderRadius: BorderRadius.circular(
+                                  AppTheme.radiusFull,
+                                ),
+                                boxShadow: AppTheme.shadowSm,
+                              ),
+                              child: Text(
+                                '${widget.category.children.length}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.bold,
+                                  color: categoryColor,
+                                ),
+                              ),
+                            ),
+                          ),
                       ],
-                    ],
+                    ),
                   ),
                 ),
-              ),
-            ],
+                Expanded(
+                  flex: 2,
+                  child: Padding(
+                    padding: const EdgeInsets.all(AppTheme.spacingMd),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Flexible(
+                          child: Text(
+                            widget.category.name,
+                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (widget.category.description != null) ...[
+                          const SizedBox(height: 2),
+                          Flexible(
+                            child: Text(
+                              widget.category.description!,
+                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                                fontSize: 11,
+                                color: AppTheme.textSecondary,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

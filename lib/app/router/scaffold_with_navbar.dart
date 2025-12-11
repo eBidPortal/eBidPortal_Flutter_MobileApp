@@ -27,7 +27,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
           ],
         ),
         child: BottomNavigationBar(
-          currentIndex: navigationShell.currentIndex,
+          currentIndex: _getBottomNavIndex(navigationShell.currentIndex),
           onTap: (index) => _onTap(context, index),
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppTheme.primaryColor,
@@ -46,14 +46,14 @@ class ScaffoldWithNavBar extends StatelessWidget {
               label: 'Categories',
             ),
             BottomNavigationBarItem(
+              icon: Icon(Icons.add_circle_outline),
+              activeIcon: Icon(Icons.add_circle),
+              label: 'Sell/Post',
+            ),
+            BottomNavigationBarItem(
               icon: Icon(Icons.gavel_outlined),
               activeIcon: Icon(Icons.gavel),
               label: 'Auctions',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.favorite_border),
-              activeIcon: Icon(Icons.favorite),
-              label: 'Watchlist',
             ),
             BottomNavigationBarItem(
               icon: Icon(Icons.person_outline),
@@ -63,28 +63,50 @@ class ScaffoldWithNavBar extends StatelessWidget {
           ],
         ),
       ),
-      floatingActionButton: navigationShell.currentIndex == 0 || navigationShell.currentIndex == 2
-          ? FloatingActionButton.extended(
-              onPressed: () => _showAuctionOptions(context),
-              icon: const Icon(Icons.add),
-              label: const Text('Auction'),
-            )
-          : null,
     );
+  }
+
+  /// Convert branch index to bottom navigation index
+  /// Branch indices: 0=Home, 1=Categories, 2=Auctions, 3=Profile
+  /// BottomNav indices: 0=Home, 1=Categories, 2=Sell/Post, 3=Auctions, 4=Profile
+  int _getBottomNavIndex(int branchIndex) {
+    switch (branchIndex) {
+      case 0: return 0; // Home
+      case 1: return 1; // Categories
+      case 2: return 3; // Auctions
+      case 3: return 4; // Profile
+      default: return 0; // Default to Home
+    }
   }
 
   /// Navigate to the current location of the branch at the provided index when
   /// tapping an item in the BottomNavigationBar.
   void _onTap(BuildContext context, int index) {
+    // Special handling for Sell/Post tab (index 2) - show auction management bottom sheet
+    if (index == 2) {
+      _showAuctionOptions(context);
+      return;
+    }
+
+    // Convert bottom navigation index to branch index
+    // BottomNav: 0=Home, 1=Categories, 2=Sell/Post, 3=Auctions, 4=Profile
+    // Branch:    0=Home, 1=Categories, 2=Auctions, 3=Profile
+    int branchIndex;
+    if (index < 2) {
+      branchIndex = index; // 0->0, 1->1
+    } else {
+      branchIndex = index - 1; // 3->2, 4->3
+    }
+
     // When navigating to a new branch, the initialLocation param of goBranch
     // ensures that we navigate to the initial location of that branch.
     navigationShell.goBranch(
-      index,
+      branchIndex,
       // A common pattern when using bottom navigation bars is to support
       // navigating to the initial location when tapping the item that is
       // already active. This example demonstrates how to support this behavior,
       // using the initialLocation parameter of goBranch.
-      initialLocation: index == navigationShell.currentIndex,
+      initialLocation: branchIndex == navigationShell.currentIndex,
     );
   }
 

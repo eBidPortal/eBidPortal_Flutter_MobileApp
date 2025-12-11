@@ -117,7 +117,9 @@ class Auction {
             : null,
         lotNumber: json['lot_number'],
         conditionReport: _parseConditionReport(json['condition_report']),
-        biddingRules: _parseBiddingRules(json['bidding_rules']),
+        biddingRules: _parseBiddingRules(
+          json['dynamic_attributes']?['bidding_rules'] ?? json['bidding_rules']
+        ),
       );
     } catch (e) {
       print('🏛️ AUCTION: Error parsing auction JSON: $e');
