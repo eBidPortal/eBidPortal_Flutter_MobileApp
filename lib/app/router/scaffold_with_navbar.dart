@@ -353,6 +353,14 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
       _hasNavigatedToHome = true;
       widget.navigationShell.goBranch(0);
       print('🔙 BACK_PRESS: Set _hasNavigatedToHome=true and navigated to home');
+      
+      // Add a small delay and then notify Android to re-register callback
+      Future.delayed(const Duration(milliseconds: 100), () {
+        if (_isAndroid) {
+          platform.invokeMethod('reRegisterCallback');
+        }
+      });
+      
       print('🔙 BACK_PRESS: ===== _handleBackPress COMPLETED (GO TO HOME) =====');
       return;
     }
