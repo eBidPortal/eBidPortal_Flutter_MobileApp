@@ -1,4 +1,6 @@
+import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 
@@ -16,57 +18,108 @@ class ScaffoldWithNavBar extends StatefulWidget {
 }
 
 class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+  static const platform = MethodChannel('com.ebidportal.auctions/back_handler');
+  bool _isAndroid = false;
+  bool _isiOS = false;
+  bool _hasNavigatedToHome = false;
+
+  @override
+  void initState() {
+    super.initState();
+    _isAndroid = Platform.isAndroid;
+    _isiOS = Platform.isIOS;
+    print('🔙 PLATFORM: Setting up native back button handler');
+    print('🔙 PLATFORM: Running on Android: $_isAndroid, iOS: $_isiOS');
+    
+    // Set up method channel handler for both platforms
+    if (_isAndroid || _isiOS) {
+      platform.setMethodCallHandler(_handlePlatformCall);
+      print('🔙 PLATFORM: Method channel handler registered');
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    print('🔙 PLATFORM: didChangeDependencies called');
+  }
+
+  @override
+  void dispose() {
+    print('🔙 PLATFORM: Disposing native back button handler');
+    platform.setMethodCallHandler(null);
+    super.dispose();
+  }
+
+  Future<dynamic> _handlePlatformCall(MethodCall call) async {
+    print('🔙 PLATFORM: Received method call: ${call.method} from native platform');
+    if (call.method == 'onBackPressed') {
+      print('🔙 PLATFORM: Native back button pressed (Android/iOS), handling in Flutter');
+      await _handleBackPress(context);
+      return null;
+    } else {
+      print('🔙 PLATFORM: Unknown method call: ${call.method}');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
     print('🏠 SCAFFOLD: Building scaffold with navbar, currentIndex: ${widget.navigationShell.currentIndex}');
-    return Scaffold(
-      body: widget.navigationShell,
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.05),
-              blurRadius: 10,
-              offset: const Offset(0, -2),
-            ),
-          ],
-        ),
-        child: BottomNavigationBar(
-          currentIndex: _getBottomNavIndex(widget.navigationShell.currentIndex),
-          onTap: (index) => _onTap(context, index),
-          type: BottomNavigationBarType.fixed,
-          selectedItemColor: AppTheme.primaryColor,
-          unselectedItemColor: AppTheme.textMuted,
-          selectedFontSize: 12,
-          unselectedFontSize: 12,
-          items: const [
-            BottomNavigationBarItem(
-              icon: Icon(Icons.home_outlined),
-              activeIcon: Icon(Icons.home),
-              label: 'Home',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.category_outlined),
-              activeIcon: Icon(Icons.category),
-              label: 'Categories',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.add_circle_outline),
-              activeIcon: Icon(Icons.add_circle),
-              label: 'Sell/Post',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.gavel_outlined),
-              activeIcon: Icon(Icons.gavel),
-              label: 'Auctions',
-            ),
-            BottomNavigationBarItem(
-              icon: Icon(Icons.person_outline),
-              activeIcon: Icon(Icons.person),
-              label: 'Profile',
-            ),
-          ],
+    print('🏠 SCAFFOLD: Creating WillPopScope for back button handling');
+    return WillPopScope(
+      onWillPop: () async {
+        print('🔙 WILL_POP: onWillPop called');
+        await _handleBackPress(context);
+        return false; // Always prevent default back behavior
+      },
+      child: Scaffold(
+        body: widget.navigationShell,
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            boxShadow: [
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.05),
+                blurRadius: 10,
+                offset: const Offset(0, -2),
+              ),
+            ],
+          ),
+          child: BottomNavigationBar(
+            currentIndex: _getBottomNavIndex(widget.navigationShell.currentIndex),
+            onTap: (index) => _onTap(context, index),
+            type: BottomNavigationBarType.fixed,
+            selectedItemColor: AppTheme.primaryColor,
+            unselectedItemColor: AppTheme.textMuted,
+            selectedFontSize: 12,
+            unselectedFontSize: 12,
+            items: const [
+              BottomNavigationBarItem(
+                icon: Icon(Icons.home_outlined),
+                activeIcon: Icon(Icons.home),
+                label: 'Home',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.category_outlined),
+                activeIcon: Icon(Icons.category),
+                label: 'Categories',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.add_circle_outline),
+                activeIcon: Icon(Icons.add_circle),
+                label: 'Sell/Post',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.gavel_outlined),
+                activeIcon: Icon(Icons.gavel),
+                label: 'Auctions',
+              ),
+              BottomNavigationBarItem(
+                icon: Icon(Icons.person_outline),
+                activeIcon: Icon(Icons.person),
+                label: 'Profile',
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -108,6 +161,12 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
     }
 
     print('🏠 SCAFFOLD: Navigating to branch index: $branchIndex');
+    
+    // Reset navigation state when user manually taps on home tab
+    if (branchIndex == 0) {
+      _hasNavigatedToHome = false;
+      print('🏠 SCAFFOLD: Reset _hasNavigatedToHome to false (manual home tap)');
+    }
 
     // When navigating to a new branch, the initialLocation param of goBranch
     // ensures that we navigate to the initial location of that branch.
@@ -263,5 +322,103 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
         ),
       ),
     );
+  }
+
+  Future<void> _handleBackPress(BuildContext context) async {
+    print('🔙 BACK_PRESS: ===== _handleBackPress STARTED =====');
+    final goRouter = GoRouter.of(context);
+    final currentLocation = goRouter.routerDelegate.currentConfiguration.uri.toString();
+    final currentIndex = widget.navigationShell.currentIndex;
+    
+    print('🔙 BACK_PRESS: Location: $currentLocation, Tab index: $currentIndex');
+    print('🔙 BACK_PRESS: Context mounted: ${context.mounted}');
+
+    // Check if we can pop from the root navigator (for overlay screens)
+    final rootNavigator = goRouter.routerDelegate.navigatorKey.currentState;
+    print('🔙 BACK_PRESS: Root navigator state: $rootNavigator');
+    if (rootNavigator != null && rootNavigator.canPop()) {
+      print('🔙 BACK_PRESS: Root navigator can pop, popping from root navigator');
+      Navigator.of(context).pop();
+      print('🔙 BACK_PRESS: ===== _handleBackPress COMPLETED (ROOT POP) =====');
+      return;
+    } else {
+      print('🔙 BACK_PRESS: Root navigator cannot pop or is null');
+    }
+
+    // Handle tab navigation
+    // Tab indices: 0=Home, 1=Categories, 2=Sell/Post, 3=Auctions, 4=Profile
+    if (currentIndex != 0) {
+      // If not on Home tab, navigate to Home
+      print('🔙 BACK_PRESS: Not on home tab (currentIndex=$currentIndex), navigating to home');
+      _hasNavigatedToHome = true;
+      widget.navigationShell.goBranch(0);
+      print('🔙 BACK_PRESS: Set _hasNavigatedToHome=true and navigated to home');
+      print('🔙 BACK_PRESS: ===== _handleBackPress COMPLETED (GO TO HOME) =====');
+      return;
+    }
+
+    // If on Home tab, show exit confirmation
+    if (currentIndex == 0) {
+      print('🔙 BACK_PRESS: On home tab (currentIndex=0), _hasNavigatedToHome=$_hasNavigatedToHome');
+      
+      // Reset the navigation flag before showing dialog
+      _hasNavigatedToHome = false;
+      
+      print('🔙 BACK_PRESS: About to call _showExitDialog');
+      final shouldExit = await _showExitDialog(context);
+      print('🔙 BACK_PRESS: _showExitDialog returned: $shouldExit');
+      
+      if (shouldExit) {
+        print('🔙 BACK_PRESS: User confirmed exit, closing app');
+        SystemNavigator.pop();
+      } else {
+        print('🔙 BACK_PRESS: User cancelled exit, staying in app');
+      }
+      print('🔙 BACK_PRESS: ===== _handleBackPress COMPLETED (EXIT DIALOG) =====');
+      return;
+    }
+    
+    print('🔙 BACK_PRESS: ===== _handleBackPress COMPLETED (NO ACTION) =====');
+  }
+
+  Future<bool> _showExitDialog(BuildContext context) async {
+    print('🔙 EXIT_DIALOG: Starting _showExitDialog');
+    print('🔙 EXIT_DIALOG: Context mounted: ${context.mounted}');
+    
+    try {
+      final result = await showDialog<bool>(
+        context: context,
+        barrierDismissible: false,
+        builder: (context) {
+          print('🔙 EXIT_DIALOG: Building dialog widget');
+          return AlertDialog(
+            title: const Text('Exit App'),
+            content: const Text('Are you sure you want to exit the app?'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  print('🔙 EXIT_DIALOG: User pressed Cancel');
+                  Navigator.of(context).pop(false);
+                },
+                child: const Text('Cancel'),
+              ),
+              TextButton(
+                onPressed: () {
+                  print('🔙 EXIT_DIALOG: User pressed Exit');
+                  Navigator.of(context).pop(true);
+                },
+                child: const Text('Exit'),
+              ),
+            ],
+          );
+        },
+      );
+      
+      print('🔙 EXIT_DIALOG: Dialog result: $result');
+      return result ?? false;
+    } catch (e) {
+      print('🔙 EXIT_DIALOG: Error showing dialog: $e');
+      return false;
+    }
   }
 }

@@ -186,7 +186,7 @@ class _CategoryCardState extends State<_CategoryCard>
         ),
       );
     } else {
-      context.go('/auctions?categoryId=${widget.category.id}');
+      context.push('/category-auctions?categoryId=${widget.category.id}');
     }
   }
 

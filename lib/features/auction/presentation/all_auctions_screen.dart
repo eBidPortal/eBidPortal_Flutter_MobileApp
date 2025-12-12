@@ -8,7 +8,6 @@ import '../providers/auction_providers.dart';
 import '../widgets/auction_card.dart';
 import '../widgets/auction_filters_sheet.dart';
 import '../widgets/auction_search_bar.dart';
-import 'auction_details_screen.dart';
 
 class AllAuctionsScreen extends ConsumerStatefulWidget {
   final String? categoryId;
@@ -415,10 +414,12 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
   }
 
   void _navigateToDetails(String auctionId) {
-    Navigator.of(context).push(
-      MaterialPageRoute(
-        builder: (context) => AuctionDetailsScreen(auctionId: auctionId),
-      ),
-    );
+    if (widget.categoryId != null) {
+      // From category auctions, use category-auction-detail route
+      context.push('/category-auctions/$auctionId');
+    } else {
+      // From auctions tab, use auction-detail route
+      context.push('/auctions/$auctionId');
+    }
   }
 }

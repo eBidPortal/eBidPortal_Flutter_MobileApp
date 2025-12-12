@@ -20,13 +20,13 @@ class HomeScreen extends ConsumerWidget {
     final notifications = ref.watch(notificationsProvider);
 
     return Scaffold(
-      body: homeData.isLoading
-          ? const _LoadingView()
-          : homeData.error != null
-              ? _ErrorView(error: homeData.error!, onRetry: () {
-                  ref.read(homeDataProvider.notifier).refreshData();
-                })
-              : CustomScrollView(
+        body: homeData.isLoading
+            ? const _LoadingView()
+            : homeData.error != null
+                ? _ErrorView(error: homeData.error!, onRetry: () {
+                    ref.read(homeDataProvider.notifier).refreshData();
+                  })
+                : CustomScrollView(
                   slivers: [
                     // App Bar
                     SliverAppBar(

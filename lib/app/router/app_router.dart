@@ -1,6 +1,5 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import 'package:flutter/foundation.dart' show ChangeNotifier;
@@ -20,102 +19,6 @@ import '../../features/auction/presentation/create_auction/widgets/category_sele
 import '../../features/auction/presentation/create_auction/widgets/category_schema_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import 'scaffold_with_navbar.dart';
-
-class CustomBackButtonDispatcher extends BackButtonDispatcher {
-  final GlobalKey<NavigatorState> _navigatorKey;
-
-  CustomBackButtonDispatcher(this._navigatorKey);
-
-  @override
-  Future<bool> didPopRoute() async {
-    print('🔙 BACK_DISPATCHER: Back button pressed!');
-
-    // Get the current context from the navigator
-    final context = _navigatorKey.currentContext;
-    if (context == null) {
-      print('🔙 BACK_DISPATCHER: Context is null, cannot handle back press');
-      return false;
-    }
-
-    final goRouter = GoRouter.of(context);
-    final currentLocation = goRouter.routerDelegate.currentConfiguration.uri.toString();
-    print('🔙 BACK_DISPATCHER: Current location: $currentLocation');
-
-    // Check if we can pop from the current navigator
-    final navigator = Navigator.of(context);
-    final canPop = navigator.canPop();
-    print('🔙 BACK_DISPATCHER: Navigator can pop: $canPop');
-
-    // Check if we're on the home screen (main shell route)
-    final isOnHomeScreen = currentLocation == '/home' || currentLocation == '/' || currentLocation.startsWith('/home');
-    print('🔙 BACK_DISPATCHER: Is on home screen: $isOnHomeScreen');
-
-    if (canPop) {
-      print('🔙 BACK_DISPATCHER: Navigator can pop, popping from current navigator...');
-      navigator.pop();
-      return true; // Handled the back press
-    } else {
-      print('🔙 BACK_DISPATCHER: Navigator cannot pop, checking current location...');
-
-      // If we're on a specific route that should navigate back to home
-      if (currentLocation.contains('/categories') ||
-          currentLocation.contains('/auctions') ||
-          currentLocation.contains('/profile') ||
-          currentLocation.contains('/auction-details') ||
-          currentLocation.contains('/create-auction') ||
-          currentLocation.contains('/search')) {
-        print('🔙 BACK_DISPATCHER: On sub-route, navigating to home...');
-        goRouter.go('/home');
-        return true;
-      }
-
-      // If we're on home or a home-related route, show exit confirmation
-      if (isOnHomeScreen) {
-        print('🔙 BACK_DISPATCHER: On home screen, showing exit confirmation');
-        final shouldExit = await _showExitConfirmationDialog(context);
-        if (shouldExit) {
-          print('🔙 BACK_DISPATCHER: User confirmed exit, closing app');
-          SystemNavigator.pop();
-          return true; // Handled the back press
-        } else {
-          print('🔙 BACK_DISPATCHER: User cancelled exit');
-          return true; // Don't allow system to handle (prevent closing)
-        }
-      }
-
-      // Default: show exit confirmation
-      print('🔙 BACK_DISPATCHER: Unknown location, showing exit confirmation');
-      final shouldExit = await _showExitConfirmationDialog(context);
-      if (shouldExit) {
-        SystemNavigator.pop();
-        return true;
-      }
-      return true;
-    }
-  }
-
-  Future<bool> _showExitConfirmationDialog(BuildContext context) async {
-    return await showDialog<bool>(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: const Text('Exit App'),
-          content: const Text('Are you sure you want to exit the app?'),
-          actions: <Widget>[
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(false),
-              child: const Text('Cancel'),
-            ),
-            TextButton(
-              onPressed: () => Navigator.of(context).pop(true),
-              child: const Text('Exit'),
-            ),
-          ],
-        );
-      },
-    ) ?? false;
-  }
-}
 
 class AuthListenable extends ChangeNotifier {
   AuthListenable(Stream<void> stream) {
@@ -283,6 +186,26 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'select-category',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const CategorySelectionScreen(),
+      ),
+      GoRoute(
+        path: '/category-auctions',
+        name: 'category-auctions',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final categoryId = state.uri.queryParameters['categoryId'];
+          return AllAuctionsScreen(categoryId: categoryId);
+        },
+        routes: [
+          GoRoute(
+            path: ':auctionId',
+            name: 'category-auction-detail',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) {
+              final auctionId = state.pathParameters['auctionId']!;
+              return AuctionDetailsScreen(auctionId: auctionId);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/category-schema',
