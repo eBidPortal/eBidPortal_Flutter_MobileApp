@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import '../../core/theme/app_theme.dart';
 
-class ScaffoldWithNavBar extends StatelessWidget {
+class ScaffoldWithNavBar extends StatefulWidget {
   const ScaffoldWithNavBar({
     required this.navigationShell,
     super.key,
@@ -12,10 +12,16 @@ class ScaffoldWithNavBar extends StatelessWidget {
   final StatefulNavigationShell navigationShell;
 
   @override
+  State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
+}
+
+class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+
+  @override
   Widget build(BuildContext context) {
-    print('🏠 SCAFFOLD: Building scaffold with navbar, currentIndex: ${navigationShell.currentIndex}');
+    print('🏠 SCAFFOLD: Building scaffold with navbar, currentIndex: ${widget.navigationShell.currentIndex}');
     return Scaffold(
-      body: navigationShell,
+      body: widget.navigationShell,
       bottomNavigationBar: Container(
         decoration: BoxDecoration(
           boxShadow: [
@@ -27,7 +33,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
           ],
         ),
         child: BottomNavigationBar(
-          currentIndex: _getBottomNavIndex(navigationShell.currentIndex),
+          currentIndex: _getBottomNavIndex(widget.navigationShell.currentIndex),
           onTap: (index) => _onTap(context, index),
           type: BottomNavigationBarType.fixed,
           selectedItemColor: AppTheme.primaryColor,
@@ -82,8 +88,11 @@ class ScaffoldWithNavBar extends StatelessWidget {
   /// Navigate to the current location of the branch at the provided index when
   /// tapping an item in the BottomNavigationBar.
   void _onTap(BuildContext context, int index) {
+    print('🏠 SCAFFOLD: Bottom nav tapped, index: $index, current branch: ${widget.navigationShell.currentIndex}');
+
     // Special handling for Sell/Post tab (index 2) - show auction management bottom sheet
     if (index == 2) {
+      print('🏠 SCAFFOLD: Showing auction options bottom sheet');
       _showAuctionOptions(context);
       return;
     }
@@ -98,16 +107,20 @@ class ScaffoldWithNavBar extends StatelessWidget {
       branchIndex = index - 1; // 3->2, 4->3
     }
 
+    print('🏠 SCAFFOLD: Navigating to branch index: $branchIndex');
+
     // When navigating to a new branch, the initialLocation param of goBranch
     // ensures that we navigate to the initial location of that branch.
-    navigationShell.goBranch(
+    widget.navigationShell.goBranch(
       branchIndex,
       // A common pattern when using bottom navigation bars is to support
       // navigating to the initial location when tapping the item that is
       // already active. This example demonstrates how to support this behavior,
       // using the initialLocation parameter of goBranch.
-      initialLocation: branchIndex == navigationShell.currentIndex,
+      initialLocation: branchIndex == widget.navigationShell.currentIndex,
     );
+
+    print('🏠 SCAFFOLD: Navigation completed');
   }
 
   void _showAuctionOptions(BuildContext context) {
@@ -176,7 +189,7 @@ class ScaffoldWithNavBar extends StatelessWidget {
                 color: Colors.green,
                 onTap: () {
                   Navigator.of(context).pop();
-                  navigationShell.goBranch(2); // Go to auctions tab
+                  widget.navigationShell.goBranch(2); // Go to auctions tab
                 },
               ),
               const SizedBox(height: AppTheme.spacingXl),

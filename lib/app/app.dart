@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import 'package:toastification/toastification.dart';
 import 'router/app_router.dart';
 import '../core/theme/app_theme.dart';
@@ -12,7 +14,7 @@ class App extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     print('📱 APP: Building main app widget...');
-    
+
     final router = ref.watch(routerProvider);
     print('📱 APP: Router provider initialized: ${router != null ? "✅ Success" : "❌ Failed"}');
 
