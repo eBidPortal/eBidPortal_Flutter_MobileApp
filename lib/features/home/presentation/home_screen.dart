@@ -20,158 +20,182 @@ class HomeScreen extends ConsumerWidget {
     final notifications = ref.watch(notificationsProvider);
 
     return Scaffold(
-        body: homeData.isLoading
-            ? const _LoadingView()
-            : homeData.error != null
-                ? _ErrorView(error: homeData.error!, onRetry: () {
-                    ref.read(homeDataProvider.notifier).refreshData();
-                  })
-                : CustomScrollView(
-                  slivers: [
-                    // App Bar
-                    SliverAppBar(
-                      floating: true,
-                      snap: true,
-                      backgroundColor: AppTheme.surfaceColor,
-                      elevation: 0,
-                      title: InkWell(
-                        onTap: () => _showLocationSelector(context, ref),
-                        borderRadius: BorderRadius.circular(AppTheme.radiusMd),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
+      body: homeData.isLoading
+          ? const _LoadingView()
+          : homeData.error != null
+          ? _ErrorView(
+              error: homeData.error!,
+              onRetry: () {
+                ref.read(homeDataProvider.notifier).refreshData();
+              },
+            )
+          : CustomScrollView(
+              slivers: [
+                // App Bar
+                SliverAppBar(
+                  floating: true,
+                  snap: true,
+                  backgroundColor: AppTheme.surfaceColor,
+                  elevation: 0,
+                  title: InkWell(
+                    onTap: () => _showLocationSelector(context, ref),
+                    borderRadius: BorderRadius.circular(AppTheme.radiusMd),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
                           children: [
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.location_on,
-                                  size: 20,
-                                  color: AppTheme.primaryColor,
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  _getLocationText(locationState),
-                                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                                    color: AppTheme.primaryColor,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.keyboard_arrow_down,
-                                  size: 20,
-                                  color: AppTheme.primaryColor,
-                                ),
-                              ],
+                            Icon(
+                              Icons.location_on,
+                              size: 20,
+                              color: AppTheme.primaryColor,
                             ),
-                            Text(
-                              'Find your next treasure',
-                              style: Theme.of(context).textTheme.bodySmall,
-                            ),
-                          ],
-                        ),
-                      ),
-                      actions: [
-                        IconButton(
-                          icon: const Icon(Icons.favorite_border),
-                          onPressed: () => context.go('/watchlist'),
-                        ),
-                        Stack(
-                          children: [
-                            IconButton(
-                              icon: const Icon(Icons.notifications_outlined),
-                              onPressed: () => context.go('/notifications'),
-                            ),
-                            if (notifications.isNotEmpty && ref.read(notificationsProvider.notifier).unreadCount > 0)
-                              Positioned(
-                                right: 8,
-                                top: 8,
-                                child: Container(
-                                  padding: const EdgeInsets.all(2),
-                                  decoration: BoxDecoration(
-                                    color: Colors.red,
-                                    borderRadius: BorderRadius.circular(10),
-                                  ),
-                                  constraints: const BoxConstraints(
-                                    minWidth: 16,
-                                    minHeight: 16,
-                                  ),
-                                  child: Text(
-                                    ref.read(notificationsProvider.notifier).unreadCount.toString(),
-                                    style: const TextStyle(
-                                      color: Colors.white,
-                                      fontSize: 10,
-                                      fontWeight: FontWeight.bold,
-                                    ),
-                                    textAlign: TextAlign.center,
-                                  ),
-                                ),
+                            const SizedBox(width: 4),
+                            Expanded(
+                              child: Text(
+                                _getLocationText(locationState),
+                                style: Theme.of(context).textTheme.titleLarge
+                                    ?.copyWith(color: AppTheme.primaryColor),
+                                overflow: TextOverflow.ellipsis,
+                                maxLines: 1,
                               ),
+                            ),
+                            Icon(
+                              Icons.keyboard_arrow_down,
+                              size: 20,
+                              color: AppTheme.primaryColor,
+                            ),
                           ],
+                        ),
+                        Text(
+                          'Find your next treasure',
+                          style: Theme.of(context).textTheme.bodySmall,
                         ),
                       ],
                     ),
-
-                    SliverToBoxAdapter(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          // Search Bar
-                          Padding(
-                            padding: const EdgeInsets.all(AppTheme.spacingMd),
-                            child: _buildSearchBar(context, ref),
+                  ),
+                  actions: [
+                    IconButton(
+                      icon: const Icon(Icons.favorite_border),
+                      onPressed: () => context.go('/watchlist'),
+                    ),
+                    Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(Icons.notifications_outlined),
+                          onPressed: () => context.go('/notifications'),
+                        ),
+                        if (notifications.isNotEmpty &&
+                            ref
+                                    .read(notificationsProvider.notifier)
+                                    .unreadCount >
+                                0)
+                          Positioned(
+                            right: 8,
+                            top: 8,
+                            child: Container(
+                              padding: const EdgeInsets.all(2),
+                              decoration: BoxDecoration(
+                                color: Colors.red,
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              constraints: const BoxConstraints(
+                                minWidth: 16,
+                                minHeight: 16,
+                              ),
+                              child: Text(
+                                ref
+                                    .read(notificationsProvider.notifier)
+                                    .unreadCount
+                                    .toString(),
+                                style: const TextStyle(
+                                  color: Colors.white,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                textAlign: TextAlign.center,
+                              ),
+                            ),
                           ),
-
-                          // Promotional Banner
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
-                            child: _buildPromoBanner(context, homeData.stats),
-                          ),
-
-                          const SizedBox(height: AppTheme.spacingLg),
-
-                          // Quick Actions
-                          Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
-                            child: _buildQuickActions(context),
-                          ),
-
-                          const SizedBox(height: AppTheme.spacingXl),
-
-                          // Featured Auctions Section
-                          _buildSectionHeader(
-                            context,
-                            'Featured Auctions',
-                            onViewAll: () => context.go('/auctions'),
-                          ),
-                          const SizedBox(height: AppTheme.spacingMd),
-                          _buildFeaturedAuctions(context, homeData.featuredAuctions),
-
-                          const SizedBox(height: AppTheme.spacingXl),
-
-                          // Trending Categories Section
-                          _buildSectionHeader(
-                            context,
-                            'Trending Categories',
-                            onViewAll: () => context.go('/categories'),
-                          ),
-                          const SizedBox(height: AppTheme.spacingMd),
-                          _buildTrendingCategories(context, homeData.trendingCategories),
-
-                          const SizedBox(height: AppTheme.spacingXl),
-
-                          // Ending Soon Section
-                          _buildSectionHeader(
-                            context,
-                            'Ending Soon',
-                            onViewAll: () => context.go('/auctions?filter=ending_soon'),
-                          ),
-                          const SizedBox(height: AppTheme.spacingMd),
-                          _buildEndingSoon(context, homeData.endingSoonAuctions),
-
-                          const SizedBox(height: AppTheme.spacingXl),
-                        ],
-                      ),
+                      ],
                     ),
                   ],
                 ),
+
+                SliverToBoxAdapter(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      // Search Bar
+                      Padding(
+                        padding: const EdgeInsets.all(AppTheme.spacingMd),
+                        child: _buildSearchBar(context, ref),
+                      ),
+
+                      // Promotional Banner
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingMd,
+                        ),
+                        child: _buildPromoBanner(context, homeData.stats),
+                      ),
+
+                      const SizedBox(height: AppTheme.spacingLg),
+
+                      // Quick Actions
+                      Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: AppTheme.spacingMd,
+                        ),
+                        child: _buildQuickActions(context),
+                      ),
+
+                      const SizedBox(height: AppTheme.spacingXl),
+
+                      // Featured Auctions Section
+                      _buildSectionHeader(
+                        context,
+                        'Featured Auctions',
+                        onViewAll: () => context.go('/auctions'),
+                      ),
+                      const SizedBox(height: AppTheme.spacingMd),
+                      _buildFeaturedAuctions(
+                        context,
+                        homeData.featuredAuctions,
+                      ),
+
+                      const SizedBox(height: AppTheme.spacingXl),
+
+                      // Trending Categories Section
+                      _buildSectionHeader(
+                        context,
+                        'Trending Categories',
+                        onViewAll: () => context.go('/categories'),
+                      ),
+                      const SizedBox(height: AppTheme.spacingMd),
+                      _buildTrendingCategories(
+                        context,
+                        homeData.trendingCategories,
+                      ),
+
+                      const SizedBox(height: AppTheme.spacingXl),
+
+                      // Ending Soon Section
+                      _buildSectionHeader(
+                        context,
+                        'Ending Soon',
+                        onViewAll: () =>
+                            context.go('/auctions?filter=ending_soon'),
+                      ),
+                      const SizedBox(height: AppTheme.spacingMd),
+                      _buildEndingSoon(context, homeData.endingSoonAuctions),
+
+                      const SizedBox(height: AppTheme.spacingXl),
+                    ],
+                  ),
+                ),
+              ],
+            ),
     );
   }
 
@@ -179,11 +203,15 @@ class HomeScreen extends ConsumerWidget {
     if (locationState.isLoading) {
       return 'Getting location...';
     }
+    if (!locationState.hasPermission && !locationState.permissionRequested) {
+      return 'Enable Location';
+    }
     return locationState.locationName ?? 'Select Location';
   }
 
   void _showLocationSelector(BuildContext context, WidgetRef ref) {
     final locationNotifier = ref.read(locationProvider.notifier);
+    final locationState = ref.read(locationProvider);
     final states = locationNotifier.getStatesList();
 
     showModalBottomSheet(
@@ -202,12 +230,60 @@ class HomeScreen extends ConsumerWidget {
                   const Icon(Icons.location_on, color: AppTheme.primaryColor),
                   const SizedBox(width: AppTheme.spacingSm),
                   Text(
-                    'Select Your State',
+                    'Location Options',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                 ],
               ),
               const SizedBox(height: AppTheme.spacingMd),
+
+              // Current Location Button
+              if (!locationState.hasPermission)
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await locationNotifier.requestLocationPermission();
+                    },
+                    icon: const Icon(Icons.my_location),
+                    label: const Text('Use Current Location'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                )
+              else
+                Container(
+                  width: double.infinity,
+                  margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      Navigator.of(context).pop();
+                      await locationNotifier.refreshLocation();
+                    },
+                    icon: const Icon(Icons.refresh),
+                    label: const Text('Refresh Current Location'),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: AppTheme.primaryColor,
+                      foregroundColor: Colors.white,
+                      padding: const EdgeInsets.symmetric(vertical: 12),
+                    ),
+                  ),
+                ),
+
+              const Divider(),
+              const SizedBox(height: AppTheme.spacingSm),
+
+              Text(
+                'Or select a state manually:',
+                style: Theme.of(context).textTheme.titleMedium,
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+
               Flexible(
                 child: ListView.builder(
                   shrinkWrap: true,
@@ -216,11 +292,10 @@ class HomeScreen extends ConsumerWidget {
                     final state = states[index];
                     return ListTile(
                       title: Text(state),
-                    onTap: () {
-                      final locationNotifier = ref.read(locationProvider.notifier);
-                      locationNotifier.updateLocationName(state);
-                      Navigator.of(context).pop();
-                    },
+                      onTap: () {
+                        locationNotifier.updateLocationName(state);
+                        Navigator.of(context).pop();
+                      },
                     );
                   },
                 ),
@@ -287,10 +362,7 @@ class HomeScreen extends ConsumerWidget {
             const SizedBox(height: 4),
             Text(
               '$activeAuctions active auctions • $totalBids total bids',
-              style: const TextStyle(
-                color: Colors.white70,
-                fontSize: 13,
-              ),
+              style: const TextStyle(color: Colors.white70, fontSize: 13),
             ),
             const SizedBox(height: 12),
             ElevatedButton(
@@ -299,9 +371,15 @@ class HomeScreen extends ConsumerWidget {
                 backgroundColor: Colors.white,
                 foregroundColor: AppTheme.primaryColor,
                 elevation: 0,
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 8,
+                ),
               ),
-              child: const Text('Browse Auctions', style: TextStyle(fontSize: 13)),
+              child: const Text(
+                'Browse Auctions',
+                style: TextStyle(fontSize: 13),
+              ),
             ),
           ],
         ),
@@ -312,34 +390,46 @@ class HomeScreen extends ConsumerWidget {
   Widget _buildQuickActions(BuildContext context) {
     return Row(
       children: [
-        Expanded(child: _buildQuickActionCard(
-          context,
-          Icons.category,
-          'Categories',
-          AppTheme.primaryColor,
-          () => context.go('/categories'),
-        )),
+        Expanded(
+          child: _buildQuickActionCard(
+            context,
+            Icons.category,
+            'Categories',
+            AppTheme.primaryColor,
+            () => context.go('/categories'),
+          ),
+        ),
         const SizedBox(width: AppTheme.spacingMd),
-        Expanded(child: _buildQuickActionCard(
-          context,
-          Icons.local_fire_department,
-          'Hot Deals',
-          AppTheme.accentColor,
-          () => context.go('/auctions?filter=featured'),
-        )),
+        Expanded(
+          child: _buildQuickActionCard(
+            context,
+            Icons.local_fire_department,
+            'Hot Deals',
+            AppTheme.accentColor,
+            () => context.go('/auctions?filter=featured'),
+          ),
+        ),
         const SizedBox(width: AppTheme.spacingMd),
-        Expanded(child: _buildQuickActionCard(
-          context,
-          Icons.access_time,
-          'Ending Soon',
-          AppTheme.warningColor,
-          () => context.go('/auctions?filter=ending_soon'),
-        )),
+        Expanded(
+          child: _buildQuickActionCard(
+            context,
+            Icons.access_time,
+            'Ending Soon',
+            AppTheme.warningColor,
+            () => context.go('/auctions?filter=ending_soon'),
+          ),
+        ),
       ],
     );
   }
 
-  Widget _buildQuickActionCard(BuildContext context, IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildQuickActionCard(
+    BuildContext context,
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -357,9 +447,9 @@ class HomeScreen extends ConsumerWidget {
             Text(
               label,
               style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: color,
-                    fontWeight: FontWeight.w600,
-                  ),
+                color: color,
+                fontWeight: FontWeight.w600,
+              ),
               textAlign: TextAlign.center,
             ),
           ],
@@ -368,21 +458,19 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildSectionHeader(BuildContext context, String title, {VoidCallback? onViewAll}) {
+  Widget _buildSectionHeader(
+    BuildContext context,
+    String title, {
+    VoidCallback? onViewAll,
+  }) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
         children: [
-          Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge,
-          ),
+          Text(title, style: Theme.of(context).textTheme.titleLarge),
           if (onViewAll != null)
-            TextButton(
-              onPressed: onViewAll,
-              child: const Text('View All'),
-            ),
+            TextButton(onPressed: onViewAll, child: const Text('View All')),
         ],
       ),
     );
@@ -407,11 +495,18 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildAuctionCard(BuildContext context, Auction auction, int index, int total) {
-    final productName = auction.dynamicAttributes['productName'] ?? 'Unnamed Item';
-    final imageUrl = auction.dynamicAttributes['images'] != null &&
-                     auction.dynamicAttributes['images'] is List &&
-                     (auction.dynamicAttributes['images'] as List).isNotEmpty
+  Widget _buildAuctionCard(
+    BuildContext context,
+    Auction auction,
+    int index,
+    int total,
+  ) {
+    final productName =
+        auction.dynamicAttributes['productName'] ?? 'Unnamed Item';
+    final imageUrl =
+        auction.dynamicAttributes['images'] != null &&
+            auction.dynamicAttributes['images'] is List &&
+            (auction.dynamicAttributes['images'] as List).isNotEmpty
         ? (auction.dynamicAttributes['images'] as List).first
         : null;
 
@@ -419,14 +514,16 @@ class HomeScreen extends ConsumerWidget {
     final timeLeftText = timeLeft.inHours > 0
         ? '${timeLeft.inHours}h left'
         : timeLeft.inMinutes > 0
-            ? '${timeLeft.inMinutes}m left'
-            : 'Ending soon';
+        ? '${timeLeft.inMinutes}m left'
+        : 'Ending soon';
 
     return InkWell(
       onTap: () => context.go('/auctions/${auction.id}'),
       child: Container(
         width: 280,
-        margin: EdgeInsets.only(right: index < total - 1 ? AppTheme.spacingMd : 0),
+        margin: EdgeInsets.only(
+          right: index < total - 1 ? AppTheme.spacingMd : 0,
+        ),
         decoration: BoxDecoration(
           color: AppTheme.surfaceColor,
           borderRadius: BorderRadius.circular(AppTheme.radiusMd),
@@ -438,7 +535,9 @@ class HomeScreen extends ConsumerWidget {
           children: [
             // Image
             ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(AppTheme.radiusMd)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(AppTheme.radiusMd),
+              ),
               child: Container(
                 height: 120,
                 width: double.infinity,
@@ -448,9 +547,17 @@ class HomeScreen extends ConsumerWidget {
                         imageUrl,
                         fit: BoxFit.cover,
                         errorBuilder: (context, error, stackTrace) =>
-                            const Icon(Icons.image, size: 40, color: AppTheme.textMuted),
+                            const Icon(
+                              Icons.image,
+                              size: 40,
+                              color: AppTheme.textMuted,
+                            ),
                       )
-                    : const Icon(Icons.image, size: 40, color: AppTheme.textMuted),
+                    : const Icon(
+                        Icons.image,
+                        size: 40,
+                        color: AppTheme.textMuted,
+                      ),
               ),
             ),
             // Content
@@ -471,7 +578,11 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(height: 4),
                   Row(
                     children: [
-                      const Icon(Icons.attach_money, size: 16, color: AppTheme.successColor),
+                      const Icon(
+                        Icons.attach_money,
+                        size: 16,
+                        color: AppTheme.successColor,
+                      ),
                       Text(
                         '\$${auction.currentPrice.toStringAsFixed(2)}',
                         style: const TextStyle(
@@ -480,11 +591,18 @@ class HomeScreen extends ConsumerWidget {
                         ),
                       ),
                       const Spacer(),
-                      const Icon(Icons.access_time, size: 14, color: AppTheme.textMuted),
+                      const Icon(
+                        Icons.access_time,
+                        size: 14,
+                        color: AppTheme.textMuted,
+                      ),
                       const SizedBox(width: 4),
                       Text(
                         timeLeftText,
-                        style: const TextStyle(fontSize: 12, color: AppTheme.textMuted),
+                        style: const TextStyle(
+                          fontSize: 12,
+                          color: AppTheme.textMuted,
+                        ),
                       ),
                     ],
                   ),
@@ -497,13 +615,23 @@ class HomeScreen extends ConsumerWidget {
     );
   }
 
-  Widget _buildTrendingCategories(BuildContext context, List<Category> categories) {
+  Widget _buildTrendingCategories(
+    BuildContext context,
+    List<Category> categories,
+  ) {
     if (categories.isEmpty) {
       return _buildEmptyState('No categories available');
     }
 
     final displayCategories = categories.take(6).toList();
-    final icons = [Icons.directions_car, Icons.laptop, Icons.watch, Icons.sports_basketball, Icons.chair, Icons.diamond];
+    final icons = [
+      Icons.directions_car,
+      Icons.laptop,
+      Icons.watch,
+      Icons.sports_basketball,
+      Icons.chair,
+      Icons.diamond,
+    ];
 
     return SizedBox(
       height: 100,
@@ -519,7 +647,11 @@ class HomeScreen extends ConsumerWidget {
             onTap: () => context.go('/auctions?category=${category.id}'),
             child: Container(
               width: 90,
-              margin: EdgeInsets.only(right: index < displayCategories.length - 1 ? AppTheme.spacingMd : 0),
+              margin: EdgeInsets.only(
+                right: index < displayCategories.length - 1
+                    ? AppTheme.spacingMd
+                    : 0,
+              ),
               child: Column(
                 children: [
                   Container(
@@ -535,7 +667,10 @@ class HomeScreen extends ConsumerWidget {
                   const SizedBox(height: 8),
                   Text(
                     category.name,
-                    style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w500,
+                    ),
                     textAlign: TextAlign.center,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
@@ -562,19 +697,22 @@ class HomeScreen extends ConsumerWidget {
         itemCount: auctions.length,
         itemBuilder: (context, index) {
           final auction = auctions[index];
-          final productName = auction.dynamicAttributes['productName'] ?? 'Unnamed Item';
+          final productName =
+              auction.dynamicAttributes['productName'] ?? 'Unnamed Item';
           final timeLeft = auction.endTime.difference(DateTime.now());
           final timeLeftText = timeLeft.inHours > 0
               ? '${timeLeft.inHours}h left'
               : timeLeft.inMinutes > 0
-                  ? '${timeLeft.inMinutes}m left'
-                  : 'Ending now';
+              ? '${timeLeft.inMinutes}m left'
+              : 'Ending now';
 
           return InkWell(
             onTap: () => context.go('/auctions/${auction.id}'),
             child: Container(
               width: 200,
-              margin: EdgeInsets.only(right: index < auctions.length - 1 ? AppTheme.spacingMd : 0),
+              margin: EdgeInsets.only(
+                right: index < auctions.length - 1 ? AppTheme.spacingMd : 0,
+              ),
               padding: const EdgeInsets.all(AppTheme.spacingMd),
               decoration: BoxDecoration(
                 color: AppTheme.surfaceColor,
@@ -603,14 +741,21 @@ class HomeScreen extends ConsumerWidget {
                       children: [
                         Text(
                           productName,
-                          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                         const SizedBox(height: 4),
                         Text(
                           '\$${auction.currentPrice.toStringAsFixed(2)}',
-                          style: const TextStyle(color: AppTheme.successColor, fontWeight: FontWeight.bold, fontSize: 12),
+                          style: const TextStyle(
+                            color: AppTheme.successColor,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 12,
+                          ),
                         ),
                         const SizedBox(height: 2),
                         Row(
@@ -618,14 +763,18 @@ class HomeScreen extends ConsumerWidget {
                             Icon(
                               Icons.timer,
                               size: 12,
-                              color: timeLeft.inMinutes < 30 ? AppTheme.errorColor : AppTheme.warningColor,
+                              color: timeLeft.inMinutes < 30
+                                  ? AppTheme.errorColor
+                                  : AppTheme.warningColor,
                             ),
                             const SizedBox(width: 4),
                             Text(
                               timeLeftText,
                               style: TextStyle(
                                 fontSize: 11,
-                                color: timeLeft.inMinutes < 30 ? AppTheme.errorColor : AppTheme.warningColor,
+                                color: timeLeft.inMinutes < 30
+                                    ? AppTheme.errorColor
+                                    : AppTheme.warningColor,
                               ),
                             ),
                           ],
@@ -712,10 +861,7 @@ class _ErrorView extends StatelessWidget {
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 24),
-            ElevatedButton(
-              onPressed: onRetry,
-              child: const Text('Try Again'),
-            ),
+            ElevatedButton(onPressed: onRetry, child: const Text('Try Again')),
           ],
         ),
       ),

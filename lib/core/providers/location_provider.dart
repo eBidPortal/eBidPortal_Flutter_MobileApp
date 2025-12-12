@@ -7,12 +7,16 @@ class LocationState {
   final String? locationName;
   final Position? position;
   final String? error;
+  final bool hasPermission;
+  final bool permissionRequested;
 
   const LocationState({
     this.isLoading = false,
     this.locationName,
     this.position,
     this.error,
+    this.hasPermission = false,
+    this.permissionRequested = false,
   });
 
   LocationState copyWith({
@@ -20,12 +24,16 @@ class LocationState {
     String? locationName,
     Position? position,
     String? error,
+    bool? hasPermission,
+    bool? permissionRequested,
   }) {
     return LocationState(
       isLoading: isLoading ?? this.isLoading,
       locationName: locationName ?? this.locationName,
       position: position ?? this.position,
       error: error ?? this.error,
+      hasPermission: hasPermission ?? this.hasPermission,
+      permissionRequested: permissionRequested ?? this.permissionRequested,
     );
   }
 }
@@ -38,6 +46,22 @@ class LocationNotifier extends StateNotifier<LocationState> {
   }
 
   Future<void> _initializeLocation() async {
+    // Check if permission is already granted
+    final hasPermission = await _locationService.checkLocationPermission();
+
+    if (hasPermission) {
+      await _getCurrentLocation();
+    } else {
+      state = state.copyWith(
+        isLoading: false,
+        locationName: 'Enable Location',
+        hasPermission: false,
+        permissionRequested: false,
+      );
+    }
+  }
+
+  Future<void> _getCurrentLocation() async {
     state = state.copyWith(isLoading: true, error: null);
 
     try {
@@ -51,12 +75,14 @@ class LocationNotifier extends StateNotifier<LocationState> {
           isLoading: false,
           locationName: locationName,
           position: position,
+          hasPermission: true,
         );
       } else {
         state = state.copyWith(
           isLoading: false,
           locationName: 'Location access denied',
           error: 'Location permission denied',
+          hasPermission: false,
         );
       }
     } catch (e) {
@@ -64,16 +90,46 @@ class LocationNotifier extends StateNotifier<LocationState> {
         isLoading: false,
         locationName: 'Unknown Location',
         error: e.toString(),
+        hasPermission: false,
+      );
+    }
+  }
+
+  Future<void> requestLocationPermission() async {
+    state = state.copyWith(
+      isLoading: true,
+      error: null,
+      permissionRequested: true,
+    );
+
+    final hasPermission = await _locationService.requestPermission();
+
+    if (hasPermission) {
+      await _getCurrentLocation();
+    } else {
+      state = state.copyWith(
+        isLoading: false,
+        locationName: 'Location access denied',
+        error: 'Location permission denied',
+        hasPermission: false,
       );
     }
   }
 
   Future<void> refreshLocation() async {
-    await _initializeLocation();
+    await _getCurrentLocation();
   }
 
   void updateLocationName(String locationName) {
     state = state.copyWith(locationName: locationName);
+  }
+
+  Future<void> openLocationSettings() async {
+    await _locationService.openLocationSettings();
+  }
+
+  Future<void> openAppSettings() async {
+    await Geolocator.openAppSettings();
   }
 
   List<String> getStatesList() {
@@ -81,7 +137,9 @@ class LocationNotifier extends StateNotifier<LocationState> {
   }
 }
 
-final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>((ref) {
-  final locationService = ref.watch(locationServiceProvider);
-  return LocationNotifier(locationService);
-});
+final locationProvider = StateNotifierProvider<LocationNotifier, LocationState>(
+  (ref) {
+    final locationService = ref.watch(locationServiceProvider);
+    return LocationNotifier(locationService);
+  },
+);
