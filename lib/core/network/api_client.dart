@@ -2,22 +2,29 @@ import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'api_constants.dart';
 import '../storage/storage_service.dart';
+import '../../features/auth/presentation/auth_provider.dart';
+import '../../features/auth/data/auth_repository.dart';
 
 final apiClientProvider = Provider<ApiClient>((ref) {
   final storageService = ref.watch(storageServiceProvider);
-  return ApiClient(storageService);
+  return ApiClient(storageService, ref);
 });
 
 class ApiClient {
   final StorageService _storageService;
+  final Ref _ref;
   late final Dio _dio;
 
-  ApiClient(this._storageService) {
+  ApiClient(this._storageService, this._ref) {
     _dio = Dio(
       BaseOptions(
         baseUrl: ApiConstants.apiBaseUrl,
-        connectTimeout: const Duration(milliseconds: ApiConstants.connectTimeout),
-        receiveTimeout: const Duration(milliseconds: ApiConstants.receiveTimeout),
+        connectTimeout: const Duration(
+          milliseconds: ApiConstants.connectTimeout,
+        ),
+        receiveTimeout: const Duration(
+          milliseconds: ApiConstants.receiveTimeout,
+        ),
         headers: {
           'Content-Type': 'application/json',
           'Accept': 'application/json',
@@ -33,25 +40,50 @@ class ApiClient {
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
-          print('🌐 API_CLIENT: Making ${options.method} request to: ${options.uri}');
+          print(
+            '🌐 API_CLIENT: Making ${options.method} request to: ${options.uri}',
+          );
           print('🌐 API_CLIENT: Headers: ${options.headers}');
           return handler.next(options);
         },
         onResponse: (response, handler) {
-          print('🌐 API_CLIENT: Response received - Status: ${response.statusCode}');
-          print('🌐 API_CLIENT: Response data type: ${response.data.runtimeType}');
+          print(
+            '🌐 API_CLIENT: Response received - Status: ${response.statusCode}',
+          );
+          print(
+            '🌐 API_CLIENT: Response data type: ${response.data.runtimeType}',
+          );
           print('🌐 API_CLIENT: Response data: ${response.data}');
           return handler.next(response);
         },
-        onError: (DioException e, handler) {
+        onError: (DioException e, handler) async {
           print('🌐 API_CLIENT: Error occurred - ${e.message}');
           print('🌐 API_CLIENT: Error type: ${e.type}');
           print('🌐 API_CLIENT: Error response: ${e.response?.data}');
           print('🌐 API_CLIENT: Error status: ${e.response?.statusCode}');
-          // Handle global errors (e.g., 401 Unauthorized)
+
+          // Handle 401 Unauthorized - Try token refresh first
           if (e.response?.statusCode == 401) {
-            // TODO: Trigger logout or refresh token flow
+            print('🌐 API_CLIENT: 401 Unauthorized - Attempting token refresh...');
+            
+            try {
+              final newToken = await _refreshAccessToken();
+              if (newToken != null) {
+                print('🌐 API_CLIENT: Token refreshed successfully, retrying request...');
+                // Update the authorization header and retry the request
+                e.requestOptions.headers['Authorization'] = 'Bearer $newToken';
+                final retryResponse = await _dio.fetch(e.requestOptions);
+                return handler.resolve(retryResponse);
+              }
+            } catch (refreshError) {
+              print('🌐 API_CLIENT: Token refresh failed: $refreshError');
+            }
+            
+            // If refresh fails or no refresh token, handle token expiration
+            print('🌐 API_CLIENT: Token refresh failed, clearing auth data');
+            await _handleTokenExpired();
           }
+
           return handler.next(e);
         },
       ),
@@ -129,6 +161,72 @@ class ApiClient {
       queryParameters: queryParameters,
       options: options,
     );
+  }
+
+  // Attempt to refresh the access token
+  Future<String?> _refreshAccessToken() async {
+    try {
+      print('🌐 API_CLIENT: Attempting to refresh access token...');
+      
+      final refreshToken = await _storageService.getRefreshToken();
+      if (refreshToken == null) {
+        print('🌐 API_CLIENT: No refresh token available');
+        return null;
+      }
+
+      // Create a separate auth repository instance to avoid circular dependency
+      final tempAuthRepo = AuthRepository(this);
+      final tokenData = await tempAuthRepo.refreshToken(refreshToken);
+      
+      final newAccessToken = tokenData['token'] as String?
+          ?? tokenData['accessToken'] as String?;
+      final newRefreshToken = tokenData['refreshToken'] as String?;
+      
+      if (newAccessToken == null) {
+        print('🌐 API_CLIENT: No access token in refresh response');
+        return null;
+      }
+      
+      // Calculate expiry (assuming 1 hour if not provided)
+      DateTime? expiry;
+      if (tokenData['expiresIn'] != null) {
+        final expiresInSeconds = tokenData['expiresIn'] as int;
+        expiry = DateTime.now().add(Duration(seconds: expiresInSeconds));
+      } else if (tokenData['expiry'] != null) {
+        expiry = DateTime.parse(tokenData['expiry'] as String);
+      } else {
+        expiry = DateTime.now().add(const Duration(hours: 1)); // Default 1 hour
+      }
+      
+      // Save new tokens
+      await _storageService.setToken(newAccessToken);
+      if (newRefreshToken != null) {
+        await _storageService.setRefreshToken(newRefreshToken);
+      }
+      await _storageService.setTokenExpiry(expiry);
+      
+      print('🌐 API_CLIENT: Access token refreshed successfully');
+      return newAccessToken;
+      
+    } catch (e) {
+      print('🌐 API_CLIENT: Token refresh failed: $e');
+      return null;
+    }
+  }
+
+  // Handle token expiration
+  Future<void> _handleTokenExpired() async {
+    try {
+      // Clear stored auth data
+      await _storageService.clearToken();
+
+      // Trigger logout in auth provider
+      _ref.read(authProvider.notifier).logout();
+
+      print('🌐 API_CLIENT: Auth data cleared due to token expiration');
+    } catch (e) {
+      print('🌐 API_CLIENT: Error clearing auth data: $e');
+    }
   }
 
   Dio get dio => _dio;

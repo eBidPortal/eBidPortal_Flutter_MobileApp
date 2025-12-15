@@ -4,8 +4,10 @@ import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/providers/location_provider.dart';
 import '../../../core/services/notification_service.dart';
+import '../../../core/auth/token_manager.dart';
 import '../../auction/domain/auction.dart';
 import '../../catalog/domain/category.dart';
+import '../../auth/presentation/auth_provider.dart';
 import '../providers/home_providers.dart';
 
 class HomeScreen extends ConsumerWidget {
@@ -15,9 +17,18 @@ class HomeScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     print('🏠 SCREEN: HomeScreen - build called');
 
+    final authState = ref.watch(authProvider);
     final homeData = ref.watch(homeDataProvider);
     final locationState = ref.watch(locationProvider);
     final notifications = ref.watch(notificationsProvider);
+
+    // If user is not authenticated and we got a 401 error, show login prompt
+    if (authState.hasValue &&
+        authState.value == null &&
+        homeData.error != null &&
+        homeData.error!.contains('session has expired')) {
+      return _LoginPromptView(onLoginTap: () => context.go('/auth/login'));
+    }
 
     return Scaffold(
       body: homeData.isLoading
@@ -863,6 +874,58 @@ class _ErrorView extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton(onPressed: onRetry, child: const Text('Try Again')),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoginPromptView extends StatelessWidget {
+  const _LoginPromptView({required this.onLoginTap});
+
+  final VoidCallback onLoginTap;
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(AppTheme.spacingMd),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              const Icon(
+                Icons.lock_outline,
+                size: 64,
+                color: AppTheme.primaryColor,
+              ),
+              const SizedBox(height: 16),
+              Text(
+                'Session Expired',
+                style: Theme.of(context).textTheme.titleLarge,
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              Text(
+                'Your session has expired. Please log in again to continue.',
+                style: TextStyle(color: AppTheme.textMuted),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton(
+                onPressed: onLoginTap,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppTheme.primaryColor,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 32,
+                    vertical: 12,
+                  ),
+                ),
+                child: const Text('Log In'),
+              ),
+            ],
+          ),
         ),
       ),
     );

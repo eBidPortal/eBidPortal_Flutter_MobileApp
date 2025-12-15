@@ -10,6 +10,8 @@ class StorageService {
   final _secureStorage = const FlutterSecureStorage();
   
   static const String _tokenKey = 'auth_token';
+  static const String _refreshTokenKey = 'refresh_token';
+  static const String _tokenExpiryKey = 'token_expiry';
   static const String _userDataKey = 'user_data';
   static const String _themeKey = 'theme_mode';
 
@@ -28,10 +30,76 @@ class StorageService {
   }
 
   Future<void> clearToken() async {
-    print('💾 STORAGE: Clearing auth token and user data...');
+    print('💾 STORAGE: Clearing all auth data...');
     await _secureStorage.delete(key: _tokenKey);
+    await _secureStorage.delete(key: _refreshTokenKey);
+    await _secureStorage.delete(key: _tokenExpiryKey);
     await _secureStorage.delete(key: _userDataKey);
-    print('💾 STORAGE: Auth data cleared successfully');
+    print('💾 STORAGE: All auth data cleared successfully');
+  }
+
+  // Refresh Token Management
+  Future<void> setRefreshToken(String refreshToken) async {
+    print('💾 STORAGE: Setting refresh token (length: ${refreshToken.length})');
+    await _secureStorage.write(key: _refreshTokenKey, value: refreshToken);
+    print('💾 STORAGE: Refresh token saved successfully');
+  }
+
+  Future<String?> getRefreshToken() async {
+    print('💾 STORAGE: Retrieving refresh token...');
+    final refreshToken = await _secureStorage.read(key: _refreshTokenKey);
+    print('💾 STORAGE: Refresh token retrieved: ${refreshToken != null ? "✅ Found (${refreshToken.length} chars)" : "❌ None"}');
+    return refreshToken;
+  }
+
+  // Token Expiry Management
+  Future<void> setTokenExpiry(DateTime expiry) async {
+    print('💾 STORAGE: Setting token expiry: ${expiry.toIso8601String()}');
+    await _secureStorage.write(key: _tokenExpiryKey, value: expiry.toIso8601String());
+    print('💾 STORAGE: Token expiry saved successfully');
+  }
+
+  Future<DateTime?> getTokenExpiry() async {
+    print('💾 STORAGE: Retrieving token expiry...');
+    final expiryString = await _secureStorage.read(key: _tokenExpiryKey);
+    if (expiryString != null) {
+      final expiry = DateTime.parse(expiryString);
+      print('💾 STORAGE: Token expiry retrieved: ${expiry.toIso8601String()}');
+      return expiry;
+    }
+    print('💾 STORAGE: No token expiry found');
+    return null;
+  }
+
+  // Check if token is expired
+  Future<bool> isTokenExpired() async {
+    final expiry = await getTokenExpiry();
+    if (expiry == null) {
+      print('💾 STORAGE: No expiry set, considering token expired');
+      return true;
+    }
+    final isExpired = DateTime.now().isAfter(expiry.subtract(const Duration(minutes: 5))); // 5 min buffer
+    print('💾 STORAGE: Token expired check: ${isExpired ? "❌ Expired" : "✅ Valid"}');
+    return isExpired;
+  }
+
+  // Save complete auth data
+  Future<void> saveAuthData({
+    required String token,
+    String? refreshToken,
+    DateTime? expiry,
+    required String userData,
+  }) async {
+    print('💾 STORAGE: Saving complete auth data...');
+    await setToken(token);
+    if (refreshToken != null) {
+      await setRefreshToken(refreshToken);
+    }
+    if (expiry != null) {
+      await setTokenExpiry(expiry);
+    }
+    await setUserData(userData);
+    print('💾 STORAGE: Complete auth data saved successfully');
   }
 
   // User data storage

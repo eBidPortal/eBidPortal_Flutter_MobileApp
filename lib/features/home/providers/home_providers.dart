@@ -1,7 +1,9 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../auction/domain/auction.dart';
 import '../../catalog/domain/category.dart';
+import '../../auth/presentation/auth_provider.dart';
 import '../data/home_service.dart';
 
 // Service Provider
@@ -58,15 +60,25 @@ class HomeData {
 }
 
 // Home Data Provider
-final homeDataProvider = StateNotifierProvider<HomeDataNotifier, HomeData>((ref) {
+final homeDataProvider = StateNotifierProvider<HomeDataNotifier, HomeData>((
+  ref,
+) {
   final homeService = ref.read(homeServiceProvider);
-  return HomeDataNotifier(homeService);
+  return HomeDataNotifier(homeService, ref);
 });
 
 class HomeDataNotifier extends StateNotifier<HomeData> {
   final HomeService _homeService;
+  final Ref _ref;
 
-  HomeDataNotifier(this._homeService) : super(HomeData.initial()) {
+  HomeDataNotifier(this._homeService, this._ref) : super(HomeData.initial()) {
+    // Watch auth state and reload data when user logs in
+    _ref.listen(authProvider, (previous, next) {
+      if (next.hasValue && next.value != null && previous?.value == null) {
+        // User just logged in, reload home data
+        loadHomeData();
+      }
+    });
     loadHomeData();
   }
 
@@ -90,10 +102,24 @@ class HomeDataNotifier extends StateNotifier<HomeData> {
         isLoading: false,
       );
     } catch (e) {
-      state = state.copyWith(
-        isLoading: false,
-        error: e.toString(),
-      );
+      String errorMessage = e.toString();
+
+      // Handle specific error types
+      if (e is DioException) {
+        if (e.response?.statusCode == 401) {
+          errorMessage = 'Your session has expired. Please log in again.';
+        } else if (e.type == DioExceptionType.connectionTimeout ||
+            e.type == DioExceptionType.receiveTimeout) {
+          errorMessage =
+              'Connection timeout. Please check your internet connection.';
+        } else if (e.type == DioExceptionType.connectionError) {
+          errorMessage = 'No internet connection. Please check your network.';
+        } else {
+          errorMessage = 'Failed to load data. Please try again.';
+        }
+      }
+
+      state = state.copyWith(isLoading: false, error: errorMessage);
     }
   }
 
@@ -103,10 +129,11 @@ class HomeDataNotifier extends StateNotifier<HomeData> {
 }
 
 // Search Provider
-final homeSearchProvider = StateNotifierProvider<HomeSearchNotifier, AsyncValue<List<Auction>>>((ref) {
-  final homeService = ref.read(homeServiceProvider);
-  return HomeSearchNotifier(homeService);
-});
+final homeSearchProvider =
+    StateNotifierProvider<HomeSearchNotifier, AsyncValue<List<Auction>>>((ref) {
+      final homeService = ref.read(homeServiceProvider);
+      return HomeSearchNotifier(homeService);
+    });
 
 class HomeSearchNotifier extends StateNotifier<AsyncValue<List<Auction>>> {
   final HomeService _homeService;

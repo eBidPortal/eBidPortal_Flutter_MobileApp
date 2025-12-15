@@ -115,6 +115,10 @@ final routerProvider = Provider<GoRouter>((ref) {
         path: '/search',
         builder: (context, state) => const SearchScreen(),
       ),
+      GoRoute(
+        path: '/home',
+        redirect: (context, state) => '/',
+      ),
       // StatefulShellRoute for persistent bottom navigation
       StatefulShellRoute.indexedStack(
         builder: (context, state, navigationShell) {

@@ -88,4 +88,40 @@ class AuthRepository {
       throw Exception(e.response?.data['message'] ?? 'Network error');
     }
   }
+
+  Future<Map<String, dynamic>> refreshToken(String refreshToken) async {
+    try {
+      final refreshUrl = '${ApiConstants.baseUrl}${ApiConstants.refreshToken}';
+      print('🌐 AUTH_REPO: Making refresh token request to $refreshUrl');
+      
+      final response = await _apiClient.dio.post(
+        refreshUrl,
+        data: {
+          'refreshToken': refreshToken,
+        },
+        options: Options(
+          headers: {
+            'Content-Type': 'application/json',
+          },
+        ),
+      );
+      
+      print('🌐 AUTH_REPO: Refresh response status: ${response.statusCode}');
+      print('🌐 AUTH_REPO: Refresh response data: ${response.data}');
+      
+      if (response.data['success'] == true) {
+        print('🌐 AUTH_REPO: Token refresh successful');
+        return response.data['data'];
+      } else {
+        print('🌐 AUTH_REPO: Token refresh failed: ${response.data['message']}');
+        throw Exception(response.data['message'] ?? 'Token refresh failed');
+      }
+    } on DioException catch (e) {
+      print('🌐 AUTH_REPO: Refresh token DioException: ${e.message}');
+      if (e.response?.statusCode == 401 || e.response?.statusCode == 403) {
+        throw Exception('Refresh token expired. Please login again.');
+      }
+      throw Exception(e.response?.data['message'] ?? 'Network error');
+    }
+  }
 }

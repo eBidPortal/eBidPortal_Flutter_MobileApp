@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:toastification/toastification.dart';
 import 'auth_provider.dart';
 import '../../../core/theme/app_theme.dart';
+import '../../../core/auth/token_manager.dart';
 
 class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
@@ -11,7 +12,8 @@ class LoginScreen extends ConsumerStatefulWidget {
   ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProviderStateMixin {
+class _LoginScreenState extends ConsumerState<LoginScreen>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -32,10 +34,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
     _fadeAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
       CurvedAnimation(parent: _animationController, curve: Curves.easeIn),
     );
-    _slideAnimation = Tween<Offset>(
-      begin: const Offset(0, 0.3),
-      end: Offset.zero,
-    ).animate(CurvedAnimation(parent: _animationController, curve: Curves.easeOut));
+    _slideAnimation =
+        Tween<Offset>(begin: const Offset(0, 0.3), end: Offset.zero).animate(
+          CurvedAnimation(parent: _animationController, curve: Curves.easeOut),
+        );
     _animationController.forward();
   }
 
@@ -48,26 +50,33 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   }
 
   Future<void> _login() async {
-    if (!_formKey.currentState!.validate()) return;
+    print('🔐 LOGIN: _login() method called - button was pressed!');
 
-    print('🔐 LOGIN: Starting login process...');
+    if (!_formKey.currentState!.validate()) {
+      print('🔐 LOGIN: Form validation failed');
+      return;
+    }
+
+    print('🔐 LOGIN: Form validation passed, starting login process...');
+    print('🔐 LOGIN: Email: ${_emailController.text.trim()}');
+    print('🔐 LOGIN: Password length: ${_passwordController.text.length}');
+
     setState(() => _isLoading = true);
 
     try {
       print('🔐 LOGIN: Calling auth provider login...');
-      await ref.read(authProvider.notifier).login(
-            _emailController.text.trim(),
-            _passwordController.text,
-          );
+      await ref
+          .read(authProvider.notifier)
+          .login(_emailController.text.trim(), _passwordController.text);
       print('🔐 LOGIN: Login successful, checking auth state...');
-      
+
       // Check if login was successful - use a small delay to ensure state is updated
       await Future.delayed(const Duration(milliseconds: 100));
-      
+
       if (mounted) {
         final authState = ref.read(authProvider);
         print('🔐 LOGIN: Auth state after login: ${authState.value}');
-        
+
         if (authState.value != null) {
           print('🔐 LOGIN: User is authenticated, should navigate to home');
           // Navigation will be handled by router redirect
@@ -97,12 +106,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
   @override
   Widget build(BuildContext context) {
     final size = MediaQuery.of(context).size;
-    
+
     return Scaffold(
       body: SafeArea(
         child: SingleChildScrollView(
           child: Container(
-            constraints: BoxConstraints(minHeight: size.height - MediaQuery.of(context).padding.top),
+            constraints: BoxConstraints(
+              minHeight: size.height - MediaQuery.of(context).padding.top,
+            ),
             child: FadeTransition(
               opacity: _fadeAnimation,
               child: SlideTransition(
@@ -145,17 +156,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
             borderRadius: BorderRadius.circular(AppTheme.radiusXl),
             boxShadow: AppTheme.shadowMd,
           ),
-          child: const Icon(
-            Icons.gavel_rounded,
-            size: 40,
-            color: Colors.white,
-          ),
+          child: const Icon(Icons.gavel_rounded, size: 40, color: Colors.white),
         ),
         const SizedBox(height: AppTheme.spacingLg),
-        Text(
-          'Welcome Back!',
-          style: Theme.of(context).textTheme.displaySmall,
-        ),
+        Text('Welcome Back!', style: Theme.of(context).textTheme.displaySmall),
         const SizedBox(height: AppTheme.spacingSm),
         Text(
           'Sign in to continue to eBidPortal',
@@ -212,7 +216,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               prefixIcon: const Icon(Icons.lock_outline),
               suffixIcon: IconButton(
                 icon: Icon(
-                  _obscurePassword ? Icons.visibility_off_outlined : Icons.visibility_outlined,
+                  _obscurePassword
+                      ? Icons.visibility_off_outlined
+                      : Icons.visibility_outlined,
                   size: 20,
                 ),
                 onPressed: () {
@@ -243,9 +249,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               child: Text(
                 'Forgot Password?',
                 style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: AppTheme.primaryColor,
-                      fontWeight: FontWeight.w600,
-                    ),
+                  color: AppTheme.primaryColor,
+                  fontWeight: FontWeight.w600,
+                ),
               ),
             ),
           ),
@@ -254,7 +260,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           SizedBox(
             height: 54,
             child: ElevatedButton(
-              onPressed: _isLoading ? null : _login,
+              onPressed: _isLoading ? null : () {
+                print('🔐 LOGIN_BUTTON: Sign In button pressed!');
+                _login();
+              },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppTheme.primaryColor,
                 shape: RoundedRectangleBorder(
@@ -298,9 +307,9 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 child: Text(
                   'Sign Up',
                   style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppTheme.primaryColor,
-                        fontWeight: FontWeight.bold,
-                      ),
+                    color: AppTheme.primaryColor,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
             ],
@@ -318,7 +327,11 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
               children: [
                 Row(
                   children: [
-                    Icon(Icons.info_outline, color: Colors.blue.shade600, size: 20),
+                    Icon(
+                      Icons.info_outline,
+                      color: Colors.blue.shade600,
+                      size: 20,
+                    ),
                     const SizedBox(width: 8),
                     Text(
                       'Test Credentials',
@@ -332,15 +345,14 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
                 const SizedBox(height: 4),
                 Text(
                   'Email: admin@ebidportal.com\nPassword: admin123\n\nOr: engineering@ebidportal.com\nPassword: demo123',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    color: Colors.blue.shade600,
-                  ),
+                  style: Theme.of(
+                    context,
+                  ).textTheme.bodySmall?.copyWith(color: Colors.blue.shade600),
                   textAlign: TextAlign.center,
                 ),
               ],
             ),
           ),
-
         ],
       ),
     );
@@ -353,11 +365,10 @@ class _LoginScreenState extends ConsumerState<LoginScreen> with SingleTickerProv
           children: [
             const Expanded(child: Divider()),
             Padding(
-              padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
-              child: Text(
-                'OR',
-                style: Theme.of(context).textTheme.bodySmall,
+              padding: const EdgeInsets.symmetric(
+                horizontal: AppTheme.spacingMd,
               ),
+              child: Text('OR', style: Theme.of(context).textTheme.bodySmall),
             ),
             const Expanded(child: Divider()),
           ],
