@@ -662,8 +662,11 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
           if (_selectedCountry != null)
             DropdownSearch<Map<String, dynamic>>(
               asyncItems: (String? filter) async {
+                // Always use the country UUID (id) for state queries
+                final countryId = _selectedCountry?['id']?.toString();
+                if (countryId == null || countryId.isEmpty) return [];
                 return await ref.read(statesProvider({
-                  'countryId': _selectedCountry?['id']?.toString(),
+                  'countryId': countryId,
                   'search': filter,
                 }).future);
               },
