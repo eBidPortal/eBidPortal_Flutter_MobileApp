@@ -347,13 +347,7 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
               const SizedBox(height: 24),
 
               // Location Section
-              _buildSection(
-                title: 'Location',
-                icon: Icons.location_on,
-                children: [
-                  _buildLocationFields(),
-                ],
-              ),
+              _buildLocationFields(),
 
               const SizedBox(height: 24),
 
