@@ -1,6 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
 import 'package:intl/intl.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+import '../../../../core/providers/country_state_city_providers.dart';
 import '../create_auction/create_auction_provider.dart';
 
 class AdvancedSettingsTab extends ConsumerStatefulWidget {
@@ -23,9 +26,9 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
   final _buyerPremiumController = TextEditingController();
   final _timezoneController = TextEditingController();
   final _lotNumberController = TextEditingController();
-  final _countryController = TextEditingController();
-  final _stateController = TextEditingController();
-  final _cityController = TextEditingController();
+  Map<String, dynamic>? _selectedCountry;
+  Map<String, dynamic>? _selectedState;
+  Map<String, dynamic>? _selectedCity;
   final _addressLine1Controller = TextEditingController();
   final _addressLine2Controller = TextEditingController();
   final _postalCodeController = TextEditingController();
@@ -105,9 +108,7 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
     // Load location details from dynamic attributes
     final locationDetails = auctionState.dynamicFields['location_details'] as Map<String, dynamic>?;
     if (locationDetails != null) {
-      _countryController.text = locationDetails['country'] ?? '';
-      _stateController.text = locationDetails['state'] ?? '';
-      _cityController.text = locationDetails['city'] ?? '';
+      // No need to set text controllers for country/state/city, handled by dropdowns
       _addressLine1Controller.text = locationDetails['address_line_1'] ?? '';
       _addressLine2Controller.text = locationDetails['address_line_2'] ?? '';
       _postalCodeController.text = locationDetails['postal_code'] ?? locationDetails['zip_code'] ?? '';
@@ -208,21 +209,18 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
     );
     
     // Update location details in dynamic fields
-    if (_countryController.text.isNotEmpty || 
-        _stateController.text.isNotEmpty || 
-        _cityController.text.isNotEmpty ||
+    if (_selectedCountry != null || _selectedState != null || _selectedCity != null ||
         _addressLine1Controller.text.isNotEmpty ||
         _addressLine2Controller.text.isNotEmpty ||
         _postalCodeController.text.isNotEmpty) {
       final locationDetails = {
-        if (_countryController.text.isNotEmpty) 'country': _countryController.text.trim(),
-        if (_stateController.text.isNotEmpty) 'state': _stateController.text.trim(),
-        if (_cityController.text.isNotEmpty) 'city': _cityController.text.trim(),
+        if (_selectedCountry != null) 'country': _selectedCountry?['name'],
+        if (_selectedState != null) 'state': _selectedState?['name'],
+        if (_selectedCity != null) 'city': _selectedCity?['name'],
         if (_addressLine1Controller.text.isNotEmpty) 'address_line_1': _addressLine1Controller.text.trim(),
         if (_addressLine2Controller.text.isNotEmpty) 'address_line_2': _addressLine2Controller.text.trim(),
         if (_postalCodeController.text.isNotEmpty) 'postal_code': _postalCodeController.text.trim(),
       };
-      
       ref.read(createAuctionProvider.notifier).updateDynamicField('location_details', locationDetails);
     }
   }
@@ -612,39 +610,157 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
             ],
           ),
           const SizedBox(height: 16),
-          TextFormField(
-            controller: _countryController,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            decoration: InputDecoration(
-              labelText: 'Country',
-              hintText: 'e.g., India, United States, United Kingdom',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+          DropdownSearch<Map<String, dynamic>>(
+            asyncItems: (String? filter) async {
+              return await ref.read(countriesProvider(filter).future);
+            },
+            itemAsString: (item) => item['name'] ?? '',
+            selectedItem: _selectedCountry,
+            dropdownBuilder: (context, selectedItem) {
+              return Text(selectedItem?['name'] ?? '', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500));
+            },
+            popupProps: PopupProps.menu(
+              itemBuilder: (context, item, isSelected) => ListTile(
+                title: Text(item['name'] ?? ''),
+                selected: isSelected,
               ),
-              filled: true,
-              fillColor: Colors.white,
-              prefixIcon: const Icon(Icons.flag, color: Colors.blue),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              showSearchBox: true,
+              searchFieldProps: TextFieldProps(
+                decoration: InputDecoration(
+                  labelText: 'Search Country',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  prefixIcon: const Icon(Icons.search),
+                ),
+              ),
             ),
-            onChanged: (value) => _updateAuctionData(),
+            dropdownDecoratorProps: DropDownDecoratorProps(
+              dropdownSearchDecoration: InputDecoration(
+                labelText: 'Country',
+                hintText: 'Select Country',
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                filled: true,
+                fillColor: Colors.white,
+                prefixIcon: const Icon(Icons.flag, color: Colors.blue),
+                contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              ),
+            ),
+            onChanged: (value) {
+              setState(() {
+                _selectedCountry = value;
+                _selectedState = null;
+                _selectedCity = null;
+              });
+              _updateAuctionData();
+            },
+            validator: (value) => value == null ? 'Country is required' : null,
           ),
           const SizedBox(height: 12),
-          TextFormField(
-            controller: _stateController,
-            style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
-            decoration: InputDecoration(
-              labelText: 'State / Province / Region',
-              hintText: 'e.g., California, Maharashtra, Ontario',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(10),
+          if (_selectedCountry != null)
+            DropdownSearch<Map<String, dynamic>>(
+              asyncItems: (String? filter) async {
+                return await ref.read(statesProvider({
+                  'countryId': _selectedCountry?['id']?.toString(),
+                  'search': filter,
+                }).future);
+              },
+              itemAsString: (item) => item['name'] ?? '',
+              selectedItem: _selectedState,
+              dropdownBuilder: (context, selectedItem) {
+                return Text(selectedItem?['name'] ?? '', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500));
+              },
+              popupProps: PopupProps.menu(
+                itemBuilder: (context, item, isSelected) => ListTile(
+                  title: Text(item['name'] ?? ''),
+                  selected: isSelected,
+                ),
+                showSearchBox: true,
+                searchFieldProps: TextFieldProps(
+                  decoration: InputDecoration(
+                    labelText: 'Search State',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: const Icon(Icons.search),
+                  ),
+                ),
               ),
-              filled: true,
-              fillColor: Colors.white,
-              prefixIcon: const Icon(Icons.map, color: Colors.green),
-              contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+              dropdownDecoratorProps: DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+                  labelText: 'State / Province / Region',
+                  hintText: 'Select State',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.map, color: Colors.green),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _selectedState = value;
+                  _selectedCity = null;
+                });
+                _updateAuctionData();
+              },
+              validator: (value) => value == null ? 'State is required' : null,
             ),
-            onChanged: (value) => _updateAuctionData(),
-          ),
+          const SizedBox(height: 12),
+          if (_selectedState != null)
+            DropdownSearch<Map<String, dynamic>>(
+              asyncItems: (String? filter) async {
+                return await ref.read(citiesProvider({
+                  'stateId': _selectedState?['id']?.toString(),
+                  'search': filter,
+                }).future);
+              },
+              itemAsString: (item) => item['name'] ?? '',
+              selectedItem: _selectedCity,
+              dropdownBuilder: (context, selectedItem) {
+                return Text(selectedItem?['name'] ?? '', style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500));
+              },
+              popupProps: PopupProps.menu(
+                itemBuilder: (context, item, isSelected) => ListTile(
+                  title: Text(item['name'] ?? ''),
+                  selected: isSelected,
+                ),
+                showSearchBox: true,
+                searchFieldProps: TextFieldProps(
+                  decoration: InputDecoration(
+                    labelText: 'Search City',
+                    border: OutlineInputBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    prefixIcon: const Icon(Icons.search),
+                  ),
+                ),
+              ),
+              dropdownDecoratorProps: DropDownDecoratorProps(
+                dropdownSearchDecoration: InputDecoration(
+                  labelText: 'City',
+                  hintText: 'Select City',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: const Icon(Icons.location_city, color: Colors.orange),
+                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                ),
+              ),
+              onChanged: (value) {
+                setState(() {
+                  _selectedCity = value;
+                });
+                _updateAuctionData();
+              },
+              validator: (value) => value == null ? 'City is required' : null,
+            ),
           const SizedBox(height: 12),
           TextFormField(
             controller: _addressLine1Controller,
@@ -1341,9 +1457,7 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
     _reservePriceController.dispose();
     _tagsController.dispose();
     _returnPolicyController.dispose();
-    _countryController.dispose();
-    _stateController.dispose();
-    _cityController.dispose();
+    // No need to dispose country/state/city controllers
     _addressLine1Controller.dispose();
     _addressLine2Controller.dispose();
     _postalCodeController.dispose();

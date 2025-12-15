@@ -17,7 +17,11 @@ final _privateConstructorUsedError = UnsupportedError(
 
 /// @nodoc
 mixin _$CreateAuctionState {
-  //  Step 1: Basic Info
+  // Location
+  Map<String, dynamic>? get country => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get state => throw _privateConstructorUsedError;
+  Map<String, dynamic>? get city =>
+      throw _privateConstructorUsedError; //  Step 1: Basic Info
   String get title => throw _privateConstructorUsedError;
   String get description => throw _privateConstructorUsedError;
   String? get categoryId => throw _privateConstructorUsedError;
@@ -99,6 +103,9 @@ abstract class $CreateAuctionStateCopyWith<$Res> {
   ) = _$CreateAuctionStateCopyWithImpl<$Res, CreateAuctionState>;
   @useResult
   $Res call({
+    Map<String, dynamic>? country,
+    Map<String, dynamic>? state,
+    Map<String, dynamic>? city,
     String title,
     String description,
     String? categoryId,
@@ -176,6 +183,9 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? country = freezed,
+    Object? state = freezed,
+    Object? city = freezed,
     Object? title = null,
     Object? description = null,
     Object? categoryId = freezed,
@@ -238,6 +248,18 @@ class _$CreateAuctionStateCopyWithImpl<$Res, $Val extends CreateAuctionState>
   }) {
     return _then(
       _value.copyWith(
+            country: freezed == country
+                ? _value.country
+                : country // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>?,
+            state: freezed == state
+                ? _value.state
+                : state // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>?,
+            city: freezed == city
+                ? _value.city
+                : city // ignore: cast_nullable_to_non_nullable
+                      as Map<String, dynamic>?,
             title: null == title
                 ? _value.title
                 : title // ignore: cast_nullable_to_non_nullable
@@ -490,6 +512,9 @@ abstract class _$$CreateAuctionStateImplCopyWith<$Res>
   @override
   @useResult
   $Res call({
+    Map<String, dynamic>? country,
+    Map<String, dynamic>? state,
+    Map<String, dynamic>? city,
     String title,
     String description,
     String? categoryId,
@@ -566,6 +591,9 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
   @pragma('vm:prefer-inline')
   @override
   $Res call({
+    Object? country = freezed,
+    Object? state = freezed,
+    Object? city = freezed,
     Object? title = null,
     Object? description = null,
     Object? categoryId = freezed,
@@ -628,6 +656,18 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
   }) {
     return _then(
       _$CreateAuctionStateImpl(
+        country: freezed == country
+            ? _value._country
+            : country // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>?,
+        state: freezed == state
+            ? _value._state
+            : state // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>?,
+        city: freezed == city
+            ? _value._city
+            : city // ignore: cast_nullable_to_non_nullable
+                  as Map<String, dynamic>?,
         title: null == title
             ? _value.title
             : title // ignore: cast_nullable_to_non_nullable
@@ -873,6 +913,9 @@ class __$$CreateAuctionStateImplCopyWithImpl<$Res>
 
 class _$CreateAuctionStateImpl implements _CreateAuctionState {
   const _$CreateAuctionStateImpl({
+    final Map<String, dynamic>? country,
+    final Map<String, dynamic>? state,
+    final Map<String, dynamic>? city,
     this.title = '',
     this.description = '',
     this.categoryId,
@@ -932,13 +975,48 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     this.auctioneerNotesError,
     this.appraisalCertificateError,
     final Map<String, String> dynamicFieldErrors = const {},
-  }) : _dynamicFields = dynamicFields,
+  }) : _country = country,
+       _state = state,
+       _city = city,
+       _dynamicFields = dynamicFields,
        _localImages = localImages,
        _uploadedImageUrls = uploadedImageUrls,
        _tags = tags,
        _paymentTerms = paymentTerms,
        _financingOptions = financingOptions,
        _dynamicFieldErrors = dynamicFieldErrors;
+
+  // Location
+  final Map<String, dynamic>? _country;
+  // Location
+  @override
+  Map<String, dynamic>? get country {
+    final value = _country;
+    if (value == null) return null;
+    if (_country is EqualUnmodifiableMapView) return _country;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _state;
+  @override
+  Map<String, dynamic>? get state {
+    final value = _state;
+    if (value == null) return null;
+    if (_state is EqualUnmodifiableMapView) return _state;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
+
+  final Map<String, dynamic>? _city;
+  @override
+  Map<String, dynamic>? get city {
+    final value = _city;
+    if (value == null) return null;
+    if (_city is EqualUnmodifiableMapView) return _city;
+    // ignore: implicit_dynamic_type
+    return EqualUnmodifiableMapView(value);
+  }
 
   //  Step 1: Basic Info
   @override
@@ -1136,7 +1214,7 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
 
   @override
   String toString() {
-    return 'CreateAuctionState(title: $title, description: $description, categoryId: $categoryId, type: $type, status: $status, dynamicFields: $dynamicFields, startPrice: $startPrice, reservePrice: $reservePrice, currentPrice: $currentPrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, returnPolicy: $returnPolicy, authenticationRequired: $authenticationRequired, shippingIncluded: $shippingIncluded, bidIncrement: $bidIncrement, commissionRate: $commissionRate, buyerPremium: $buyerPremium, timezone: $timezone, paymentTerms: $paymentTerms, lotNumber: $lotNumber, reserveVisible: $reserveVisible, businessLicense: $businessLicense, sellerRating: $sellerRating, catalogReference: $catalogReference, auctioneerNotes: $auctioneerNotes, conditionReport: $conditionReport, appraisalCertificate: $appraisalCertificate, biddingRules: $biddingRules, financingOptions: $financingOptions, insuranceRequired: $insuranceRequired, pickupAvailable: $pickupAvailable, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, currentPriceError: $currentPriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, bidIncrementError: $bidIncrementError, commissionRateError: $commissionRateError, buyerPremiumError: $buyerPremiumError, timezoneError: $timezoneError, lotNumberError: $lotNumberError, businessLicenseError: $businessLicenseError, sellerRatingError: $sellerRatingError, catalogReferenceError: $catalogReferenceError, auctioneerNotesError: $auctioneerNotesError, appraisalCertificateError: $appraisalCertificateError, dynamicFieldErrors: $dynamicFieldErrors)';
+    return 'CreateAuctionState(country: $country, state: $state, city: $city, title: $title, description: $description, categoryId: $categoryId, type: $type, status: $status, dynamicFields: $dynamicFields, startPrice: $startPrice, reservePrice: $reservePrice, currentPrice: $currentPrice, startTime: $startTime, endTime: $endTime, localImages: $localImages, uploadedImageUrls: $uploadedImageUrls, isUploadingImages: $isUploadingImages, uploadProgress: $uploadProgress, tags: $tags, returnPolicy: $returnPolicy, authenticationRequired: $authenticationRequired, shippingIncluded: $shippingIncluded, bidIncrement: $bidIncrement, commissionRate: $commissionRate, buyerPremium: $buyerPremium, timezone: $timezone, paymentTerms: $paymentTerms, lotNumber: $lotNumber, reserveVisible: $reserveVisible, businessLicense: $businessLicense, sellerRating: $sellerRating, catalogReference: $catalogReference, auctioneerNotes: $auctioneerNotes, conditionReport: $conditionReport, appraisalCertificate: $appraisalCertificate, biddingRules: $biddingRules, financingOptions: $financingOptions, insuranceRequired: $insuranceRequired, pickupAvailable: $pickupAvailable, currentStep: $currentStep, isSubmitting: $isSubmitting, error: $error, titleError: $titleError, descriptionError: $descriptionError, categoryError: $categoryError, startPriceError: $startPriceError, reservePriceError: $reservePriceError, currentPriceError: $currentPriceError, startTimeError: $startTimeError, endTimeError: $endTimeError, imagesError: $imagesError, bidIncrementError: $bidIncrementError, commissionRateError: $commissionRateError, buyerPremiumError: $buyerPremiumError, timezoneError: $timezoneError, lotNumberError: $lotNumberError, businessLicenseError: $businessLicenseError, sellerRatingError: $sellerRatingError, catalogReferenceError: $catalogReferenceError, auctioneerNotesError: $auctioneerNotesError, appraisalCertificateError: $appraisalCertificateError, dynamicFieldErrors: $dynamicFieldErrors)';
   }
 
   @override
@@ -1144,6 +1222,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
     return identical(this, other) ||
         (other.runtimeType == runtimeType &&
             other is _$CreateAuctionStateImpl &&
+            const DeepCollectionEquality().equals(other._country, _country) &&
+            const DeepCollectionEquality().equals(other._state, _state) &&
+            const DeepCollectionEquality().equals(other._city, _city) &&
             (identical(other.title, title) || other.title == title) &&
             (identical(other.description, description) ||
                 other.description == description) &&
@@ -1276,6 +1357,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
   @override
   int get hashCode => Object.hashAll([
     runtimeType,
+    const DeepCollectionEquality().hash(_country),
+    const DeepCollectionEquality().hash(_state),
+    const DeepCollectionEquality().hash(_city),
     title,
     description,
     categoryId,
@@ -1351,6 +1435,9 @@ class _$CreateAuctionStateImpl implements _CreateAuctionState {
 
 abstract class _CreateAuctionState implements CreateAuctionState {
   const factory _CreateAuctionState({
+    final Map<String, dynamic>? country,
+    final Map<String, dynamic>? state,
+    final Map<String, dynamic>? city,
     final String title,
     final String description,
     final String? categoryId,
@@ -1412,7 +1499,13 @@ abstract class _CreateAuctionState implements CreateAuctionState {
     final Map<String, String> dynamicFieldErrors,
   }) = _$CreateAuctionStateImpl;
 
-  //  Step 1: Basic Info
+  // Location
+  @override
+  Map<String, dynamic>? get country;
+  @override
+  Map<String, dynamic>? get state;
+  @override
+  Map<String, dynamic>? get city; //  Step 1: Basic Info
   @override
   String get title;
   @override

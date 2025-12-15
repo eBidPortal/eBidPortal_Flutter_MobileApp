@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
+// import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../create_auction_provider.dart';
 import '../create_auction_state.dart';
+import 'package:dropdown_search/dropdown_search.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../../../core/providers/country_state_city_providers.dart';
 
 class AdvancedSettingsTab extends ConsumerStatefulWidget {
   const AdvancedSettingsTab({super.key});
@@ -58,6 +61,73 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
             crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           // Pricing Section
+                    // Location Section
+                    _buildSection(
+                      title: 'Location',
+                      icon: Icons.location_on,
+                      children: [
+                        DropdownSearch<Map<String, dynamic>>(
+                          asyncItems: (String? filter) async {
+                            return await ref.read(countryStateCityApiServiceProvider).fetchCountries(search: filter);
+                          },
+                          selectedItem: state.country,
+                          onChanged: (value) {
+                            notifier.setCountry(value);
+                            notifier.setState(null);
+                            notifier.setCity(null);
+                          },
+                          itemAsString: (item) => item['name'] ?? '',
+                          dropdownBuilder: (context, selectedItem) => Text(selectedItem?['name'] ?? ''),
+                          validator: (value) => value == null ? 'Country is required' : null,
+                          dropdownDecoratorProps: DropDownDecoratorProps(
+                            dropdownSearchDecoration: InputDecoration(
+                              labelText: 'Country *',
+                              border: const OutlineInputBorder(),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: AppTheme.spacingMd),
+                        if (state.country != null)
+                          DropdownSearch<Map<String, dynamic>>(
+                            asyncItems: (String? filter) async {
+                              return await ref.read(countryStateCityApiServiceProvider).fetchStates(state.country!['id'], search: filter);
+                            },
+                            selectedItem: state.state,
+                            onChanged: (value) {
+                              notifier.setState(value);
+                              notifier.setCity(null);
+                            },
+                            itemAsString: (item) => item['name'] ?? '',
+                            dropdownBuilder: (context, selectedItem) => Text(selectedItem?['name'] ?? ''),
+                            validator: (value) => value == null ? 'State is required' : null,
+                            dropdownDecoratorProps: DropDownDecoratorProps(
+                              dropdownSearchDecoration: InputDecoration(
+                                labelText: 'State *',
+                                border: const OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                        if (state.country != null) const SizedBox(height: AppTheme.spacingMd),
+                        if (state.state != null)
+                          DropdownSearch<Map<String, dynamic>>(
+                            asyncItems: (String? filter) async {
+                              return await ref.read(countryStateCityApiServiceProvider).fetchCities(state.state!['id'], search: filter);
+                            },
+                            selectedItem: state.city,
+                            onChanged: (value) => notifier.setCity(value),
+                            itemAsString: (item) => item['name'] ?? '',
+                            dropdownBuilder: (context, selectedItem) => Text(selectedItem?['name'] ?? ''),
+                            validator: (value) => value == null ? 'City is required' : null,
+                            dropdownDecoratorProps: DropDownDecoratorProps(
+                              dropdownSearchDecoration: InputDecoration(
+                                labelText: 'City *',
+                                border: const OutlineInputBorder(),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: AppTheme.spacingXl),
           _buildSection(
             title: 'Pricing',
             icon: Icons.monetization_on,

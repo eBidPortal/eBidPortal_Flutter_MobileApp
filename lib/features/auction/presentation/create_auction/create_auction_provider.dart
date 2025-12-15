@@ -15,6 +15,17 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   CreateAuctionNotifier(this._auctionRepository, this._imageService)
     : super(const CreateAuctionState());
 
+  // Location setters
+  void setCountry(Map<String, dynamic>? country) {
+    state = state.copyWith(country: country);
+  }
+  void setState(Map<String, dynamic>? stateVal) {
+    state = state.copyWith(state: stateVal);
+  }
+  void setCity(Map<String, dynamic>? city) {
+    state = state.copyWith(city: city);
+  }
+
   // Step 1: Basic Info
   void setTitle(String title) {
     state = state.copyWith(title: title, titleError: _validateTitle(title));

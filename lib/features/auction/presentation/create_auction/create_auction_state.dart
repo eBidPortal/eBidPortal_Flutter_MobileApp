@@ -20,6 +20,10 @@ enum AuctionStatus {
 @freezed
 class CreateAuctionState with _$CreateAuctionState {
   const factory CreateAuctionState({
+      // Location
+      Map<String, dynamic>? country,
+      Map<String, dynamic>? state,
+      Map<String, dynamic>? city,
     //  Step 1: Basic Info
     @Default('') String title,
     @Default('') String description,
