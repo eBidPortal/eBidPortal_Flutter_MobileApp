@@ -594,13 +594,6 @@ class _AdvancedSettingsTabState extends ConsumerState<AdvancedSettingsTab> {
             children: [
               Icon(Icons.location_on, size: 20, color: Theme.of(context).primaryColor),
               const SizedBox(width: 8),
-              Text(
-                'Auction Location',
-                style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: Theme.of(context).primaryColor,
-                ),
-              ),
             ],
           ),
           const SizedBox(height: 16),
