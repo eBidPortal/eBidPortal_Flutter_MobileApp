@@ -2,11 +2,11 @@ import 'dart:convert';
 import 'dart:io';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../catalog/domain/category.dart';
+import 'package:auctions/core/network/api_client.dart';
 import '../../data/auction_repository.dart';
 import '../../data/image_upload_service.dart';
 import 'create_auction_state.dart';
 
-final imageUploadServiceProvider = Provider((ref) => ImageUploadService());
 
 class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
   final AuctionRepository _auctionRepository;
@@ -218,6 +218,18 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
     state = state.copyWith(localImages: newImages);
   }
 
+  void setUploadProgress(double progress) {
+    state = state.copyWith(uploadProgress: progress);
+  }
+
+  void setImageUploadError(String error) {
+    state = state.copyWith(imagesError: error, isUploadingImages: false);
+  }
+
+  void clearImageUploadError() {
+    state = state.copyWith(imagesError: null);
+  }
+
   void reorderImages(int oldIndex, int newIndex) {
     final newImages = [...state.localImages];
     final image = newImages.removeAt(oldIndex);
@@ -392,16 +404,29 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
       // Generate temporary auction ID for image upload
       final tempAuctionId = DateTime.now().millisecondsSinceEpoch.toString();
 
-      // Upload images
-      state = state.copyWith(isUploadingImages: true);
-      final imageUrls = await _imageService.uploadMultipleImages(
-        state.localImages,
-        tempAuctionId,
-      );
-      state = state.copyWith(
-        uploadedImageUrls: imageUrls,
-        isUploadingImages: false,
-      );
+      // Upload images with progress tracking
+      if (state.localImages.isNotEmpty) {
+        state = state.copyWith(isUploadingImages: true, uploadProgress: 0.0);
+        
+        try {
+          final imageResults = await _imageService.uploadMultipleImages(
+            state.localImages,
+            tempAuctionId,
+          );
+          final imageUrls = imageResults.map((result) => result.url).toList();
+          state = state.copyWith(
+            uploadedImageUrls: imageUrls,
+            isUploadingImages: false,
+            uploadProgress: 1.0,
+          );
+        } catch (e) {
+          state = state.copyWith(
+            isUploadingImages: false,
+            imagesError: 'Failed to upload images: ${e.toString()}',
+          );
+          return false;
+        }
+      }
 
       // Prepare dynamic fields including bidding rules
       final dynamicFieldsWithBiddingRules = Map<String, dynamic>.from(state.dynamicFields);
@@ -435,7 +460,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
         startTime: state.startTime!,
         endTime: state.endTime!,
         type: state.type.name,
-        images: imageUrls,
+        images: state.uploadedImageUrls,
         tags: state.tags,
         dynamicFields:
             dynamicFieldsWithBiddingRules, // This contains all category template data including bidding rules
@@ -873,6 +898,7 @@ class CreateAuctionNotifier extends StateNotifier<CreateAuctionState> {
 final createAuctionProvider =
     StateNotifierProvider<CreateAuctionNotifier, CreateAuctionState>((ref) {
       final auctionRepository = ref.watch(auctionRepositoryProvider);
-      final imageService = ref.watch(imageUploadServiceProvider);
+      final apiClient = ref.watch(apiClientProvider);
+      final imageService = ImageUploadService(apiClient);
       return CreateAuctionNotifier(auctionRepository, imageService);
     });

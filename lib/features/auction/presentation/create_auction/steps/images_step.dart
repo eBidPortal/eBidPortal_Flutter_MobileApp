@@ -29,7 +29,50 @@ class ImagesStep extends ConsumerWidget {
                   color: AppTheme.textMuted,
                 ),
           ),
-          const SizedBox(height: AppTheme.spacingXl),
+          // Upload Progress Indicator
+          if (state.isUploadingImages)
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppTheme.spacingMd),
+              margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+              decoration: BoxDecoration(
+                color: AppTheme.primaryColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                border: Border.all(color: AppTheme.primaryColor.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    children: [
+                      const SizedBox(
+                        width: 20,
+                        height: 20,
+                        child: CircularProgressIndicator(
+                          strokeWidth: 2,
+                          valueColor: AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                        ),
+                      ),
+                      const SizedBox(width: AppTheme.spacingSm),
+                      Expanded(
+                        child: Text(
+                          'Uploading images... ${(state.uploadProgress * 100).round()}%',
+                          style: TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppTheme.spacingSm),
+                  LinearProgressIndicator(
+                    value: state.uploadProgress,
+                    backgroundColor: AppTheme.primaryColor.withValues(alpha: 0.2),
+                    valueColor: const AlwaysStoppedAnimation<Color>(AppTheme.primaryColor),
+                  ),
+                ],
+              ),
+            ),
           
           // Upload Button
           if (state.localImages.length < 10)
@@ -50,14 +93,59 @@ class ImagesStep extends ConsumerWidget {
             ),
           
           if (state.imagesError != null)
-            Padding(
-              padding: const EdgeInsets.only(top: AppTheme.spacingSm),
-              child: Text(
-                state.imagesError!,
-                style: const TextStyle(
-                  color: AppTheme.errorColor,
-                  fontSize: 12,
-                ),
+            Container(
+              width: double.infinity,
+              padding: const EdgeInsets.all(AppTheme.spacingMd),
+              margin: const EdgeInsets.only(bottom: AppTheme.spacingMd),
+              decoration: BoxDecoration(
+                color: AppTheme.errorColor.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(AppTheme.radiusSm),
+                border: Border.all(color: AppTheme.errorColor.withValues(alpha: 0.3)),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Row(
+                    children: [
+                      Icon(
+                        Icons.error_outline,
+                        color: AppTheme.errorColor,
+                        size: 20,
+                      ),
+                      const SizedBox(width: AppTheme.spacingSm),
+                      Expanded(
+                        child: Text(
+                          'Upload Failed',
+                          style: TextStyle(
+                            color: AppTheme.errorColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          notifier.clearImageUploadError();
+                          // Optionally retry upload here
+                        },
+                        child: Text(
+                          'Retry',
+                          style: TextStyle(
+                            color: AppTheme.primaryColor,
+                            fontWeight: FontWeight.w500,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: AppTheme.spacingSm),
+                  Text(
+                    state.imagesError!,
+                    style: TextStyle(
+                      color: AppTheme.errorColor,
+                      fontSize: 12,
+                    ),
+                  ),
+                ],
               ),
             ),
           
@@ -116,6 +204,24 @@ class ImagesStep extends ConsumerWidget {
                         ),
                       ),
                     
+                    // Drag Handle
+                    Positioned(
+                      bottom: 4,
+                      left: 4,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withValues(alpha: 0.5),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.drag_handle,
+                          size: 16,
+                          color: Colors.white,
+                        ),
+                      ),
+                    ),
+                    
                     // Remove Button
                     Positioned(
                       top: 4,
@@ -160,7 +266,7 @@ class ImagesStep extends ConsumerWidget {
                   const SizedBox(width: AppTheme.spacingSm),
                   Expanded(
                     child: Text(
-                      'The first image will be used as the primary image',
+                      'The first image will be used as the primary image. Drag the handle to reorder images.',
                       style: TextStyle(
                         color: AppTheme.infoColor,
                         fontSize: 12,

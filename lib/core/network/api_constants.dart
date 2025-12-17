@@ -25,6 +25,7 @@ class ApiConstants {
   // File upload endpoints
   static const String uploadImage = '/upload/image';
   static const String uploadMultiple = '/upload/multiple';
+  static const String uploadProductImages = '/products/upload-images';
 
   // User endpoints (under /api/v1)
   static const String profile = '/users/profile';
