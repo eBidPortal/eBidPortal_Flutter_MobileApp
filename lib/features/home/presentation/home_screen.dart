@@ -88,7 +88,7 @@ class HomeScreen extends ConsumerWidget {
                   actions: [
                     IconButton(
                       icon: const Icon(Icons.favorite_border),
-                      onPressed: () => context.go('/watchlist'),
+                      onPressed: () => context.go('/profile/watchlist'),
                     ),
                     Stack(
                       children: [

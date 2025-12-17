@@ -18,6 +18,7 @@ import '../../features/auction/presentation/create_auction/create_auction_screen
 import '../../features/auction/presentation/create_auction/widgets/category_selection_screen.dart';
 import '../../features/auction/presentation/create_auction/widgets/category_schema_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import '../../features/auction/presentation/watchlist/watchlist_screen.dart';
 import 'scaffold_with_navbar.dart';
 
 class AuthListenable extends ChangeNotifier {
@@ -179,6 +180,13 @@ final routerProvider = Provider<GoRouter>((ref) {
                 path: '/profile',
                 name: 'profile',
                 builder: (context, state) => const ProfileScreen(),
+                routes: [
+                  GoRoute(
+                    path: 'watchlist',
+                    name: 'watchlist',
+                    builder: (context, state) => const WatchlistScreen(),
+                  ),
+                ],
               ),
             ],
           ),

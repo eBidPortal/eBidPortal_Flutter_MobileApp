@@ -1,6 +1,6 @@
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import '../../../../core/constants/api_constants.dart';
+import '../../../../core/network/api_constants.dart';
 import '../../../../core/network/api_client.dart';
 import '../domain/auction.dart';
 import '../domain/watchlist_item.dart';
@@ -256,6 +256,52 @@ class AuctionRepository {
         );
       }
     } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? 'Network error');
+    }
+  }
+
+  Future<Map<String, dynamic>> placeBid(String auctionId, double bidAmount) async {
+    try {
+      print('💰 AUCTION_REPO: Placing bid on auction $auctionId with amount $bidAmount');
+
+      final response = await _apiClient.post(
+        ApiConstants.placeBid.replaceAll('{id}', auctionId),
+        data: {
+          'amount': bidAmount,
+        },
+      );
+
+      print('💰 AUCTION_REPO: Bid response: ${response.data}');
+
+      if (response.data['success'] == true) {
+        return response.data['data'];
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to place bid');
+      }
+    } on DioException catch (e) {
+      print('💰 AUCTION_REPO: DioException placing bid: ${e.message}');
+      throw Exception(e.response?.data['message'] ?? 'Network error');
+    }
+  }
+
+  Future<List<Map<String, dynamic>>> getAuctionBids(String auctionId) async {
+    try {
+      print('💰 AUCTION_REPO: Getting bids for auction $auctionId');
+
+      final response = await _apiClient.get(
+        ApiConstants.auctionBids.replaceAll('{id}', auctionId),
+      );
+
+      print('💰 AUCTION_REPO: Bids response: ${response.data}');
+
+      if (response.data['success'] == true) {
+        final List<dynamic> bids = response.data['data']['bids'] ?? [];
+        return bids.map((bid) => Map<String, dynamic>.from(bid)).toList();
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to fetch bids');
+      }
+    } on DioException catch (e) {
+      print('💰 AUCTION_REPO: DioException getting bids: ${e.message}');
       throw Exception(e.response?.data['message'] ?? 'Network error');
     }
   }

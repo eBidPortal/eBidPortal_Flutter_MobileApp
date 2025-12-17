@@ -65,3 +65,33 @@ class WatchlistActions extends _$WatchlistActions {
     }
   }
 }
+
+@riverpod
+@riverpod
+Future<List<Map<String, dynamic>>> auctionBids(ref, String auctionId) async {
+  final repository = ref.watch(auctionRepositoryProvider);
+  return repository.getAuctionBids(auctionId);
+}
+
+@riverpod
+class PlaceBid extends _$PlaceBid {
+  @override
+  FutureOr<Map<String, dynamic>?> build() async {
+    return null; // No initial state
+  }
+
+  Future<Map<String, dynamic>> placeBid(String auctionId, double bidAmount) async {
+    final repository = ref.read(auctionRepositoryProvider);
+
+    try {
+      final result = await repository.placeBid(auctionId, bidAmount);
+      // Invalidate auction details to refresh current price
+      ref.invalidate(auctionDetailProvider(auctionId));
+      // Invalidate bids list
+      ref.invalidate(auctionBidsProvider(auctionId));
+      return result;
+    } catch (e) {
+      rethrow;
+    }
+  }
+}

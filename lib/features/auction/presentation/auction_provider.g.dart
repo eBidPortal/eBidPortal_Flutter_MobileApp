@@ -1,5 +1,10 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
+import '../domain/auction.dart';
+import '../domain/watchlist_item.dart';
+
 part of 'auction_provider.dart';
 
 // **************************************************************************
@@ -285,6 +290,128 @@ class _IsInWatchlistProviderElement
   String get auctionId => (origin as IsInWatchlistProvider).auctionId;
 }
 
+String _$auctionBidsHash() => r'ba30a9ce20f6b32768834f5fbd5c7edb3df25393';
+
+/// See also [auctionBids].
+@ProviderFor(auctionBids)
+const auctionBidsProvider = AuctionBidsFamily();
+
+/// See also [auctionBids].
+class AuctionBidsFamily extends Family<AsyncValue<List<Map<String, dynamic>>>> {
+  /// See also [auctionBids].
+  const AuctionBidsFamily();
+
+  /// See also [auctionBids].
+  AuctionBidsProvider call(String auctionId) {
+    return AuctionBidsProvider(auctionId);
+  }
+
+  @override
+  AuctionBidsProvider getProviderOverride(
+    covariant AuctionBidsProvider provider,
+  ) {
+    return call(provider.auctionId);
+  }
+
+  static const Iterable<ProviderOrFamily>? _dependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get dependencies => _dependencies;
+
+  static const Iterable<ProviderOrFamily>? _allTransitiveDependencies = null;
+
+  @override
+  Iterable<ProviderOrFamily>? get allTransitiveDependencies =>
+      _allTransitiveDependencies;
+
+  @override
+  String? get name => r'auctionBidsProvider';
+}
+
+/// See also [auctionBids].
+class AuctionBidsProvider
+    extends AutoDisposeFutureProvider<List<Map<String, dynamic>>> {
+  /// See also [auctionBids].
+  AuctionBidsProvider(String auctionId)
+    : this._internal(
+        (ref) => auctionBids(ref as AuctionBidsRef, auctionId),
+        from: auctionBidsProvider,
+        name: r'auctionBidsProvider',
+        debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+            ? null
+            : _$auctionBidsHash,
+        dependencies: AuctionBidsFamily._dependencies,
+        allTransitiveDependencies: AuctionBidsFamily._allTransitiveDependencies,
+        auctionId: auctionId,
+      );
+
+  AuctionBidsProvider._internal(
+    super._createNotifier, {
+    required super.name,
+    required super.dependencies,
+    required super.allTransitiveDependencies,
+    required super.debugGetCreateSourceHash,
+    required super.from,
+    required this.auctionId,
+  }) : super.internal();
+
+  final String auctionId;
+
+  @override
+  Override overrideWith(
+    FutureOr<List<Map<String, dynamic>>> Function(AuctionBidsRef provider)
+    create,
+  ) {
+    return ProviderOverride(
+      origin: this,
+      override: AuctionBidsProvider._internal(
+        (ref) => create(ref as AuctionBidsRef),
+        from: from,
+        name: null,
+        dependencies: null,
+        allTransitiveDependencies: null,
+        debugGetCreateSourceHash: null,
+        auctionId: auctionId,
+      ),
+    );
+  }
+
+  @override
+  AutoDisposeFutureProviderElement<List<Map<String, dynamic>>> createElement() {
+    return _AuctionBidsProviderElement(this);
+  }
+
+  @override
+  bool operator ==(Object other) {
+    return other is AuctionBidsProvider && other.auctionId == auctionId;
+  }
+
+  @override
+  int get hashCode {
+    var hash = _SystemHash.combine(0, runtimeType.hashCode);
+    hash = _SystemHash.combine(hash, auctionId.hashCode);
+
+    return _SystemHash.finish(hash);
+  }
+}
+
+@Deprecated('Will be removed in 3.0. Use Ref instead')
+// ignore: unused_element
+mixin AuctionBidsRef
+    on AutoDisposeFutureProviderRef<List<Map<String, dynamic>>> {
+  /// The parameter `auctionId` of this provider.
+  String get auctionId;
+}
+
+class _AuctionBidsProviderElement
+    extends AutoDisposeFutureProviderElement<List<Map<String, dynamic>>>
+    with AuctionBidsRef {
+  _AuctionBidsProviderElement(super.provider);
+
+  @override
+  String get auctionId => (origin as AuctionBidsProvider).auctionId;
+}
+
 String _$auctionListHash() => r'9dfacbfcc0679a7cc327098e49cd3081ed1ca871';
 
 abstract class _$AuctionList
@@ -449,5 +576,21 @@ final watchlistActionsProvider =
     );
 
 typedef _$WatchlistActions = AutoDisposeAsyncNotifier<void>;
+String _$placeBidHash() => r'44a67fde91dd34850fcf5af90d79e69ca8d2fa20';
+
+/// See also [PlaceBid].
+@ProviderFor(PlaceBid)
+final placeBidProvider =
+    AutoDisposeAsyncNotifierProvider<PlaceBid, Map<String, dynamic>?>.internal(
+      PlaceBid.new,
+      name: r'placeBidProvider',
+      debugGetCreateSourceHash: const bool.fromEnvironment('dart.vm.product')
+          ? null
+          : _$placeBidHash,
+      dependencies: null,
+      allTransitiveDependencies: null,
+    );
+
+typedef _$PlaceBid = AutoDisposeAsyncNotifier<Map<String, dynamic>?>;
 // ignore_for_file: type=lint
 // ignore_for_file: subtype_of_sealed_class, invalid_use_of_internal_member, invalid_use_of_visible_for_testing_member, deprecated_member_use_from_same_package

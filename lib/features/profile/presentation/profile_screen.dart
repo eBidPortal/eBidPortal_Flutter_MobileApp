@@ -200,6 +200,16 @@ class _ProfileView extends ConsumerWidget {
         ),
         _buildMenuItem(
           context,
+          icon: Icons.favorite,
+          title: 'My Watchlist',
+          subtitle: 'View auctions you\'re watching',
+          onTap: () {
+            // Navigate to Watchlist screen
+            context.go('/profile/watchlist');
+          },
+        ),
+        _buildMenuItem(
+          context,
           icon: Icons.history,
           title: 'Purchase History',
           subtitle: 'View your auction activity',

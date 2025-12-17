@@ -30,8 +30,13 @@ dependencies:
   
   # Networking & Storage
   dio: ^5.4.0
+  http: ^1.2.0
   flutter_secure_storage: ^9.0.0
   shared_preferences: ^2.2.0
+  
+  # WebSocket for real-time bidding
+  web_socket_channel: ^3.0.0
+  socket_io_client: ^3.0.0
   
   # UI/UX
   google_fonts: ^6.1.0

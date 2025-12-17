@@ -1,8 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../../core/services/websocket_service.dart';
+import '../../auth/presentation/auth_provider.dart';
 import '../domain/auction.dart';
+import '../presentation/auction_provider.dart';
 
-class BiddingWidget extends StatefulWidget {
+class BiddingWidget extends ConsumerStatefulWidget {
   final Auction auction;
   final bool isFullScreen;
 
@@ -13,26 +17,171 @@ class BiddingWidget extends StatefulWidget {
   });
 
   @override
-  State<BiddingWidget> createState() => _BiddingWidgetState();
+  ConsumerState<BiddingWidget> createState() => _BiddingWidgetState();
 }
 
-class _BiddingWidgetState extends State<BiddingWidget> {
+class _BiddingWidgetState extends ConsumerState<BiddingWidget> {
   final TextEditingController _bidController = TextEditingController();
   final FocusNode _bidFocusNode = FocusNode();
   double? _bidAmount;
   bool _isPlacingBid = false;
+  late WebSocketService _webSocketService;
 
   @override
   void initState() {
     super.initState();
     _calculateMinimumBid();
+    _setupWebSocket();
   }
 
   @override
   void dispose() {
+    _webSocketService.leaveAuction(widget.auction.id);
+    _webSocketService.offBidUpdate();
+    _webSocketService.offOutbidNotification();
+    _webSocketService.offWinningNotification();
+    _webSocketService.offAuctionEndingSoon();
+    _webSocketService.offAuctionExtended();
+    _webSocketService.offAuctionEnded();
     _bidController.dispose();
     _bidFocusNode.dispose();
     super.dispose();
+  }
+
+  void _setupWebSocket() {
+    _webSocketService = ref.read(webSocketServiceProvider);
+    
+    // Get current user
+    final authState = ref.read(authProvider);
+    
+    // Connect to WebSocket if not already connected
+    _webSocketService.connect().then((_) {
+      // Join the auction room for real-time updates
+      authState.whenData((user) {
+        if (user != null) {
+          _webSocketService.joinAuction(widget.auction.id, user.id);
+        }
+      });
+      
+      // Listen for bid updates
+      _webSocketService.onBidUpdate((data) {
+        if (mounted) {
+          _handleBidUpdate(data);
+        }
+      });
+      
+      // Listen for outbid notifications
+      _webSocketService.onOutbidNotification((data) {
+        if (mounted) {
+          _handleOutbidNotification(data);
+        }
+      });
+      
+      // Listen for winning notifications
+      _webSocketService.onWinningNotification((data) {
+        if (mounted) {
+          _handleWinningNotification(data);
+        }
+      });
+      
+      // Listen for auction ending soon
+      _webSocketService.onAuctionEndingSoon((data) {
+        if (mounted) {
+          _handleAuctionEndingSoon(data);
+        }
+      });
+      
+      // Listen for auction extended
+      _webSocketService.onAuctionExtended((data) {
+        if (mounted) {
+          _handleAuctionExtended(data);
+        }
+      });
+      
+      // Listen for auction ended
+      _webSocketService.onAuctionEnded((data) {
+        if (mounted) {
+          _handleAuctionEnded(data);
+        }
+      });
+    });
+  }
+
+  void _handleBidUpdate(dynamic data) {
+    // Refresh auction data when a new bid is placed
+    ref.invalidate(auctionDetailProvider(widget.auction.id));
+    ref.invalidate(auctionBidsProvider(widget.auction.id));
+    
+    // Show notification for new bid
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('New bid placed: \$${data['amount']?.toStringAsFixed(2) ?? '0.00'}'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    }
+  }
+
+  void _handleOutbidNotification(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You have been outbid! Place a higher bid to win.'),
+          duration: Duration(seconds: 5),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  void _handleWinningNotification(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('You\'re currently winning this auction!'),
+          duration: Duration(seconds: 3),
+          backgroundColor: Colors.green,
+        ),
+      );
+    }
+  }
+
+  void _handleAuctionEndingSoon(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('Auction ending soon! Last chance to bid.'),
+          duration: Duration(seconds: 5),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _handleAuctionExtended(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Auction extended by ${data['extension_minutes'] ?? 5} minutes due to late bids!'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    }
+  }
+
+  void _handleAuctionEnded(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Auction has ended. Winner: ${data['winner_name'] ?? 'Unknown'}'),
+          duration: const Duration(seconds: 5),
+          backgroundColor: Colors.purple,
+        ),
+      );
+    }
   }
 
   void _calculateMinimumBid() {
@@ -431,19 +580,37 @@ class _BiddingWidgetState extends State<BiddingWidget> {
     });
 
     try {
-      // Simulate API call
-      await Future.delayed(const Duration(seconds: 2));
-      
-      if (mounted) {
-        Navigator.of(context).pop();
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'Bid placed successfully for \$${_bidAmount!.toStringAsFixed(2)}',
+      // Use WebSocket for real-time bidding if connected, fallback to HTTP
+      if (_webSocketService.isConnected) {
+        _webSocketService.placeBid(widget.auction.id, _bidAmount!);
+        
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Bid placed successfully for \$${_bidAmount!.toStringAsFixed(2)}',
+              ),
+              backgroundColor: Colors.green,
             ),
-            backgroundColor: Colors.green,
-          ),
-        );
+          );
+        }
+      } else {
+        // Fallback to HTTP API
+        final placeBidNotifier = ref.read(placeBidProvider.notifier);
+        await placeBidNotifier.placeBid(widget.auction.id, _bidAmount!);
+        
+        if (mounted) {
+          Navigator.of(context).pop();
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text(
+                'Bid placed successfully for \$${_bidAmount!.toStringAsFixed(2)}',
+              ),
+              backgroundColor: Colors.green,
+            ),
+          );
+        }
       }
     } catch (e) {
       if (mounted) {

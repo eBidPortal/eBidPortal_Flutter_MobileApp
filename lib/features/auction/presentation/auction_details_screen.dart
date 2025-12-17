@@ -3,7 +3,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/widgets/app_bar_custom.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../core/widgets/error_widget.dart';
+import '../../../core/services/websocket_service.dart';
+import '../../auth/presentation/auth_provider.dart';
 import '../providers/auction_providers.dart';
+import 'auction_provider.dart';
 import '../domain/auction.dart';
 import '../widgets/auction_image_carousel.dart';
 import '../widgets/auction_timer_widget.dart';
@@ -23,11 +26,146 @@ class AuctionDetailsScreen extends ConsumerStatefulWidget {
 }
 
 class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
+  late WebSocketService _webSocketService;
+
   @override
   void initState() {
     super.initState();
-    // Auto-refresh every 30 seconds for live data
+    _setupWebSocket();
+    // Auto-refresh every 30 seconds for live data (as fallback)
     _startAutoRefresh();
+  }
+
+  @override
+  void dispose() {
+    _webSocketService.leaveAuction(widget.auctionId);
+    _webSocketService.offBidUpdate();
+    _webSocketService.offAuctionStatusChange();
+    _webSocketService.offAuctionEndingSoon();
+    _webSocketService.offAuctionExtended();
+    _webSocketService.offAuctionEnded();
+    super.dispose();
+  }
+
+  void _setupWebSocket() {
+    _webSocketService = ref.read(webSocketServiceProvider);
+    
+    // Get current user
+    final authState = ref.read(authProvider);
+    
+    // Connect to WebSocket if not already connected
+    _webSocketService.connect().then((_) {
+      // Join the auction room for real-time updates
+      authState.whenData((user) {
+        if (user != null) {
+          _webSocketService.joinAuction(widget.auctionId, user.id);
+        }
+      });
+      
+      // Listen for bid updates
+      _webSocketService.onBidUpdate((data) {
+        if (mounted) {
+          _handleBidUpdate(data);
+        }
+      });
+      
+      // Listen for auction status changes
+      _webSocketService.onAuctionStatusChange((data) {
+        if (mounted) {
+          _handleAuctionStatusChange(data);
+        }
+      });
+      
+      // Listen for auction ending soon
+      _webSocketService.onAuctionEndingSoon((data) {
+        if (mounted) {
+          _handleAuctionEndingSoon(data);
+        }
+      });
+      
+      // Listen for auction extended
+      _webSocketService.onAuctionExtended((data) {
+        if (mounted) {
+          _handleAuctionExtended(data);
+        }
+      });
+      
+      // Listen for auction ended
+      _webSocketService.onAuctionEnded((data) {
+        if (mounted) {
+          _handleAuctionEnded(data);
+        }
+      });
+    });
+  }
+
+  void _handleBidUpdate(dynamic data) {
+    // Refresh auction data when a new bid is placed
+    ref.invalidate(auctionDetailProvider(widget.auctionId));
+    ref.invalidate(auctionBidsProvider(widget.auctionId));
+    
+    // Show notification for new bid
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('New bid: \$${data['amount']?.toStringAsFixed(2) ?? '0.00'}'),
+          duration: const Duration(seconds: 2),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    }
+  }
+
+  void _handleAuctionStatusChange(dynamic data) {
+    // Refresh auction data when status changes
+    ref.invalidate(auctionDetailProvider(widget.auctionId));
+    
+    final status = data['status'];
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('Auction status changed to: $status'),
+          duration: const Duration(seconds: 3),
+          backgroundColor: Colors.orange,
+        ),
+      );
+    }
+  }
+
+  void _handleAuctionEndingSoon(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('⚠️ Auction ending soon! Last chance to bid.'),
+          duration: Duration(seconds: 10),
+          backgroundColor: Colors.red,
+        ),
+      );
+    }
+  }
+
+  void _handleAuctionExtended(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('⏰ Auction extended by ${data['extension_minutes'] ?? 5} minutes due to late bids!'),
+          duration: const Duration(seconds: 5),
+          backgroundColor: Colors.blue,
+        ),
+      );
+    }
+  }
+
+  void _handleAuctionEnded(dynamic data) {
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('🏁 Auction ended! Winner: ${data['winner_name'] ?? 'Unknown'}'),
+          duration: const Duration(seconds: 10),
+          backgroundColor: Colors.purple,
+        ),
+      );
+    }
   }
 
   void _startAutoRefresh() {
@@ -70,9 +208,20 @@ class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
             icon: const Icon(Icons.share),
             onPressed: () => _shareAuction(auction),
           ),
-          IconButton(
-            icon: const Icon(Icons.favorite_border),
-            onPressed: () => _toggleWatchlist(auction),
+          Consumer(
+            builder: (context, ref, child) {
+              final isInWatchlistAsync = ref.watch(isInWatchlistProvider(auction.id));
+              return IconButton(
+                icon: isInWatchlistAsync.maybeWhen(
+                  data: (isInWatchlist) => Icon(
+                    isInWatchlist ? Icons.favorite : Icons.favorite_border,
+                    color: isInWatchlist ? Colors.red : null,
+                  ),
+                  orElse: () => const Icon(Icons.favorite_border),
+                ),
+                onPressed: () => _toggleWatchlist(auction),
+              );
+            },
           ),
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(value, auction),
@@ -293,11 +442,35 @@ class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
     );
   }
 
-  void _toggleWatchlist(Auction auction) {
-    // Implement watchlist functionality
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Added to watchlist!')),
-    );
+  void _toggleWatchlist(Auction auction) async {
+    final isInWatchlist = await ref.read(isInWatchlistProvider(auction.id).future);
+    
+    try {
+      await ref.read(watchlistActionsProvider.notifier).toggleWatchlist(auction.id);
+      
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text(
+              isInWatchlist
+                ? 'Removed from watchlist'
+                : 'Added to watchlist',
+            ),
+            duration: const Duration(seconds: 2),
+          ),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Failed to update watchlist: ${e.toString()}'),
+            backgroundColor: Colors.red,
+            duration: const Duration(seconds: 3),
+          ),
+        );
+      }
+    }
   }
 
   void _handleMenuAction(String action, Auction auction) {

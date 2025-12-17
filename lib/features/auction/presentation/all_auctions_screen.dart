@@ -162,6 +162,7 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
                   child: AuctionCard(
                     auction: auction,
                     onTap: () => _navigateToDetails(auction.id),
+                    showWatchlistButton: true,
                   ),
                 );
               },
@@ -223,6 +224,7 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
                     child: AuctionCard(
                       auction: auction,
                       onTap: () => _navigateToDetails(auction.id),
+                      showWatchlistButton: true,
                     ),
                   );
                 },
@@ -277,6 +279,7 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
                     auction: auction,
                     onTap: () => _navigateToDetails(auction.id),
                     showLiveBadge: true,
+                    showWatchlistButton: true,
                   ),
                 );
               },
@@ -331,6 +334,7 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
                     auction: auction,
                     onTap: () => _navigateToDetails(auction.id),
                     showEndingSoon: true,
+                    showWatchlistButton: true,
                   ),
                 );
               },
