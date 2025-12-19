@@ -46,14 +46,18 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             // Image and badges
-            Stack(
-              children: [
-                _buildImage(context),
-                _buildBadges(context),
-                if (widget.showManagementActions) _buildManagementMenu(context),
-              ],
+            SizedBox(
+              height: 200,
+              child: Stack(
+                children: [
+                  _buildImage(context),
+                  _buildBadges(context),
+                  if (widget.showManagementActions)
+                    _buildManagementMenu(context),
+                ],
+              ),
             ),
-            
+
             // Content
             Padding(
               padding: const EdgeInsets.all(16),
@@ -66,9 +70,8 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                       Expanded(
                         child: Text(
                           widget.auction.productName,
-                          style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleMedium
+                              ?.copyWith(fontWeight: FontWeight.bold),
                           maxLines: 2,
                           overflow: TextOverflow.ellipsis,
                         ),
@@ -78,18 +81,18 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                         crossAxisAlignment: CrossAxisAlignment.end,
                         children: [
                           Text(
-                            '\$${widget.auction.currentPrice.toStringAsFixed(2)}',
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                              color: Theme.of(context).primaryColor,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            '\$${(widget.auction.currentPrice ?? 0.0).toStringAsFixed(2)}',
+                            style: Theme.of(context).textTheme.titleMedium
+                                ?.copyWith(
+                                  color: Theme.of(context).primaryColor,
+                                  fontWeight: FontWeight.bold,
+                                ),
                           ),
                           if (widget.auction.hasReservePrice)
                             Text(
                               'Reserve: \$${widget.auction.reservePrice!.toStringAsFixed(2)}',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                                color: Colors.grey[600],
-                              ),
+                              style: Theme.of(context).textTheme.bodySmall
+                                  ?.copyWith(color: Colors.grey[600]),
                             ),
                         ],
                       ),
@@ -99,11 +102,16 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                   const SizedBox(height: 8),
 
                   // Brand and Condition
-                  if (widget.auction.brand != null || widget.auction.condition != null)
+                  if (widget.auction.brand != null ||
+                      widget.auction.condition != null)
                     Row(
                       children: [
                         if (widget.auction.brand != null) ...[
-                          Icon(Icons.business, size: 14, color: Colors.grey[600]),
+                          Icon(
+                            Icons.business,
+                            size: 14,
+                            color: Colors.grey[600],
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             widget.auction.brand!,
@@ -113,11 +121,18 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                             ),
                           ),
                           if (widget.auction.condition != null) ...[
-                            const Text(' • ', style: TextStyle(color: Colors.grey)),
+                            const Text(
+                              ' • ',
+                              style: TextStyle(color: Colors.grey),
+                            ),
                           ],
                         ],
                         if (widget.auction.condition != null) ...[
-                          Icon(Icons.info_outline, size: 14, color: Colors.grey[600]),
+                          Icon(
+                            Icons.info_outline,
+                            size: 14,
+                            color: Colors.grey[600],
+                          ),
                           const SizedBox(width: 4),
                           Text(
                             widget.auction.condition!,
@@ -135,9 +150,7 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                   // Time and Status Info
                   Row(
                     children: [
-                      Expanded(
-                        child: _buildTimeInfo(context),
-                      ),
+                      Expanded(child: _buildTimeInfo(context)),
                       const SizedBox(width: 8),
                       _buildStatusChip(context),
                     ],
@@ -151,20 +164,14 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                       const SizedBox(width: 4),
                       Text(
                         '${widget.auction.bidCount} bids',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                       const SizedBox(width: 16),
                       Icon(Icons.visibility, size: 14, color: Colors.grey[600]),
                       const SizedBox(width: 4),
                       Text(
                         '${widget.auction.watchersCount} watching',
-                        style: TextStyle(
-                          color: Colors.grey[600],
-                          fontSize: 12,
-                        ),
+                        style: TextStyle(color: Colors.grey[600], fontSize: 12),
                       ),
                     ],
                   ),
@@ -187,11 +194,14 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
       ),
       child: widget.auction.images.isNotEmpty
           ? ClipRRect(
-              borderRadius: const BorderRadius.vertical(top: Radius.circular(12)),
+              borderRadius: const BorderRadius.vertical(
+                top: Radius.circular(12),
+              ),
               child: Image.network(
                 widget.auction.images.first,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => _buildImagePlaceholder(),
+                errorBuilder: (context, error, stackTrace) =>
+                    _buildImagePlaceholder(),
               ),
             )
           : _buildImagePlaceholder(),
@@ -229,7 +239,10 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
             children: [
               if (widget.showLiveBadge && widget.auction.isLive)
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.red,
                     borderRadius: BorderRadius.circular(12),
@@ -250,10 +263,15 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                     ],
                   ),
                 ),
-              if (widget.showEndingSoon && widget.auction.timeRemaining.inHours <= 1) ...[
-                if (widget.showLiveBadge && widget.auction.isLive) const SizedBox(height: 4),
+              if (widget.showEndingSoon &&
+                  widget.auction.timeRemaining.inHours <= 1) ...[
+                if (widget.showLiveBadge && widget.auction.isLive)
+                  const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.orange,
                     borderRadius: BorderRadius.circular(12),
@@ -268,11 +286,17 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
                   ),
                 ),
               ],
-              if (widget.auction.hasReservePrice && !widget.auction.reservePriceMet) ...[
-                if ((widget.showLiveBadge && widget.auction.isLive) || (widget.showEndingSoon && widget.auction.timeRemaining.inHours <= 1))
+              if (widget.auction.hasReservePrice &&
+                  !widget.auction.reservePriceMet) ...[
+                if ((widget.showLiveBadge && widget.auction.isLive) ||
+                    (widget.showEndingSoon &&
+                        widget.auction.timeRemaining.inHours <= 1))
                   const SizedBox(height: 4),
                 Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.blue,
                     borderRadius: BorderRadius.circular(12),
@@ -292,11 +316,7 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
         ),
         // Right side watchlist button
         if (widget.showWatchlistButton)
-          Positioned(
-            top: 12,
-            right: 12,
-            child: _buildWatchlistButton(),
-          ),
+          Positioned(top: 12, right: 12, child: _buildWatchlistButton()),
       ],
     );
   }
@@ -395,10 +415,7 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
           const SizedBox(width: 4),
           Text(
             'Auction ended',
-            style: TextStyle(
-              color: Colors.grey[600],
-              fontSize: 12,
-            ),
+            style: TextStyle(color: Colors.grey[600], fontSize: 12),
           ),
         ],
       );
@@ -460,11 +477,15 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
   Widget _buildWatchlistButton() {
     return Consumer(
       builder: (context, ref, child) {
-        final isInWatchlistAsync = ref.watch(isInWatchlistProvider(widget.auction.id));
+        final isInWatchlistAsync = ref.watch(
+          isInWatchlistProvider(widget.auction.id),
+        );
 
         return isInWatchlistAsync.when(
           data: (isInWatchlist) => GestureDetector(
-            onTap: _isTogglingWatchlist ? null : () => _toggleWatchlist(ref, isInWatchlist),
+            onTap: _isTogglingWatchlist
+                ? null
+                : () => _toggleWatchlist(ref, isInWatchlist),
             child: Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
@@ -473,7 +494,9 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
               ),
               child: Icon(
                 isInWatchlist ? Icons.favorite : Icons.favorite_border,
-                color: isInWatchlist ? Theme.of(context).primaryColor : Colors.white,
+                color: isInWatchlist
+                    ? Theme.of(context).primaryColor
+                    : Colors.white,
                 size: 20,
               ),
             ),
@@ -499,31 +522,32 @@ class _AuctionCardState extends ConsumerState<AuctionCard> {
               color: Colors.black.withOpacity(0.6),
               shape: BoxShape.circle,
             ),
-            child: const Icon(
-              Icons.error,
-              color: Colors.red,
-              size: 20,
-            ),
+            child: const Icon(Icons.error, color: Colors.red, size: 20),
           ),
         );
       },
     );
   }
 
-  Future<void> _toggleWatchlist(WidgetRef ref, bool currentlyInWatchlist) async {
+  Future<void> _toggleWatchlist(
+    WidgetRef ref,
+    bool currentlyInWatchlist,
+  ) async {
     setState(() {
       _isTogglingWatchlist = true;
     });
 
     try {
-      await ref.read(watchlistActionsProvider.notifier).toggleWatchlist(widget.auction.id);
+      await ref
+          .read(watchlistActionsProvider.notifier)
+          .toggleWatchlist(widget.auction.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             content: Text(
               currentlyInWatchlist
-                ? 'Removed from watchlist'
-                : 'Added to watchlist',
+                  ? 'Removed from watchlist'
+                  : 'Added to watchlist',
             ),
             duration: const Duration(seconds: 2),
           ),

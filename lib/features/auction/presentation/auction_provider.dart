@@ -16,7 +16,6 @@ class AuctionList extends _$AuctionList {
     return repository.getAuctions(
       categoryId: categoryId,
       search: search,
-      status: 'active', // Default to active auctions
     );
   }
 }

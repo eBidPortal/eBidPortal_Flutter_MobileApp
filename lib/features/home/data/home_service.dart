@@ -7,13 +7,12 @@ class HomeService {
 
   HomeService(this._apiClient);
 
-  /// Get featured auctions (active auctions with high bids or recent activity)
+  /// Get featured auctions (auctions with high bids or recent activity)
   Future<List<Auction>> getFeaturedAuctions({int limit = 5}) async {
     try {
       final response = await _apiClient.get(
         '/auctions',
         queryParameters: {
-          'status': 'active',
           'limit': limit,
           'sort': 'current_price_desc', // Get highest priced auctions
         },
@@ -22,6 +21,7 @@ class HomeService {
       if (response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
         final auctionsList = data['auctions'] as List;
+        print('🏠 HOME_SERVICE: Featured auctions - Total: ${data['total']}, Auctions count: ${auctionsList.length}');
         return auctionsList.map((json) => Auction.fromJson(json as Map<String, dynamic>)).toList();
       } else {
         throw Exception(response.data['message'] ?? 'Failed to fetch featured auctions');
@@ -41,7 +41,6 @@ class HomeService {
       final response = await _apiClient.get(
         '/auctions',
         queryParameters: {
-          'status': 'active',
           'end_time_before': tomorrow.toIso8601String(),
           'limit': limit,
           'sort': 'end_time_asc', // Soonest ending first
@@ -51,6 +50,7 @@ class HomeService {
       if (response.data['success'] == true) {
         final data = response.data['data'] as Map<String, dynamic>;
         final auctionsList = data['auctions'] as List;
+        print('🏠 HOME_SERVICE: Ending soon auctions - Total: ${data['total']}, Auctions count: ${auctionsList.length}');
         return auctionsList.map((json) => Auction.fromJson(json as Map<String, dynamic>)).toList();
       } else {
         throw Exception(response.data['message'] ?? 'Failed to fetch ending soon auctions');

@@ -1,10 +1,5 @@
 // GENERATED CODE - DO NOT MODIFY BY HAND
 
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'dart:async';
-import '../domain/auction.dart';
-import '../domain/watchlist_item.dart';
-
 part of 'auction_provider.dart';
 
 // **************************************************************************

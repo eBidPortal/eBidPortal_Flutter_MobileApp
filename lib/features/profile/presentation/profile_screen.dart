@@ -145,48 +145,28 @@ class _ProfileView extends ConsumerWidget {
           icon: Icons.person,
           title: 'Personal Information',
           subtitle: 'Update your profile details',
-          onTap: () {
-            // TODO: Navigate to edit profile
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Edit profile - Coming soon!')),
-            );
-          },
+          onTap: () => context.push('/profile/personal-information'),
         ),
         _buildMenuItem(
           context,
           icon: Icons.location_on,
           title: 'Addresses',
           subtitle: 'Manage your delivery addresses',
-          onTap: () {
-            // TODO: Navigate to addresses
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Addresses - Coming soon!')),
-            );
-          },
+          onTap: () => context.push('/profile/addresses'),
         ),
         _buildMenuItem(
           context,
           icon: Icons.notifications,
           title: 'Notifications',
           subtitle: 'Manage notification preferences',
-          onTap: () {
-            // TODO: Navigate to notifications
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Notifications - Coming soon!')),
-            );
-          },
+          onTap: () => context.push('/notifications'),
         ),
         _buildMenuItem(
           context,
           icon: Icons.lock,
           title: 'Security',
           subtitle: 'Change password and security settings',
-          onTap: () {
-            // TODO: Navigate to security
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Security - Coming soon!')),
-            );
-          },
+          onTap: () => context.push('/profile/security'),
         ),
         _buildMenuItem(
           context,
@@ -213,24 +193,14 @@ class _ProfileView extends ConsumerWidget {
           icon: Icons.history,
           title: 'Purchase History',
           subtitle: 'View your auction activity',
-          onTap: () {
-            // TODO: Navigate to purchase history
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Purchase history - Coming soon!')),
-            );
-          },
+          onTap: () => context.push('/profile/purchase-history'),
         ),
         _buildMenuItem(
           context,
           icon: Icons.help,
           title: 'Help & Support',
           subtitle: 'Get help and contact support',
-          onTap: () {
-            // TODO: Navigate to help
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('Help & Support - Coming soon!')),
-            );
-          },
+          onTap: () => context.push('/profile/help-support'),
         ),
         _buildMenuItem(
           context,

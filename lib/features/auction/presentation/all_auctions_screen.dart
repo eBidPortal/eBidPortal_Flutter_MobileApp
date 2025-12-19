@@ -198,6 +198,11 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
                       'No auctions available',
                       style: TextStyle(fontSize: 18, color: Colors.grey),
                     ),
+                    SizedBox(height: 8),
+                    Text(
+                      'Check back later or try refreshing',
+                      style: TextStyle(fontSize: 14, color: Colors.grey),
+                    ),
                   ],
                 ),
               );

@@ -11,6 +11,12 @@ import '../../features/catalog/presentation/category_screen.dart';
 import '../../features/auction/presentation/all_auctions_screen.dart';
 import '../../features/auction/presentation/my_auctions_screen.dart';
 import '../../features/auction/presentation/auction_details_screen.dart';
+import '../../features/profile/presentation/addresses_screen.dart';
+import '../../features/profile/presentation/add_edit_address_screen.dart';
+import '../../features/profile/presentation/security_screen.dart';
+import '../../features/profile/presentation/help_support_screen.dart';
+import '../../features/profile/presentation/personal_information_screen.dart';
+import '../../features/profile/presentation/purchase_history_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/catalog/domain/category.dart';
@@ -185,6 +191,46 @@ final routerProvider = Provider<GoRouter>((ref) {
                     path: 'watchlist',
                     name: 'watchlist',
                     builder: (context, state) => const WatchlistScreen(),
+                  ),
+                  GoRoute(
+                    path: 'addresses',
+                    name: 'addresses',
+                    builder: (context, state) => const AddressesScreen(),
+                    routes: [
+                      GoRoute(
+                        path: 'add',
+                        name: 'add-address',
+                        builder: (context, state) => const AddEditAddressScreen(),
+                      ),
+                      GoRoute(
+                        path: ':addressId/edit',
+                        name: 'edit-address',
+                        builder: (context, state) {
+                          final addressId = state.pathParameters['addressId']!;
+                          return AddEditAddressScreen(addressId: addressId);
+                        },
+                      ),
+                    ],
+                  ),
+                  GoRoute(
+                    path: 'security',
+                    name: 'security',
+                    builder: (context, state) => const SecurityScreen(),
+                  ),
+                  GoRoute(
+                    path: 'help-support',
+                    name: 'help-support',
+                    builder: (context, state) => const HelpSupportScreen(),
+                  ),
+                  GoRoute(
+                    path: 'personal-information',
+                    name: 'personal-information',
+                    builder: (context, state) => const PersonalInformationScreen(),
+                  ),
+                  GoRoute(
+                    path: 'purchase-history',
+                    name: 'purchase-history',
+                    builder: (context, state) => const PurchaseHistoryScreen(),
                   ),
                 ],
               ),

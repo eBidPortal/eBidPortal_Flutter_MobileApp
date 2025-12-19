@@ -31,6 +31,7 @@ class ApiConstants {
   static const String profile = '/users/profile';
   static const String updateProfile = '/users/profile';
   static const String userAuctions = '/users/{id}/auctions';
+  static const String addresses = '/users/addresses';
   
   // Auth user endpoint (at root level)
   static const String me = '/auth/me';

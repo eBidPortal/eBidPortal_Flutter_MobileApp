@@ -101,7 +101,7 @@ class AllAuctionsNotifier extends StateNotifier<AsyncValue<AuctionListState>> {
 
   Future<void> loadAuctions({
     int page = 1,
-    String? status = 'active',
+    String? status,
     String? categoryId,
     String? sellerId,
   }) async {
@@ -117,6 +117,7 @@ class AllAuctionsNotifier extends StateNotifier<AsyncValue<AuctionListState>> {
         sellerId: sellerId,
       );
 
+      print('🎯 AUCTIONS: API Response - Total: ${response['data']['total']}, Auctions count: ${response['data']['auctions']?.length ?? 0}');
       final newState = AuctionListState.fromResponse(response);
 
       if (page == 1) {
@@ -169,7 +170,6 @@ class CategoryAuctionsNotifier extends StateNotifier<AsyncValue<AuctionListState
       final response = await _auctionService.getAllAuctions(
         page: page,
         categoryId: _categoryId,
-        status: 'active',
       );
 
       final newState = AuctionListState.fromResponse(response);

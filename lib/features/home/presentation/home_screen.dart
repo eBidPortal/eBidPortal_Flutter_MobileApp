@@ -521,7 +521,7 @@ class HomeScreen extends ConsumerWidget {
         ? (auction.dynamicAttributes['images'] as List).first
         : null;
 
-    final timeLeft = auction.endTime.difference(DateTime.now());
+    final timeLeft = auction.endTime?.difference(DateTime.now()) ?? Duration.zero;
     final timeLeftText = timeLeft.inHours > 0
         ? '${timeLeft.inHours}h left'
         : timeLeft.inMinutes > 0
@@ -543,6 +543,7 @@ class HomeScreen extends ConsumerWidget {
         ),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Image
             ClipRRect(
@@ -572,52 +573,55 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
             // Content
-            Padding(
-              padding: const EdgeInsets.all(AppTheme.spacingMd),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    productName,
-                    style: const TextStyle(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 14,
+            Expanded(
+              child: Padding(
+                padding: const EdgeInsets.all(AppTheme.spacingMd),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      productName,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.bold,
+                        fontSize: 14,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Row(
-                    children: [
-                      const Icon(
-                        Icons.attach_money,
-                        size: 16,
-                        color: AppTheme.successColor,
-                      ),
-                      Text(
-                        '\$${auction.currentPrice.toStringAsFixed(2)}',
-                        style: const TextStyle(
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        const Icon(
+                          Icons.attach_money,
+                          size: 16,
                           color: AppTheme.successColor,
-                          fontWeight: FontWeight.bold,
                         ),
-                      ),
-                      const Spacer(),
-                      const Icon(
-                        Icons.access_time,
-                        size: 14,
-                        color: AppTheme.textMuted,
-                      ),
-                      const SizedBox(width: 4),
-                      Text(
-                        timeLeftText,
-                        style: const TextStyle(
-                          fontSize: 12,
+                        Text(
+                          '\$${(auction.currentPrice ?? 0.0).toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            color: AppTheme.successColor,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        const Spacer(),
+                        const Icon(
+                          Icons.access_time,
+                          size: 14,
                           color: AppTheme.textMuted,
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        const SizedBox(width: 4),
+                        Text(
+                          timeLeftText,
+                          style: const TextStyle(
+                            fontSize: 12,
+                            color: AppTheme.textMuted,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
             ),
           ],
@@ -664,6 +668,7 @@ class HomeScreen extends ConsumerWidget {
                     : 0,
               ),
               child: Column(
+                mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
                     width: 64,
@@ -676,15 +681,17 @@ class HomeScreen extends ConsumerWidget {
                     child: Icon(icon, color: Colors.white, size: 28),
                   ),
                   const SizedBox(height: 8),
-                  Text(
-                    category.name,
-                    style: const TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w500,
+                  Flexible(
+                    child: Text(
+                      category.name,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w500,
+                      ),
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
                     ),
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -710,7 +717,7 @@ class HomeScreen extends ConsumerWidget {
           final auction = auctions[index];
           final productName =
               auction.dynamicAttributes['productName'] ?? 'Unnamed Item';
-          final timeLeft = auction.endTime.difference(DateTime.now());
+          final timeLeft = auction.endTime?.difference(DateTime.now()) ?? Duration.zero;
           final timeLeftText = timeLeft.inHours > 0
               ? '${timeLeft.inHours}h left'
               : timeLeft.inMinutes > 0
@@ -761,7 +768,7 @@ class HomeScreen extends ConsumerWidget {
                         ),
                         const SizedBox(height: 4),
                         Text(
-                          '\$${auction.currentPrice.toStringAsFixed(2)}',
+                          '\$${(auction.currentPrice ?? 0.0).toStringAsFixed(2)}',
                           style: const TextStyle(
                             color: AppTheme.successColor,
                             fontWeight: FontWeight.bold,
