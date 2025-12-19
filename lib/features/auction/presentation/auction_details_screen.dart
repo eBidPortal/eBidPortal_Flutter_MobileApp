@@ -200,6 +200,12 @@ class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
   }
 
   Widget _buildAuctionDetails(Auction auction) {
+    final authState = ref.watch(authProvider);
+    final isOwnAuction = authState.maybeWhen(
+      data: (user) => user?.id == auction.sellerId,
+      orElse: () => false,
+    );
+
     return Scaffold(
       appBar: AppBarCustom(
         title: auction.productName,
@@ -208,21 +214,23 @@ class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
             icon: const Icon(Icons.share),
             onPressed: () => _shareAuction(auction),
           ),
-          Consumer(
-            builder: (context, ref, child) {
-              final isInWatchlistAsync = ref.watch(isInWatchlistProvider(auction.id));
-              return IconButton(
-                icon: isInWatchlistAsync.maybeWhen(
-                  data: (isInWatchlist) => Icon(
-                    isInWatchlist ? Icons.favorite : Icons.favorite_border,
-                    color: isInWatchlist ? Colors.red : null,
+          if (!isOwnAuction) ...[
+            Consumer(
+              builder: (context, ref, child) {
+                final isInWatchlistAsync = ref.watch(isInWatchlistProvider(auction.id));
+                return IconButton(
+                  icon: isInWatchlistAsync.maybeWhen(
+                    data: (isInWatchlist) => Icon(
+                      isInWatchlist ? Icons.favorite : Icons.favorite_border,
+                      color: isInWatchlist ? Colors.red : null,
+                    ),
+                    orElse: () => const Icon(Icons.favorite_border),
                   ),
-                  orElse: () => const Icon(Icons.favorite_border),
-                ),
-                onPressed: () => _toggleWatchlist(auction),
-              );
-            },
-          ),
+                  onPressed: () => _toggleWatchlist(auction),
+                );
+              },
+            ),
+          ],
           PopupMenuButton<String>(
             onSelected: (value) => _handleMenuAction(value, auction),
             itemBuilder: (context) => [
@@ -313,7 +321,9 @@ class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
           // Current Price and Bidding
           if (auction.isActive)
             SliverToBoxAdapter(
-              child: BiddingWidget(auction: auction),
+              child: isOwnAuction
+                  ? _buildOwnAuctionMessage()
+                  : BiddingWidget(auction: auction),
             ),
 
           // Auction Information Tabs
@@ -322,7 +332,7 @@ class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
           ),
         ],
       ),
-      bottomNavigationBar: auction.isActive 
+      bottomNavigationBar: auction.isActive && !isOwnAuction
           ? _buildBottomBiddingBar(auction)
           : null,
     );
@@ -373,6 +383,53 @@ class _AuctionDetailsScreenState extends ConsumerState<AuctionDetailsScreen> {
               color: textColor,
               fontWeight: FontWeight.bold,
               fontSize: 12,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOwnAuctionMessage() {
+    return Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(
+        color: Colors.blue.shade50,
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(
+          color: Colors.blue.shade200,
+        ),
+      ),
+      child: Row(
+        children: [
+          Icon(
+            Icons.info_outline,
+            color: Colors.blue.shade700,
+            size: 24,
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Your Auction',
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    color: Colors.blue.shade900,
+                    fontSize: 16,
+                  ),
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'This is your own auction. You cannot bid on or add your own auctions to watchlist.',
+                  style: TextStyle(
+                    color: Colors.blue.shade700,
+                    fontSize: 14,
+                  ),
+                ),
+              ],
             ),
           ),
         ],

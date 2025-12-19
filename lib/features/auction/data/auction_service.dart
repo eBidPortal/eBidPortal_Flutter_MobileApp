@@ -87,15 +87,19 @@ class AuctionService {
     required String query,
     int page = 1,
     int limit = 20,
+    String? status = 'active', // Default to active auctions only
   }) async {
     try {
+      final queryParams = <String, dynamic>{
+        'query': query,
+        'page': page,
+        'limit': limit,
+        if (status != null) 'status': status,
+      };
+
       final response = await _apiClient.get(
         '/auctions/search/attributes',
-        queryParameters: {
-          'query': query,
-          'page': page,
-          'limit': limit,
-        },
+        queryParameters: queryParams,
       );
 
       if (response.data['success'] == true) {

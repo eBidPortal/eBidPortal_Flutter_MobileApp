@@ -101,7 +101,7 @@ class AllAuctionsNotifier extends StateNotifier<AsyncValue<AuctionListState>> {
 
   Future<void> loadAuctions({
     int page = 1,
-    String? status,
+    String? status = 'active', // Default to active auctions only
     String? categoryId,
     String? sellerId,
   }) async {
@@ -170,6 +170,7 @@ class CategoryAuctionsNotifier extends StateNotifier<AsyncValue<AuctionListState
       final response = await _auctionService.getAllAuctions(
         page: page,
         categoryId: _categoryId,
+        status: 'active', // Default to active auctions only
       );
 
       final newState = AuctionListState.fromResponse(response);
@@ -311,6 +312,7 @@ class AuctionSearchNotifier extends StateNotifier<AsyncValue<AuctionListState>> 
       final response = await _auctionService.searchAuctions(
         query: query,
         page: page,
+        status: 'active', // Default to active auctions only
       );
 
       final newState = AuctionListState.fromResponse(response);

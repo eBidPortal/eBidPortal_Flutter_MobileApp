@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 import '../../../../core/theme/app_theme.dart';
+import '../../../auth/presentation/auth_provider.dart';
 import '../auction_provider.dart';
 import '../../widgets/auction_card.dart';
 
@@ -44,15 +45,35 @@ class _WatchlistView extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authProvider);
+    final currentUserId = authState.maybeWhen(
+      data: (user) => user?.id,
+      orElse: () => null,
+    );
+
+    // Filter out pending auctions that don't belong to the current user
+    final filteredItems = watchlistItems.where((item) {
+      final isOwnAuction = currentUserId != null && currentUserId == item.auction.sellerId;
+      final isPending = item.auction.status?.toLowerCase() == 'pending';
+      
+      // Show the auction if it's not pending, or if it's pending but owned by the current user
+      return !isPending || isOwnAuction;
+    }).toList();
+
+    if (filteredItems.isEmpty) {
+      return _EmptyWatchlistView();
+    }
+
     return RefreshIndicator(
       onRefresh: () async {
         ref.invalidate(watchlistProvider);
       },
       child: ListView.builder(
         padding: const EdgeInsets.all(AppTheme.spacingMd),
-        itemCount: watchlistItems.length,
+        itemCount: filteredItems.length,
         itemBuilder: (context, index) {
-          final item = watchlistItems[index];
+          final item = filteredItems[index];
+          final isOwnAuction = currentUserId != null && currentUserId == item.auction.sellerId;
           return Padding(
             padding: const EdgeInsets.only(bottom: AppTheme.spacingMd),
             child: AuctionCard(
@@ -60,7 +81,7 @@ class _WatchlistView extends ConsumerWidget {
               onTap: () {
                 context.push('/auctions/${item.auction.id}');
               },
-              showWatchlistButton: true,
+              showWatchlistButton: !isOwnAuction,
             ),
           );
         },

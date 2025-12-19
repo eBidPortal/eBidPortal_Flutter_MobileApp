@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/widgets/app_bar_custom.dart';
 import '../../../core/widgets/loading_widget.dart';
 import '../../../core/widgets/error_widget.dart';
+import '../../auth/presentation/auth_provider.dart';
 import '../providers/auction_providers.dart';
 import '../widgets/auction_card.dart';
 import '../widgets/auction_filters_sheet.dart';
@@ -157,12 +158,17 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
               itemCount: auctionListState.auctions.length,
               itemBuilder: (context, index) {
                 final auction = auctionListState.auctions[index];
+                final authState = ref.watch(authProvider);
+                final isOwnAuction = authState.maybeWhen(
+                  data: (user) => user?.id == auction.sellerId,
+                  orElse: () => false,
+                );
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: AuctionCard(
                     auction: auction,
                     onTap: () => _navigateToDetails(auction.id),
-                    showWatchlistButton: true,
+                    showWatchlistButton: !isOwnAuction,
                   ),
                 );
               },
@@ -224,12 +230,17 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
                   }
 
                   final auction = auctionListState.auctions[index];
+                  final authState = ref.watch(authProvider);
+                  final isOwnAuction = authState.maybeWhen(
+                    data: (user) => user?.id == auction.sellerId,
+                    orElse: () => false,
+                  );
                   return Padding(
                     padding: const EdgeInsets.only(bottom: 16),
                     child: AuctionCard(
                       auction: auction,
                       onTap: () => _navigateToDetails(auction.id),
-                      showWatchlistButton: true,
+                      showWatchlistButton: !isOwnAuction,
                     ),
                   );
                 },
@@ -278,13 +289,18 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
               itemCount: liveAuctions.length,
               itemBuilder: (context, index) {
                 final auction = liveAuctions[index];
+                final authState = ref.watch(authProvider);
+                final isOwnAuction = authState.maybeWhen(
+                  data: (user) => user?.id == auction.sellerId,
+                  orElse: () => false,
+                );
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: AuctionCard(
                     auction: auction,
                     onTap: () => _navigateToDetails(auction.id),
                     showLiveBadge: true,
-                    showWatchlistButton: true,
+                    showWatchlistButton: !isOwnAuction,
                   ),
                 );
               },
@@ -333,13 +349,18 @@ class _AllAuctionsScreenState extends ConsumerState<AllAuctionsScreen>
               itemCount: endingSoonAuctions.length,
               itemBuilder: (context, index) {
                 final auction = endingSoonAuctions[index];
+                final authState = ref.watch(authProvider);
+                final isOwnAuction = authState.maybeWhen(
+                  data: (user) => user?.id == auction.sellerId,
+                  orElse: () => false,
+                );
                 return Padding(
                   padding: const EdgeInsets.only(bottom: 16),
                   child: AuctionCard(
                     auction: auction,
                     onTap: () => _navigateToDetails(auction.id),
                     showEndingSoon: true,
-                    showWatchlistButton: true,
+                    showWatchlistButton: !isOwnAuction,
                   ),
                 );
               },

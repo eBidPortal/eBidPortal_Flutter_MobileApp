@@ -194,6 +194,17 @@ class _BiddingWidgetState extends ConsumerState<BiddingWidget> {
 
   @override
   Widget build(BuildContext context) {
+    // Check if this is the user's own auction
+    final authState = ref.watch(authProvider);
+    final isOwnAuction = authState.maybeWhen(
+      data: (user) => user?.id == widget.auction.sellerId,
+      orElse: () => false,
+    );
+
+    if (isOwnAuction) {
+      return _buildOwnAuctionMessage();
+    }
+
     if (!widget.auction.isActive) {
       return _buildInactiveAuctionMessage();
     }
@@ -548,6 +559,39 @@ class _BiddingWidgetState extends ConsumerState<BiddingWidget> {
               textAlign: TextAlign.center,
             ),
           ],
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOwnAuctionMessage() {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(
+            Icons.account_circle,
+            size: 64,
+            color: Colors.blue,
+          ),
+          const SizedBox(height: 16),
+          Text(
+            'Your Auction',
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              color: Colors.blue,
+              fontWeight: FontWeight.bold,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 8),
+          Text(
+            'You cannot bid on your own auction',
+            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              color: Colors.grey[600],
+            ),
+            textAlign: TextAlign.center,
+          ),
         ],
       ),
     );
