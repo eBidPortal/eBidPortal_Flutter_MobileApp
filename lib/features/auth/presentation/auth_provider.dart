@@ -1,6 +1,7 @@
 import 'dart:convert';
 import 'package:riverpod_annotation/riverpod_annotation.dart';
 import '../../../../core/storage/storage_service.dart';
+import '../../../../core/services/fcm_service.dart';
 import '../data/auth_repository.dart';
 import '../domain/user.dart';
 
@@ -119,6 +120,22 @@ class Auth extends _$Auth {
       // Update state
       state = AsyncValue.data(user);
       print('🔐 AUTH_PROVIDER: State updated with user: ${user.name}');
+
+      // Register FCM token after successful login
+      try {
+        print('🔐 AUTH_PROVIDER: Registering FCM token after login...');
+        final fcmService = ref.read(fcmServiceProvider);
+        final fcmRegistered = await fcmService.registerToken();
+        if (fcmRegistered) {
+          print('🔐 AUTH_PROVIDER: FCM token registered successfully after login');
+        } else {
+          print('🔐 AUTH_PROVIDER: FCM token registration failed after login');
+        }
+      } catch (e) {
+        print('🔐 AUTH_PROVIDER: Error registering FCM token after login: $e');
+        // Don't fail login if FCM registration fails
+      }
+
     } catch (e, st) {
       print('🔐 AUTH_PROVIDER: Login failed with error: $e');
       print('🔐 AUTH_PROVIDER: Stack trace: $st');
@@ -212,6 +229,14 @@ class Auth extends _$Auth {
   }
 
   Future<void> logout() async {
+    // Remove FCM token from backend before clearing local data
+    try {
+      await ref.read(fcmServiceProvider).removeToken();
+    } catch (e) {
+      print('Error removing FCM token during logout: $e');
+      // Don't fail logout if FCM token removal fails
+    }
+
     await ref.read(storageServiceProvider).clearToken();
     state = const AsyncValue.data(null);
   }

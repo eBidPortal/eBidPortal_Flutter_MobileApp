@@ -2,6 +2,7 @@ import 'package:riverpod_annotation/riverpod_annotation.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:firebase_analytics/firebase_analytics.dart';
+import '../../../core/services/fcm_service.dart';
 import '../../../core/storage/storage_service.dart';
 import '../../auth/presentation/auth_provider.dart';
 
@@ -57,25 +58,34 @@ class Splash extends _$Splash {
 
   Future<void> _initializeFirebaseMessaging() async {
     try {
-      final messaging = FirebaseMessaging.instance;
-      
-      // Request permission for notifications (iOS)
-      final settings = await messaging.requestPermission(
-        alert: true,
-        announcement: false,
-        badge: true,
-        carPlay: false,
-        criticalAlert: false,
-        provisional: false,
-        sound: true,
-      );
+      final fcmService = ref.read(fcmServiceProvider);
 
-      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-        // Get FCM token
-        final token = await messaging.getToken();
-        // TODO: Send this token to your backend server
-        print('FCM Token: $token');
-        
+      // Request notification permissions
+      final hasPermission = await fcmService.requestPermission();
+
+      if (hasPermission) {
+        // Check if user is authenticated before registering FCM token
+        final authState = ref.read(authProvider);
+        final isAuthenticated = authState.maybeWhen(
+          data: (user) => user != null,
+          orElse: () => false,
+        );
+
+        if (isAuthenticated) {
+          // Only register FCM token if user is authenticated
+          final registered = await fcmService.registerToken();
+          if (registered) {
+            print('FCM token registered successfully with backend');
+          } else {
+            print('Failed to register FCM token with backend');
+          }
+        } else {
+          print('User not authenticated, skipping FCM token registration');
+        }
+
+        // Setup token refresh listener (always setup, even if not authenticated)
+        fcmService.setupTokenRefreshListener();
+
         // Handle foreground messages
         FirebaseMessaging.onMessage.listen((RemoteMessage message) {
           print('Got a message whilst in the foreground!');

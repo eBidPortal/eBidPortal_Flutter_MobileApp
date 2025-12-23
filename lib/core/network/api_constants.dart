@@ -41,6 +41,9 @@ class ApiConstants {
   static const String addToWatchlist = '/watchlist/{id}';
   static const String removeFromWatchlist = '/watchlist/{id}';
 
+  // Notification endpoints
+  static const String fcmToken = '/notifications/fcm-token';
+
   // HTTP Headers
   static const String contentTypeHeader = 'Content-Type';
   static const String authorizationHeader = 'Authorization';

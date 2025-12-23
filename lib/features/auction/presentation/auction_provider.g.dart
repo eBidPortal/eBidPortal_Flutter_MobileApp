@@ -407,7 +407,7 @@ class _AuctionBidsProviderElement
   String get auctionId => (origin as AuctionBidsProvider).auctionId;
 }
 
-String _$auctionListHash() => r'9dfacbfcc0679a7cc327098e49cd3081ed1ca871';
+String _$auctionListHash() => r'f35dac1d1d9d9b9fdf998dc2bdce1b6b17d0a8da';
 
 abstract class _$AuctionList
     extends BuildlessAutoDisposeAsyncNotifier<List<Auction>> {
