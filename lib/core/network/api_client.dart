@@ -195,7 +195,7 @@ class ApiClient {
       } else if (tokenData['expiry'] != null) {
         expiry = DateTime.parse(tokenData['expiry'] as String);
       } else {
-        expiry = DateTime.now().add(const Duration(hours: 1)); // Default 1 hour
+        expiry = DateTime.now().add(const Duration(days: 7)); // Default 7 days per API docs
       }
       
       // Save new tokens

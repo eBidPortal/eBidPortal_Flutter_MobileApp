@@ -142,4 +142,26 @@ class StorageService {
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(key);
   }
+
+  // FCM Token Management
+  static const String _fcmTokenKey = 'fcm_token';
+
+  Future<void> setFCMToken(String token) async {
+    print('💾 STORAGE: Setting FCM token (length: ${token.length})');
+    await _secureStorage.write(key: _fcmTokenKey, value: token);
+    print('💾 STORAGE: FCM token saved successfully');
+  }
+
+  Future<String?> getFCMToken() async {
+    print('💾 STORAGE: Retrieving FCM token...');
+    final token = await _secureStorage.read(key: _fcmTokenKey);
+    print('💾 STORAGE: FCM token retrieved: ${token != null ? "✅ Found" : "❌ None"}');
+    return token;
+  }
+
+  Future<void> clearFCMToken() async {
+    print('💾 STORAGE: Clearing FCM token...');
+    await _secureStorage.delete(key: _fcmTokenKey);
+    print('💾 STORAGE: FCM token cleared successfully');
+  }
 }
