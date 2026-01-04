@@ -27,30 +27,35 @@ class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
     // Listen for notification taps from FCM service
     WidgetsBinding.instance.addPostFrameCallback((_) {
       final fcmService = ref.read(enhancedFCMServiceProvider);
-      _notiSub = fcmService.notificationStream.listen((data) {
-        print("🔔 App: Received notification tap: $data");
-        try {
-          // Construct model from payload or API fetch needed?
-          // Assuming payload matches model roughly or we pass basic data
-          // Ideally fetch details, but for now passing payload data.
-          // Note: FCM data payload is Map<String, dynamic>. Field names might differ from JSON response.
-          // Adjust logic based on actual payload structure.
-          
-          final model = NotificationModel(
-             id: data['id'] ?? data['_id'] ?? '',
-             title: data['title'] ?? 'Notification',
-             message: data['message'] ?? data['body'] ?? '',
-             createdAt: DateTime.now(), // Payload usually lacks timestamp
-             type: data['type'],
-             data: data,
-          );
-          
-          context.push('/notification-details', extra: model);
-        } catch (e) {
-          print("🔔 App: Error processing notification nav: $e");
-        }
-      });
+      _notiSub = fcmService.notificationStream.listen(_handleNotificationData);
+      
+      // Check for pending notification (e.g. from app launch)
+      final pending = fcmService.consumeLastNotification();
+      if (pending != null) {
+        _handleNotificationData(pending);
+      }
     });
+  }
+
+  void _handleNotificationData(Map<String, dynamic> data) {
+    print("🔔 App: Received notification tap: $data");
+    try {
+      final model = NotificationModel(
+         id: data['id'] ?? data['_id'] ?? '',
+         title: data['title'] ?? 'Notification',
+         message: data['message'] ?? data['body'] ?? '',
+         createdAt: DateTime.now(),
+         type: data['type'],
+         data: data,
+         isRead: true, // Optimistically mark as read since user tapped it
+      );
+      
+      if (mounted) {
+         context.push('/notification-details', extra: model);
+      }
+    } catch (e) {
+      print("🔔 App: Error processing notification nav: $e");
+    }
   }
 
   @override

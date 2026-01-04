@@ -15,10 +15,17 @@ class EnhancedFCMService {
   final ApiClient _apiClient;
   final StorageService _storageService;
   final _notificationStreamController = StreamController<Map<String, dynamic>>.broadcast();
+  Map<String, dynamic>? _lastNotification;
 
   EnhancedFCMService(this._apiClient, this._storageService);
 
   Stream<Map<String, dynamic>> get notificationStream => _notificationStreamController.stream;
+
+  Map<String, dynamic>? consumeLastNotification() {
+    final data = _lastNotification;
+    _lastNotification = null;
+    return data;
+  }
 
   /// Initialize FCM service with permissions and handlers
   Future<void> initialize() async {
@@ -46,6 +53,26 @@ class EnhancedFCMService {
         print('🔔 FCM: Initialization complete');
       } else {
         print('🔔 FCM: Notification permissions denied');
+      }
+      
+      // Check for launch from local notification
+      final launchDetails = await _localNotifications.getNotificationAppLaunchDetails();
+      if (launchDetails != null && launchDetails.didNotificationLaunchApp) {
+        print('🔔 FCM: App launched from local notification');
+        final payload = launchDetails.notificationResponse?.payload;
+        if (payload != null) {
+           try {
+             final data = jsonDecode(payload);
+             if (data is Map<String, dynamic>) {
+               // Small delay to ensure listeners are ready
+               Future.delayed(const Duration(milliseconds: 500), () {
+                 _handleNotificationNavigation(data);
+               });
+             }
+           } catch (e) {
+             print('🔔 FCM: Error decoding launch payload: $e');
+           }
+        }
       }
     } catch (e) {
       print('🔔 FCM: Initialization error: $e');
@@ -260,6 +287,7 @@ class EnhancedFCMService {
 
   /// Handle navigation based on notification data
   Future<void> _handleNotificationNavigation(Map<String, dynamic> data) async {
+    _lastNotification = data;
     _notificationStreamController.add(data);
   }
 
