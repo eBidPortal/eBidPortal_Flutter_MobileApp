@@ -5030,6 +5030,21 @@ Both systems support:
 - ✅ User input storage in JSONB attributes columns
 - ✅ Schema retrieval endpoints for frontend dynamic forms
 
+#### Selling Product Flow
+
+The selling process follows a structured flow to ensure accurate product listing:
+
+1. **Initiate Sale via "Sell/Post"**
+   - User clicks the **Sell/Post** button from the bottom navigation.
+   - A **Sell Any Product** dialog box appears.
+
+2. **Category Selection**
+   - User selects the appropriate category for the item.
+
+3. **Template Loading**
+   - Upon category selection, the system **loads the specific templates** for that category.
+   - This step is mandatory as it retrieves the required information structure (fields, validation rules) necessary for listing items in that specific category.
+
 #### Get Category Schema for Selling
 
 **GET** `/api/v1/sell/category-schema/:category_id`
