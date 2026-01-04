@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:intl/intl.dart';
+import 'package:go_router/go_router.dart';
 import '../../../core/theme/app_theme.dart';
 import '../../../core/services/notification_service.dart';
 
@@ -147,7 +148,7 @@ class NotificationsScreen extends ConsumerWidget {
                     ),
                     const SizedBox(height: AppTheme.spacingSm),
                     Text(
-                      _formatTimestamp(notification.timestamp),
+                      _formatTimestamp(notification.createdAt),
                       style: TextStyle(
                         color: AppTheme.textMuted,
                         fontSize: 12,
@@ -215,17 +216,6 @@ class NotificationsScreen extends ConsumerWidget {
   }
 
   void _handleNotificationTap(BuildContext context, NotificationItem notification) {
-    // Handle different notification types
-    switch (notification.type) {
-      case 'bid':
-        // Navigate to auction details or bids
-        break;
-      case 'auction_ending':
-        // Navigate to auction details
-        break;
-      default:
-        // Stay on notifications screen
-        break;
-    }
+    context.push('/notification-details', extra: notification);
   }
 }

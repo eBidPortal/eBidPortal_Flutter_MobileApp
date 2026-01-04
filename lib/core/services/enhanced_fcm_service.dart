@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'dart:async';
 import 'dart:io';
 import '../network/api_client.dart';
 import '../storage/storage_service.dart';
@@ -12,8 +14,11 @@ class EnhancedFCMService {
   final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   final ApiClient _apiClient;
   final StorageService _storageService;
+  final _notificationStreamController = StreamController<Map<String, dynamic>>.broadcast();
 
   EnhancedFCMService(this._apiClient, this._storageService);
+
+  Stream<Map<String, dynamic>> get notificationStream => _notificationStreamController.stream;
 
   /// Initialize FCM service with permissions and handlers
   Future<void> initialize() async {
@@ -172,8 +177,15 @@ class EnhancedFCMService {
     print('🔔 FCM: Background message opened');
     print('🔔 FCM: Data: ${message.data}');
     
+    // Enrich payload
+    final payloadData = Map<String, dynamic>.from(message.data);
+    if (message.notification != null) {
+      payloadData['title'] ??= message.notification!.title;
+      payloadData['message'] ??= message.notification!.body;
+    }
+    
     // Navigate to appropriate screen based on notification type
-    await _handleNotificationNavigation(message.data);
+    await _handleNotificationNavigation(payloadData);
   }
 
   /// Handle messages when app opened from terminated state
@@ -181,18 +193,25 @@ class EnhancedFCMService {
     print('🔔 FCM: Terminated message opened');
     print('🔔 FCM: Data: ${message.data}');
     
+    // Enrich payload
+    final payloadData = Map<String, dynamic>.from(message.data);
+    if (message.notification != null) {
+      payloadData['title'] ??= message.notification!.title;
+      payloadData['message'] ??= message.notification!.body;
+    }
+    
     // Navigate to appropriate screen
-    await _handleNotificationNavigation(message.data);
+    await _handleNotificationNavigation(payloadData);
   }
 
   /// Show local notification for foreground messages
   Future<void> _showLocalNotification(RemoteMessage message) async {
     const androidDetails = AndroidNotificationDetails(
-      'ebidportal_channel',
+      'ebidportal_channel_high_importance', // Updated ID
       'eBidPortal Notifications',
       channelDescription: 'Notifications for auctions, bids, and updates',
-      importance: Importance.high,
-      priority: Priority.high,
+      importance: Importance.max,
+      priority: Priority.max,
       showWhen: true,
     );
 
@@ -207,12 +226,19 @@ class EnhancedFCMService {
       iOS: iosDetails,
     );
 
+    // Prepare payload by merging data and notification content
+    final payloadData = Map<String, dynamic>.from(message.data);
+    if (message.notification != null) {
+      payloadData['title'] ??= message.notification!.title;
+      payloadData['message'] ??= message.notification!.body;
+    }
+
     await _localNotifications.show(
       message.hashCode,
       message.notification?.title ?? 'eBidPortal',
       message.notification?.body ?? '',
       details,
-      payload: message.data.toString(),
+      payload: jsonEncode(payloadData),
     );
   }
 
@@ -221,43 +247,20 @@ class EnhancedFCMService {
     print('🔔 FCM: Notification tapped: ${response.payload}');
     // Parse payload and navigate
     if (response.payload != null) {
-      // TODO: Implement navigation based on payload
+      try {
+        final data = jsonDecode(response.payload!);
+        if (data is Map<String, dynamic>) {
+          _handleNotificationNavigation(data);
+        }
+      } catch (e) {
+        print('🔔 FCM: Error decoding notification payload: $e');
+      }
     }
   }
 
   /// Handle navigation based on notification data
   Future<void> _handleNotificationNavigation(Map<String, dynamic> data) async {
-    final type = data['type'] as String?;
-    final id = data['id'] as String?;
-
-    print('🔔 FCM: Navigating to type: $type, id: $id');
-
-    switch (type) {
-      case 'bid_update':
-      case 'outbid':
-      case 'winning':
-        // Navigate to auction details
-        print('🔔 FCM: Navigate to auction: $id');
-        break;
-      case 'auction_ending_soon':
-        // Navigate to auction details
-        print('🔔 FCM: Navigate to ending auction: $id');
-        break;
-      case 'auction_ended':
-        // Navigate to auction results
-        print('🔔 FCM: Navigate to ended auction: $id');
-        break;
-      case 'message':
-        // Navigate to messages
-        print('🔔 FCM: Navigate to messages');
-        break;
-      case 'watchlist':
-        // Navigate to watchlist
-        print('🔔 FCM: Navigate to watchlist');
-        break;
-      default:
-        print('🔔 FCM: Unknown notification type: $type');
-    }
+    _notificationStreamController.add(data);
   }
 
   /// Update notification preferences on backend

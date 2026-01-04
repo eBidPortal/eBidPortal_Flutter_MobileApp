@@ -1,109 +1,56 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import '../../features/notifications/data/notification_repository.dart';
+import '../../features/notifications/domain/notification_model.dart';
 
-class NotificationItem {
-  final String id;
-  final String title;
-  final String message;
-  final DateTime timestamp;
-  final bool isRead;
-  final String? type; // 'bid', 'auction_ended', 'system', etc.
+export '../../features/notifications/domain/notification_model.dart';
 
-  const NotificationItem({
-    required this.id,
-    required this.title,
-    required this.message,
-    required this.timestamp,
-    this.isRead = false,
-    this.type,
-  });
+// Alias for backward compatibility during refactor (though properties differ)
+typedef NotificationItem = NotificationModel;
 
-  NotificationItem copyWith({
-    String? id,
-    String? title,
-    String? message,
-    DateTime? timestamp,
-    bool? isRead,
-    String? type,
-  }) {
-    return NotificationItem(
-      id: id ?? this.id,
-      title: title ?? this.title,
-      message: message ?? this.message,
-      timestamp: timestamp ?? this.timestamp,
-      isRead: isRead ?? this.isRead,
-      type: type ?? this.type,
-    );
-  }
-}
-
-class NotificationService {
-  // Mock data for now - in real app, this would come from API
-  List<NotificationItem> getMockNotifications() {
-    return [
-      NotificationItem(
-        id: '1',
-        title: 'New Bid Received',
-        message: 'Someone placed a bid on your Rolex auction',
-        timestamp: DateTime.now().subtract(const Duration(minutes: 5)),
-        isRead: false,
-        type: 'bid',
-      ),
-      NotificationItem(
-        id: '2',
-        title: 'Auction Ending Soon',
-        message: 'Your iPhone auction ends in 1 hour',
-        timestamp: DateTime.now().subtract(const Duration(hours: 2)),
-        isRead: false,
-        type: 'auction_ending',
-      ),
-      NotificationItem(
-        id: '3',
-        title: 'Welcome to eBidPortal',
-        message: 'Thanks for joining! Start exploring auctions now.',
-        timestamp: DateTime.now().subtract(const Duration(days: 1)),
-        isRead: true,
-        type: 'system',
-      ),
-    ];
-  }
-
-  int getUnreadCount(List<NotificationItem> notifications) {
-    return notifications.where((n) => !n.isRead).length;
-  }
-}
-
-final notificationServiceProvider = Provider<NotificationService>((ref) {
-  return NotificationService();
+final notificationsProvider = StateNotifierProvider<NotificationNotifier, List<NotificationModel>>((ref) {
+  final repository = ref.watch(notificationRepositoryProvider);
+  return NotificationNotifier(repository);
 });
 
-final notificationsProvider = StateNotifierProvider<NotificationNotifier, List<NotificationItem>>((ref) {
-  final service = ref.watch(notificationServiceProvider);
-  return NotificationNotifier(service);
-});
+class NotificationNotifier extends StateNotifier<List<NotificationModel>> {
+  final NotificationRepository _repository;
 
-class NotificationNotifier extends StateNotifier<List<NotificationItem>> {
-  final NotificationService _service;
-
-  NotificationNotifier(this._service) : super([]) {
-    loadNotifications();
+  NotificationNotifier(this._repository) : super([]) {
+    refreshNotifications();
   }
 
-  void loadNotifications() {
-    state = _service.getMockNotifications();
+  Future<void> refreshNotifications() async {
+    try {
+      final notifications = await _repository.getNotifications();
+      state = notifications;
+    } catch (e) {
+      print('Failed to refresh notifications: $e');
+    }
   }
 
-  void markAsRead(String notificationId) {
-    state = state.map((notification) {
-      if (notification.id == notificationId) {
-        return notification.copyWith(isRead: true);
-      }
-      return notification;
+  Future<void> markAsRead(String id) async {
+    // Optimistic update
+    state = state.map((n) {
+      if (n.id == id) return n.copyWith(isRead: true);
+      return n;
     }).toList();
+
+    try {
+      await _repository.markAsRead(id);
+    } catch (e) {
+      // Revert if failed (optional, but good practice)
+      print('Failed to mark as read: $e');
+    }
   }
 
-  void markAllAsRead() {
-    state = state.map((notification) => notification.copyWith(isRead: true)).toList();
+  Future<void> markAllAsRead() async {
+    state = state.map((n) => n.copyWith(isRead: true)).toList();
+    try {
+      await _repository.markAllAsRead();
+    } catch (e) {
+      print('Failed to mark all as read: $e');
+    }
   }
 
-  int get unreadCount => _service.getUnreadCount(state);
+  int get unreadCount => state.where((n) => !n.isRead).length;
 }

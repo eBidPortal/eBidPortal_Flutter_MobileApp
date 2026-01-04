@@ -1,8 +1,12 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../core/theme/app_theme.dart';
+import '../../core/services/enhanced_fcm_service.dart';
+import '../../features/notifications/domain/notification_model.dart';
 
-class ScaffoldWithNavBar extends StatefulWidget {
+class ScaffoldWithNavBar extends ConsumerStatefulWidget {
   const ScaffoldWithNavBar({
     required this.navigationShell,
     super.key,
@@ -12,17 +16,46 @@ class ScaffoldWithNavBar extends StatefulWidget {
   final StatefulNavigationShell navigationShell;
 
   @override
-  State<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
+  ConsumerState<ScaffoldWithNavBar> createState() => _ScaffoldWithNavBarState();
 }
 
-class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
+class _ScaffoldWithNavBarState extends ConsumerState<ScaffoldWithNavBar> {
+  StreamSubscription? _notiSub;
   @override
   void initState() {
     super.initState();
+    // Listen for notification taps from FCM service
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      final fcmService = ref.read(enhancedFCMServiceProvider);
+      _notiSub = fcmService.notificationStream.listen((data) {
+        print("🔔 App: Received notification tap: $data");
+        try {
+          // Construct model from payload or API fetch needed?
+          // Assuming payload matches model roughly or we pass basic data
+          // Ideally fetch details, but for now passing payload data.
+          // Note: FCM data payload is Map<String, dynamic>. Field names might differ from JSON response.
+          // Adjust logic based on actual payload structure.
+          
+          final model = NotificationModel(
+             id: data['id'] ?? data['_id'] ?? '',
+             title: data['title'] ?? 'Notification',
+             message: data['message'] ?? data['body'] ?? '',
+             createdAt: DateTime.now(), // Payload usually lacks timestamp
+             type: data['type'],
+             data: data,
+          );
+          
+          context.push('/notification-details', extra: model);
+        } catch (e) {
+          print("🔔 App: Error processing notification nav: $e");
+        }
+      });
+    });
   }
 
   @override
   void dispose() {
+    _notiSub?.cancel();
     super.dispose();
   }
 

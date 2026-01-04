@@ -27,6 +27,8 @@ import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/auction/presentation/watchlist/watchlist_screen.dart';
 import '../../features/product/presentation/create_product/create_product_screen.dart';
 import '../../features/product/presentation/my_products/my_products_screen.dart';
+import '../../features/notifications/presentation/notification_details_screen.dart';
+import '../../features/notifications/domain/notification_model.dart';
 import 'scaffold_with_navbar.dart';
 
 class AuthListenable extends ChangeNotifier {
@@ -310,6 +312,15 @@ final routerProvider = Provider<GoRouter>((ref) {
         builder: (context, state) {
           final category = state.extra as Category?;
           return CreateProductScreen(initialCategory: category);
+        },
+      ),
+      GoRoute(
+        path: '/notification-details',
+        name: 'notification-details',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final notification = state.extra as NotificationModel;
+          return NotificationDetailsScreen(notification: notification);
         },
       ),
       // Auction Search
