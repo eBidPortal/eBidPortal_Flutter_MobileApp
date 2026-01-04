@@ -322,7 +322,13 @@ class _CategorySelectionScreenState extends ConsumerState<CategorySelectionScree
   void _proceedToForm() {
     if (_selectedCategory == null) return;
 
-    // Navigate to the create auction screen with the selected category
-    context.push('/create-auction', extra: _selectedCategory);
+    final uri = GoRouterState.of(context).uri;
+    final type = uri.queryParameters['type'];
+
+    if (type == 'product') {
+      context.push('/create-product', extra: _selectedCategory);
+    } else {
+      context.push('/create-auction', extra: _selectedCategory);
+    }
   }
 }

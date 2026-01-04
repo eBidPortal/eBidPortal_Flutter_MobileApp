@@ -25,6 +25,8 @@ import '../../features/auction/presentation/create_auction/widgets/category_sele
 import '../../features/auction/presentation/create_auction/widgets/category_schema_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/auction/presentation/watchlist/watchlist_screen.dart';
+import '../../features/product/presentation/create_product/create_product_screen.dart';
+import '../../features/product/presentation/my_products/my_products_screen.dart';
 import 'scaffold_with_navbar.dart';
 
 class AuthListenable extends ChangeNotifier {
@@ -293,6 +295,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         name: 'my-auctions',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const MyAuctionsScreen(),
+      ),
+      // My Products Management
+      GoRoute(
+        path: '/my-products',
+        name: 'my-products',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) => const MyProductsScreen(),
+      ),
+      GoRoute(
+        path: '/create-product',
+        name: 'create-product',
+        parentNavigatorKey: rootNavigatorKey,
+        builder: (context, state) {
+          final category = state.extra as Category?;
+          return CreateProductScreen(initialCategory: category);
+        },
       ),
       // Auction Search
       GoRoute(
