@@ -160,12 +160,24 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
               ),
               const SizedBox(height: AppTheme.spacingXl),
               Text(
-                'Auction Management',
+                'Selling & Auctions',
                 style: Theme.of(context).textTheme.titleLarge?.copyWith(
                   fontWeight: FontWeight.bold,
                 ),
               ),
               const SizedBox(height: AppTheme.spacingXl),
+              _buildCreateOption(
+                context,
+                icon: Icons.sell,
+                title: 'Sell Any Product',
+                subtitle: 'List a product for direct sale',
+                color: Colors.orange,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.push('/select-category?type=product');
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
               _buildCreateOption(
                 context,
                 icon: Icons.gavel,
@@ -174,7 +186,19 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                 color: AppTheme.primaryColor,
                 onTap: () {
                   Navigator.of(context).pop();
-                  context.push('/select-category');
+                  context.push('/select-category?type=auction');
+                },
+              ),
+              const SizedBox(height: AppTheme.spacingMd),
+              _buildCreateOption(
+                context,
+                icon: Icons.inventory_2,
+                title: 'My Products',
+                subtitle: 'Manage your direct sale listings',
+                color: Colors.teal,
+                onTap: () {
+                  Navigator.of(context).pop();
+                  context.push('/my-products');
                 },
               ),
               const SizedBox(height: AppTheme.spacingMd),
@@ -189,18 +213,7 @@ class _ScaffoldWithNavBarState extends State<ScaffoldWithNavBar> {
                   context.push('/my-auctions');
                 },
               ),
-              const SizedBox(height: AppTheme.spacingMd),
-              _buildCreateOption(
-                context,
-                icon: Icons.search,
-                title: 'Browse All Auctions',
-                subtitle: 'Search and filter live auctions',
-                color: Colors.green,
-                onTap: () {
-                  Navigator.of(context).pop();
-                  widget.navigationShell.goBranch(2); // Go to auctions tab
-                },
-              ),
+
               const SizedBox(height: AppTheme.spacingXl),
             ],
           ),
