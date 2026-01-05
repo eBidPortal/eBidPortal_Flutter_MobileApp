@@ -68,19 +68,23 @@ class Auction {
         dynamicAttributes: json['dynamic_attributes'] is Map<String, dynamic> 
             ? json['dynamic_attributes'] 
             : {},
-        startPrice: _parseDouble(json['start_price']) ?? 0.0,
-        currentPrice: _parseDouble(json['current_price']) ?? 0.0,
-        reservePrice: _parseDouble(json['reserve_price']),
+        startPrice: _parseDouble(json['start_price']) ?? _parseDouble(json['dynamic_attributes']?['start_price']) ?? _parseDouble(json['dynamic_attributes']?['price']) ?? 0.0,
+        currentPrice: _parseDouble(json['current_price']) ?? _parseDouble(json['dynamic_attributes']?['current_price']) ?? 0.0,
+        reservePrice: _parseDouble(json['reserve_price']) ?? _parseDouble(json['dynamic_attributes']?['reserve_price']),
         startTime: json['start_time'] != null 
             ? DateTime.parse(json['start_time']) 
             : json['startTime'] != null 
                 ? DateTime.parse(json['startTime']) 
-                : DateTime.now(),
+                : json['dynamic_attributes']?['start_time'] != null
+                    ? DateTime.parse(json['dynamic_attributes']!['start_time'])
+                    : DateTime.now(),
         endTime: json['end_time'] != null 
             ? DateTime.parse(json['end_time']) 
             : json['endTime'] != null 
                 ? DateTime.parse(json['endTime']) 
-                : DateTime.now().add(const Duration(days: 7)),
+                : json['dynamic_attributes']?['end_time'] != null
+                    ? DateTime.parse(json['dynamic_attributes']!['end_time'])
+                    : DateTime.now().add(const Duration(days: 7)),
         status: AuctionStatus.values.firstWhere(
           (e) => e.name == json['status'],
           orElse: () => AuctionStatus.pending,
@@ -91,10 +95,12 @@ class Auction {
         ),
         tags: json['tags'] is List 
             ? List<String>.from(json['tags']) 
-            : json['tags'] is String 
-                ? [json['tags']] 
-                : [],
-        returnPolicy: json['return_policy'],
+            : json['dynamic_attributes']?['tags'] is List
+                ? List<String>.from(json['dynamic_attributes']!['tags'])
+                : json['tags'] is String 
+                    ? [json['tags']] 
+                    : [],
+        returnPolicy: json['return_policy'] ?? json['dynamic_attributes']?['return_policy'],
         createdAt: json['created_at'] != null 
             ? DateTime.parse(json['created_at']) 
             : json['createdAt'] != null 
@@ -106,15 +112,17 @@ class Auction {
                 ? DateTime.parse(json['updatedAt']) 
                 : DateTime.now(),
         // Professional auction fields
-        authenticationRequired: json['authentication_required'],
-        shippingIncluded: json['shipping_included'],
-        bidIncrement: _parseDouble(json['bid_increment']),
-        commissionRate: _parseDouble(json['commission_rate']),
-        buyerPremium: _parseDouble(json['buyer_premium']),
-        timezone: json['timezone'],
+        authenticationRequired: json['authentication_required'] ?? json['dynamic_attributes']?['authentication_required'],
+        shippingIncluded: json['shipping_included'] ?? json['dynamic_attributes']?['shipping_included'],
+        bidIncrement: _parseDouble(json['bid_increment']) ?? _parseDouble(json['dynamic_attributes']?['bid_increment']),
+        commissionRate: _parseDouble(json['commission_rate']) ?? _parseDouble(json['dynamic_attributes']?['commission_rate']),
+        buyerPremium: _parseDouble(json['buyer_premium']) ?? _parseDouble(json['dynamic_attributes']?['buyer_premium']),
+        timezone: json['timezone'] ?? json['dynamic_attributes']?['timezone'],
         paymentTerms: json['payment_terms'] is Map<String, dynamic> 
             ? json['payment_terms'] 
-            : null,
+            : json['dynamic_attributes']?['payment_terms'] is Map<String, dynamic>
+                ? json['dynamic_attributes']!['payment_terms']
+                : null,
         lotNumber: json['lot_number'],
         conditionReport: _parseConditionReport(json['condition_report']),
         biddingRules: _parseBiddingRules(

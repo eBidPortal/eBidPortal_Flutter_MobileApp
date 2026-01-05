@@ -44,23 +44,22 @@ class ApiClient {
             '🌐 API_CLIENT: Making ${options.method} request to: ${options.uri}',
           );
           print('🌐 API_CLIENT: Headers: ${options.headers}');
+          if (options.data != null) {
+            print('🌐 API_CLIENT: Request Body: ${options.data}');
+          }
           return handler.next(options);
         },
         onResponse: (response, handler) {
           print(
-            '🌐 API_CLIENT: Response received - Status: ${response.statusCode}',
+            '🌐 API_CLIENT: Response Received - Status: ${response.statusCode}',
           );
-          print(
-            '🌐 API_CLIENT: Response data type: ${response.data.runtimeType}',
-          );
-          print('🌐 API_CLIENT: Response data: ${response.data}');
+          print('🌐 API_CLIENT: Response Data: ${response.data}');
           return handler.next(response);
         },
         onError: (DioException e, handler) async {
-          print('🌐 API_CLIENT: Error occurred - ${e.message}');
-          print('🌐 API_CLIENT: Error type: ${e.type}');
-          print('🌐 API_CLIENT: Error response: ${e.response?.data}');
-          print('🌐 API_CLIENT: Error status: ${e.response?.statusCode}');
+          print('🌐 API_CLIENT: Error Occurred - ${e.message}');
+          print('🌐 API_CLIENT: Error Status: ${e.response?.statusCode}');
+          print('🌐 API_CLIENT: Error Response: ${e.response?.data}');
 
           // Handle 401 Unauthorized - Try token refresh first
           if (e.response?.statusCode == 401) {

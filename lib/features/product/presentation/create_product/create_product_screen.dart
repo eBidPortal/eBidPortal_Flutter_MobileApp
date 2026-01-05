@@ -18,16 +18,12 @@ class CreateProductScreen extends ConsumerStatefulWidget {
 
 class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
   final _formKey = GlobalKey<FormState>();
-  final _titleController = TextEditingController();
-  final _descriptionController = TextEditingController();
-  final _priceController = TextEditingController();
-  final _quantityController = TextEditingController(text: '1');
-  bool _isLoading = false;
-
-  // Dynamic form data
-  Map<String, dynamic> _dynamicAttributes = {};
+  
+  // All data now comes from template fields
+  Map<String, dynamic> _formData = {};
   List<File> _selectedImages = [];
   Map<String, dynamic>? _locationData;
+  bool _isLoading = false;
 
   // Template loading state
   CategoryTemplate? _template;
@@ -43,10 +39,6 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
 
   @override
   void dispose() {
-    _titleController.dispose();
-    _descriptionController.dispose();
-    _priceController.dispose();
-    _quantityController.dispose();
     super.dispose();
   }
 
@@ -99,7 +91,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         _locationData = {
           'latitude': position.latitude,
           'longitude': position.longitude,
-          'city': 'Current Location', // You might want to reverse geocode this
+          'city': 'Current Location',
           'state': '',
           'country': 'India',
         };
@@ -127,21 +119,24 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
     setState(() => _isLoading = true);
 
     try {
+      // Map template fields to API fields as per v3.2.8 Unified API
       final productData = {
-        'productName': _titleController.text, // API expects productName
-        'description': _descriptionController.text,
-        'product_price': double.parse(_priceController.text), // API expects product_price
-        'quantity': int.parse(_quantityController.text),
         'category_id': widget.initialCategory!.id,
-        'currency': 'INR',
-        'condition': 'new', // Default to new
-        'images': _selectedImages.isNotEmpty 
-          ? _selectedImages.map((file) => 'uploaded://${file.path}').toList() // Placeholder for uploaded URLs
-          : [],
-        'dynamic_attributes': _dynamicAttributes,
+        'status': 'pending',
         if (_locationData != null) 'location': _locationData,
-        'shipping_included': true, // Default
-        'status': 'pending', // Products start as pending
+        if (_selectedImages.isNotEmpty) 
+          'images': _selectedImages.map((file) => 'uploaded://${file.path}').toList(),
+        
+        // All form data and common fields go to dynamic_attributes for extraction
+        'dynamic_attributes': {
+          ..._formData,
+          'currency': 'INR',
+          'condition': _formData['condition'] ?? 'new',
+          'shipping_included': _formData['shipping_included'] ?? true,
+          if (_locationData != null) 'location': _locationData,
+          if (_selectedImages.isNotEmpty) 
+            'images': _selectedImages.map((file) => 'uploaded://${file.path}').toList(),
+        },
       };
 
       await ref.read(productRepositoryProvider).createProduct(productData);
@@ -188,161 +183,16 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
                   ),
                 ),
               
-              const Text('Product Details', style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 16),
-              
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Product Name',
-                  border: OutlineInputBorder(),
-                  hintText: 'e.g. iPhone 15 Pro Max',
-                ),
-                validator: (value) => value?.isEmpty ?? true ? 'Please enter a name' : null,
-              ),
-              const SizedBox(height: 16),
-              
-              TextFormField(
-                controller: _descriptionController,
-                decoration: const InputDecoration(
-                  labelText: 'Description',
-                  border: OutlineInputBorder(),
-                  alignLabelWithHint: true,
-                ),
-                maxLines: 4,
-                validator: (value) => value?.isEmpty ?? true ? 'Please enter a description' : null,
-              ),
-              const SizedBox(height: 16),
-              
-              Row(
-                children: [
-                  Expanded(
-                    child: TextFormField(
-                      controller: _priceController,
-                      decoration: const InputDecoration(
-                        labelText: 'Price',
-                        border: OutlineInputBorder(),
-                        prefixText: '₹ ',
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                         if (value == null || value.isEmpty) return 'Required';
-                         if (double.tryParse(value) == null) return 'Invalid price';
-                         return null;
-                      },
-                    ),
-                  ),
-                  const SizedBox(width: 16),
-                  Expanded(
-                    child: TextFormField(
-                      controller: _quantityController,
-                      decoration: const InputDecoration(
-                        labelText: 'Quantity',
-                        border: OutlineInputBorder(),
-                      ),
-                      keyboardType: TextInputType.number,
-                      validator: (value) {
-                         if (value == null || value.isEmpty) return 'Required';
-                         if (int.tryParse(value) == null) return 'Invalid quantity';
-                         return null;
-                      },
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 24),
-
-              // Image Upload Section
-              const Text('Images', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _pickImages,
-                    icon: const Icon(Icons.photo_library),
-                    label: const Text('Add Images'),
-                  ),
-                  const SizedBox(width: 16),
-                  Text('${_selectedImages.length} selected'),
-                ],
-              ),
-              if (_selectedImages.isNotEmpty) ...[
-                const SizedBox(height: 8),
-                SizedBox(
-                  height: 100,
-                  child: ListView.builder(
-                    scrollDirection: Axis.horizontal,
-                    itemCount: _selectedImages.length,
-                    itemBuilder: (context, index) {
-                      return Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        width: 80,
-                        height: 80,
-                        decoration: BoxDecoration(
-                          border: Border.all(color: Colors.grey),
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Stack(
-                          children: [
-                            ClipRRect(
-                              borderRadius: BorderRadius.circular(8),
-                              child: Image.file(
-                                _selectedImages[index],
-                                fit: BoxFit.cover,
-                                width: 80,
-                                height: 80,
-                              ),
-                            ),
-                            Positioned(
-                              top: 0,
-                              right: 0,
-                              child: IconButton(
-                                icon: const Icon(Icons.close, size: 16),
-                                onPressed: () {
-                                  setState(() {
-                                    _selectedImages.removeAt(index);
-                                  });
-                                },
-                              ),
-                            ),
-                          ],
-                        ),
-                      );
-                    },
-                  ),
-                ),
-              ],
-              const SizedBox(height: 24),
-
-              // Location Section
-              const Text('Location', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              const SizedBox(height: 8),
-              Row(
-                children: [
-                  ElevatedButton.icon(
-                    onPressed: _getCurrentLocation,
-                    icon: const Icon(Icons.location_on),
-                    label: const Text('Use Current Location'),
-                  ),
-                  const SizedBox(width: 16),
-                  if (_locationData != null)
-                    const Icon(Icons.check_circle, color: Colors.green),
-                ],
-              ),
-              if (_locationData != null) ...[
-                const SizedBox(height: 8),
-                Text('Location: ${_locationData!['city']}, ${_locationData!['state']}'),
-              ],
-              const SizedBox(height: 24),
-
-              // Dynamic Attributes Section
+              // Template-based form fields
               if (_isLoadingTemplate)
                 const Center(child: CircularProgressIndicator())
               else if (_template != null) ...[
-                const Text('Additional Details', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-                const SizedBox(height: 16),
                 ..._buildDynamicFormFields(),
                 const SizedBox(height: 24),
+              ] else ...[
+                const Center(
+                  child: Text('No template available for this category'),
+                ),
               ],
 
               SizedBox(
@@ -400,14 +250,14 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: TextFormField(
-            initialValue: _dynamicAttributes[fieldKey]?.toString() ?? '',
+            initialValue: _formData[fieldKey]?.toString() ?? '',
             decoration: InputDecoration(
               labelText: field.label,
               border: const OutlineInputBorder(),
               hintText: placeholder,
             ),
             validator: field.required ? (value) => value?.isEmpty ?? true ? 'Required' : null : null,
-            onChanged: (value) => _dynamicAttributes[fieldKey] = value,
+            onChanged: (value) => _formData[fieldKey] = value,
           ),
         );
       
@@ -415,7 +265,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: TextFormField(
-            initialValue: _dynamicAttributes[fieldKey]?.toString() ?? '',
+            initialValue: _formData[fieldKey]?.toString() ?? '',
             decoration: InputDecoration(
               labelText: field.label,
               border: const OutlineInputBorder(),
@@ -424,7 +274,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             ),
             maxLines: 4,
             validator: field.required ? (value) => value?.isEmpty ?? true ? 'Required' : null : null,
-            onChanged: (value) => _dynamicAttributes[fieldKey] = value,
+            onChanged: (value) => _formData[fieldKey] = value,
           ),
         );
       
@@ -432,7 +282,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: TextFormField(
-            initialValue: _dynamicAttributes[fieldKey]?.toString() ?? '',
+            initialValue: _formData[fieldKey]?.toString() ?? '',
             decoration: InputDecoration(
               labelText: field.label,
               border: const OutlineInputBorder(),
@@ -440,7 +290,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
             ),
             keyboardType: TextInputType.number,
             validator: field.required ? (value) => value?.isEmpty ?? true ? 'Required' : null : null,
-            onChanged: (value) => _dynamicAttributes[fieldKey] = double.tryParse(value) ?? value,
+            onChanged: (value) => _formData[fieldKey] = double.tryParse(value) ?? value,
           ),
         );
       
@@ -449,7 +299,7 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: DropdownButtonFormField<String>(
-            value: _dynamicAttributes[fieldKey],
+            initialValue: _formData[fieldKey],
             decoration: InputDecoration(
               labelText: field.label,
               border: const OutlineInputBorder(),
@@ -460,7 +310,100 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
               return DropdownMenuItem<String>(value: value, child: Text(label));
             }).toList(),
             validator: field.required ? (value) => value == null ? 'Required' : null : null,
-            onChanged: (value) => setState(() => _dynamicAttributes[fieldKey] = value),
+            onChanged: (value) => setState(() => _formData[fieldKey] = value),
+          ),
+        );
+      
+      case 'images':
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _pickImages,
+                    icon: const Icon(Icons.photo_library),
+                    label: Text(field.label),
+                  ),
+                  const SizedBox(width: 16),
+                  Text('${_selectedImages.length} selected'),
+                ],
+              ),
+              if (_selectedImages.isNotEmpty) ...[
+                const SizedBox(height: 8),
+                SizedBox(
+                  height: 100,
+                  child: ListView.builder(
+                    scrollDirection: Axis.horizontal,
+                    itemCount: _selectedImages.length,
+                    itemBuilder: (context, index) {
+                      return Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          border: Border.all(color: Colors.grey),
+                          borderRadius: BorderRadius.circular(8),
+                        ),
+                        child: Stack(
+                          children: [
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(8),
+                              child: Image.file(
+                                _selectedImages[index],
+                                fit: BoxFit.cover,
+                                width: 80,
+                                height: 80,
+                              ),
+                            ),
+                            Positioned(
+                              top: 0,
+                              right: 0,
+                              child: IconButton(
+                                icon: const Icon(Icons.close, size: 16),
+                                onPressed: () {
+                                  setState(() {
+                                    _selectedImages.removeAt(index);
+                                  });
+                                },
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+                ),
+              ],
+            ],
+          ),
+        );
+      
+      case 'location':
+        return Padding(
+          padding: const EdgeInsets.only(bottom: 16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  ElevatedButton.icon(
+                    onPressed: _getCurrentLocation,
+                    icon: const Icon(Icons.location_on),
+                    label: Text(field.label),
+                  ),
+                  const SizedBox(width: 16),
+                  if (_locationData != null)
+                    const Icon(Icons.check_circle, color: Colors.green),
+                ],
+              ),
+              if (_locationData != null) ...[
+                const SizedBox(height: 8),
+                Text('Location: ${_locationData!['city']}, ${_locationData!['state']}'),
+              ],
+            ],
           ),
         );
       
@@ -468,14 +411,14 @@ class _CreateProductScreenState extends ConsumerState<CreateProductScreen> {
         return Padding(
           padding: const EdgeInsets.only(bottom: 16),
           child: TextFormField(
-            initialValue: _dynamicAttributes[fieldKey]?.toString() ?? '',
+            initialValue: _formData[fieldKey]?.toString() ?? '',
             decoration: InputDecoration(
               labelText: field.label,
               border: const OutlineInputBorder(),
               hintText: placeholder,
             ),
             validator: field.required ? (value) => value?.isEmpty ?? true ? 'Required' : null : null,
-            onChanged: (value) => _dynamicAttributes[fieldKey] = value,
+            onChanged: (value) => _formData[fieldKey] = value,
           ),
         );
     }
