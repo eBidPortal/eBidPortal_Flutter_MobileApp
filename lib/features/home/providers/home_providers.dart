@@ -2,8 +2,10 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:dio/dio.dart';
 import '../../../core/network/api_client.dart';
 import '../../auction/domain/auction.dart';
+import '../../product/domain/product.dart';
 import '../../catalog/domain/category.dart';
 import '../../auth/presentation/auth_provider.dart';
+import '../../../core/providers/location_provider.dart';
 import '../data/home_service.dart';
 
 // Service Provider
@@ -17,16 +19,20 @@ class HomeData {
   final List<Auction> featuredAuctions;
   final List<Auction> endingSoonAuctions;
   final List<Category> trendingCategories;
+  final List<Product> nearbyProducts;
   final Map<String, dynamic> stats;
   final bool isLoading;
+  final bool isNearbyLoading;
   final String? error;
 
   HomeData({
     required this.featuredAuctions,
     required this.endingSoonAuctions,
     required this.trendingCategories,
+    required this.nearbyProducts,
     required this.stats,
     this.isLoading = false,
+    this.isNearbyLoading = false,
     this.error,
   });
 
@@ -34,16 +40,20 @@ class HomeData {
     List<Auction>? featuredAuctions,
     List<Auction>? endingSoonAuctions,
     List<Category>? trendingCategories,
+    List<Product>? nearbyProducts,
     Map<String, dynamic>? stats,
     bool? isLoading,
+    bool? isNearbyLoading,
     String? error,
   }) {
     return HomeData(
       featuredAuctions: featuredAuctions ?? this.featuredAuctions,
       endingSoonAuctions: endingSoonAuctions ?? this.endingSoonAuctions,
       trendingCategories: trendingCategories ?? this.trendingCategories,
+      nearbyProducts: nearbyProducts ?? this.nearbyProducts,
       stats: stats ?? this.stats,
       isLoading: isLoading ?? this.isLoading,
+      isNearbyLoading: isNearbyLoading ?? this.isNearbyLoading,
       error: error ?? this.error,
     );
   }
@@ -53,8 +63,10 @@ class HomeData {
       featuredAuctions: [],
       endingSoonAuctions: [],
       trendingCategories: [],
+      nearbyProducts: [],
       stats: {},
       isLoading: true,
+      isNearbyLoading: false,
     );
   }
 }
@@ -79,7 +91,32 @@ class HomeDataNotifier extends StateNotifier<HomeData> {
         loadHomeData();
       }
     });
+
+    // Watch location state and load nearby products when location is available
+    _ref.listen(locationProvider, (previous, next) {
+      if (next.position != null && (previous?.position == null || previous?.position?.latitude != next.position?.latitude)) {
+        loadNearbyProducts(next.position!.latitude, next.position!.longitude);
+      }
+    });
+
     loadHomeData();
+    
+    // Initial check for location if already available
+    final location = _ref.read(locationProvider);
+    if (location.position != null) {
+      loadNearbyProducts(location.position!.latitude, location.position!.longitude);
+    }
+  }
+
+  Future<void> loadNearbyProducts(double lat, double lon) async {
+    state = state.copyWith(isNearbyLoading: true);
+    try {
+      final nearby = await _homeService.getNearbyProducts(latitude: lat, longitude: lon);
+      state = state.copyWith(nearbyProducts: nearby, isNearbyLoading: false);
+    } catch (e) {
+      print('Error loading nearby products: $e');
+      state = state.copyWith(isNearbyLoading: false);
+    }
   }
 
   Future<void> loadHomeData() async {
@@ -98,6 +135,7 @@ class HomeDataNotifier extends StateNotifier<HomeData> {
         featuredAuctions: results[0] as List<Auction>,
         endingSoonAuctions: results[1] as List<Auction>,
         trendingCategories: results[2] as List<Category>,
+        nearbyProducts: state.nearbyProducts, // Persist nearby products
         stats: results[3] as Map<String, dynamic>,
         isLoading: false,
       );

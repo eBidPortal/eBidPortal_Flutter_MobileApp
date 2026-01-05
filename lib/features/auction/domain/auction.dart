@@ -12,6 +12,7 @@ class Auction {
   final AuctionType type;
   final List<String> tags;
   final String? returnPolicy;
+  final String currency;
   final DateTime createdAt;
   final DateTime updatedAt;
 
@@ -41,6 +42,7 @@ class Auction {
     required this.type,
     required this.tags,
     this.returnPolicy,
+    this.currency = 'INR',
     required this.createdAt,
     required this.updatedAt,
     // Professional auction fields
@@ -101,6 +103,7 @@ class Auction {
                     ? [json['tags']] 
                     : [],
         returnPolicy: json['return_policy'] ?? json['dynamic_attributes']?['return_policy'],
+        currency: json['currency'] ?? json['dynamic_attributes']?['currency'] ?? 'INR',
         createdAt: json['created_at'] != null 
             ? DateTime.parse(json['created_at']) 
             : json['createdAt'] != null 
@@ -151,6 +154,7 @@ class Auction {
       'type': type.name,
       'tags': tags,
       'return_policy': returnPolicy,
+      'currency': currency,
       'created_at': createdAt.toIso8601String(),
       'updated_at': updatedAt.toIso8601String(),
       // Professional auction fields
@@ -268,6 +272,7 @@ class Auction {
     AuctionType? type,
     List<String>? tags,
     String? returnPolicy,
+    String? currency,
     DateTime? createdAt,
     DateTime? updatedAt,
     // Professional auction fields
@@ -296,6 +301,7 @@ class Auction {
       type: type ?? this.type,
       tags: tags ?? this.tags,
       returnPolicy: returnPolicy ?? this.returnPolicy,
+      currency: currency ?? this.currency,
       createdAt: createdAt ?? this.createdAt,
       updatedAt: updatedAt ?? this.updatedAt,
       // Professional auction fields

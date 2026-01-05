@@ -1,5 +1,6 @@
 import '../../../core/network/api_client.dart';
 import '../../auction/domain/auction.dart';
+import '../../product/domain/product.dart';
 import '../../catalog/domain/category.dart';
 
 class HomeService {
@@ -128,6 +129,38 @@ class HomeService {
       }
     } catch (e) {
       print('Error searching auctions: $e');
+      rethrow;
+    }
+  }
+
+  /// Get nearby products based on location
+  Future<List<Product>> getNearbyProducts({
+    required double latitude,
+    required double longitude,
+    double radius = 50,
+    int limit = 5,
+  }) async {
+    try {
+      final response = await _apiClient.get(
+        '/sell/nearby',
+        queryParameters: {
+          'latitude': latitude,
+          'longitude': longitude,
+          'radius': radius,
+          'limit': limit,
+        },
+      );
+
+      if (response.data['success'] == true) {
+        final data = response.data['data'] as Map<String, dynamic>;
+        final productsList = data['products'] as List;
+        print('🏠 HOME_SERVICE: Nearby products - Count: ${productsList.length}');
+        return productsList.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
+      } else {
+        throw Exception(response.data['message'] ?? 'Failed to fetch nearby products');
+      }
+    } catch (e) {
+      print('Error fetching nearby products: $e');
       rethrow;
     }
   }

@@ -144,11 +144,15 @@ class EnhancedFCMService {
       final response = await _apiClient.post(
         '/notifications/fcm-token',
         data: {
-          'fcm_token': token,
+          'token': token, // Some backends expect 'token'
+          'fcm_token': token, // Some expect 'fcm_token'
+          'device_id': token, // Fallback device id
           'device_type': Platform.isIOS ? 'ios' : 'android',
+          'platform': Platform.isIOS ? 'ios' : 'android', // Some expect root level platform
           'device_info': {
             'platform': Platform.operatingSystem,
             'version': Platform.operatingSystemVersion,
+            'device_name': Platform.localHostname,
           },
         },
       );
