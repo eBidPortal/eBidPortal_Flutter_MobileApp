@@ -20,6 +20,7 @@ import '../../features/profile/presentation/purchase_history_screen.dart';
 import '../../features/profile/presentation/profile_screen.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/catalog/domain/category.dart';
+import '../../features/product/domain/product.dart';
 import '../../features/auction/presentation/create_auction/create_auction_screen.dart';
 import '../../features/auction/presentation/create_auction/widgets/category_selection_screen.dart';
 import '../../features/auction/presentation/create_auction/widgets/category_schema_screen.dart';
@@ -27,6 +28,7 @@ import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/auction/presentation/watchlist/watchlist_screen.dart';
 import '../../features/product/presentation/create_product/create_product_screen.dart';
 import '../../features/product/presentation/my_products/my_products_screen.dart';
+import '../../features/product/presentation/product_details/product_details_screen.dart';
 import '../../features/notifications/presentation/notification_details_screen.dart';
 import '../../features/notifications/domain/notification_model.dart';
 import 'scaffold_with_navbar.dart';
@@ -298,12 +300,22 @@ final routerProvider = Provider<GoRouter>((ref) {
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const MyAuctionsScreen(),
       ),
-      // My Products Management
       GoRoute(
         path: '/my-products',
         name: 'my-products',
         parentNavigatorKey: rootNavigatorKey,
         builder: (context, state) => const MyProductsScreen(),
+        routes: [
+          GoRoute(
+            path: 'details',
+            name: 'product-details',
+            parentNavigatorKey: rootNavigatorKey,
+            builder: (context, state) {
+              final product = state.extra as Product;
+              return ProductDetailsScreen(product: product);
+            },
+          ),
+        ],
       ),
       GoRoute(
         path: '/create-product',

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
 import '../../data/product_repository.dart';
 import '../../domain/product.dart';
 
@@ -43,9 +44,11 @@ class MyProductsScreen extends ConsumerWidget {
                         ),
                   title: Text(product.title),
                   subtitle: Text('${product.currency} ${product.price} • ${product.status.name}'),
-                  trailing: const Icon(Icons.chevron_right),
                   onTap: () {
-                    // Navigate to details
+                    context.pushNamed(
+                      'product-details',
+                      extra: product,
+                    );
                   },
                 ),
               );
@@ -59,7 +62,7 @@ class MyProductsScreen extends ConsumerWidget {
       ),
       floatingActionButton: FloatingActionButton(
         onPressed: () {
-          // Navigate to create product (via category selection)
+          context.push('/select-category');
         },
         child: const Icon(Icons.add),
       ),
