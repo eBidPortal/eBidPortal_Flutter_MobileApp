@@ -29,6 +29,12 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
     }
 
     setState(() => _currentQuery = query);
+    
+    // Don't search if query is too short (API requires 2+ chars)
+    if (query.length < 2) {
+      return;
+    }
+    
     ref.read(homeSearchProvider.notifier).search(query);
   }
 
@@ -87,33 +93,35 @@ class _SearchScreenState extends ConsumerState<SearchScreen> {
           ),
         ),
         error: (error, stack) => Center(
-          child: Padding(
-            padding: const EdgeInsets.all(AppTheme.spacingMd),
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: [
-                const Icon(
-                  Icons.error_outline,
-                  size: 64,
-                  color: AppTheme.errorColor,
-                ),
-                const SizedBox(height: 16),
-                Text(
-                  'Search failed',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  error.toString(),
-                  style: TextStyle(color: AppTheme.textMuted),
-                  textAlign: TextAlign.center,
-                ),
-                const SizedBox(height: 24),
-                ElevatedButton(
-                  onPressed: () => _performSearch(_currentQuery),
-                  child: const Text('Try Again'),
-                ),
-              ],
+          child: SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(AppTheme.spacingMd),
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(
+                    Icons.error_outline,
+                    size: 64,
+                    color: AppTheme.errorColor,
+                  ),
+                  const SizedBox(height: 16),
+                  Text(
+                    'Search failed',
+                    style: Theme.of(context).textTheme.titleLarge,
+                  ),
+                  const SizedBox(height: 8),
+                  Text(
+                    error.toString(),
+                    style: TextStyle(color: AppTheme.textMuted),
+                    textAlign: TextAlign.center,
+                  ),
+                  const SizedBox(height: 24),
+                  ElevatedButton(
+                    onPressed: () => _performSearch(_currentQuery),
+                    child: const Text('Try Again'),
+                  ),
+                ],
+              ),
             ),
           ),
         ),
