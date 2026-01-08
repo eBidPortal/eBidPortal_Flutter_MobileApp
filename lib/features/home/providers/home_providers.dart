@@ -20,6 +20,7 @@ class HomeData {
   final List<Auction> endingSoonAuctions;
   final List<Category> trendingCategories;
   final List<Product> nearbyProducts;
+  final List<Product> featuredProducts; // Store featured products
   final Map<String, dynamic> stats;
   final bool isLoading;
   final bool isNearbyLoading;
@@ -30,6 +31,7 @@ class HomeData {
     required this.endingSoonAuctions,
     required this.trendingCategories,
     required this.nearbyProducts,
+    required this.featuredProducts,
     required this.stats,
     this.isLoading = false,
     this.isNearbyLoading = false,
@@ -41,6 +43,7 @@ class HomeData {
     List<Auction>? endingSoonAuctions,
     List<Category>? trendingCategories,
     List<Product>? nearbyProducts,
+    List<Product>? featuredProducts,
     Map<String, dynamic>? stats,
     bool? isLoading,
     bool? isNearbyLoading,
@@ -51,6 +54,7 @@ class HomeData {
       endingSoonAuctions: endingSoonAuctions ?? this.endingSoonAuctions,
       trendingCategories: trendingCategories ?? this.trendingCategories,
       nearbyProducts: nearbyProducts ?? this.nearbyProducts,
+      featuredProducts: featuredProducts ?? this.featuredProducts,
       stats: stats ?? this.stats,
       isLoading: isLoading ?? this.isLoading,
       isNearbyLoading: isNearbyLoading ?? this.isNearbyLoading,
@@ -64,6 +68,7 @@ class HomeData {
       endingSoonAuctions: [],
       trendingCategories: [],
       nearbyProducts: [],
+      featuredProducts: [],
       stats: {},
       isLoading: true,
       isNearbyLoading: false,
@@ -129,6 +134,7 @@ class HomeDataNotifier extends StateNotifier<HomeData> {
         _homeService.getEndingSoonAuctions(),
         _homeService.getTrendingCategories(),
         _homeService.getHomeStats(),
+        _homeService.getFeaturedProducts(),
       ]);
 
       state = HomeData(
@@ -137,6 +143,7 @@ class HomeDataNotifier extends StateNotifier<HomeData> {
         trendingCategories: results[2] as List<Category>,
         nearbyProducts: state.nearbyProducts, // Persist nearby products
         stats: results[3] as Map<String, dynamic>,
+        featuredProducts: results[4] as List<Product>,
         isLoading: false,
       );
     } catch (e) {

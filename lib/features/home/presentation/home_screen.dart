@@ -130,6 +130,22 @@ class HomeScreen extends ConsumerWidget {
 
                       const SizedBox(height: AppTheme.spacingXl),
 
+                      // Featured Products
+                      if (homeData.featuredProducts.isNotEmpty) ...[
+                        _buildSectionHeader(
+                          context,
+                          'Fresh Finds',
+                          subtitle: 'Buy directly, no bidding required',
+                          onViewAll: () => context.go('/search?type=buy_now'),
+                        ),
+                        const SizedBox(height: AppTheme.spacingMd),
+                        _buildFeaturedProducts(
+                          context,
+                          homeData.featuredProducts,
+                        ),
+                        const SizedBox(height: AppTheme.spacingXl),
+                      ],
+
                       // Nearby Deals Section
                       if (homeData.nearbyProducts.isNotEmpty || homeData.isNearbyLoading) ...[
                         _buildSectionHeader(
@@ -879,6 +895,125 @@ class HomeScreen extends ConsumerWidget {
                           Text(
                             '${product.currency} ${product.price.toStringAsFixed(0)}',
                             style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w900, fontSize: 14),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFeaturedProducts(BuildContext context, List<Product> products) {
+    if (products.isEmpty) {
+      return SizedBox.shrink();
+    }
+
+    return Container(
+      height: 220,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        padding: const EdgeInsets.symmetric(horizontal: AppTheme.spacingMd),
+        itemCount: products.length,
+        itemBuilder: (context, index) {
+          final product = products[index];
+          final imageUrl = product.images.isNotEmpty ? product.images.first : null;
+          
+          return GestureDetector(
+            onTap: () {
+              // Navigate to product details
+              context.push('/products/${product.id}');
+            },
+            child: Container(
+              width: 160,
+              margin: const EdgeInsets.only(right: 16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: AppTheme.shadowSm,
+                border: Border.all(color: AppTheme.dividerColor),
+              ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          child: Container(
+                            width: double.infinity,
+                            color: Colors.grey[100],
+                            child: imageUrl != null 
+                              ? Image.network(
+                                  imageUrl, 
+                                  fit: BoxFit.cover,
+                                  errorBuilder: (context, error, stackTrace) => const Center(
+                                    child: Icon(Icons.broken_image, color: Colors.grey),
+                                  ),
+                                )
+                              : const Icon(Icons.image_outlined, color: Colors.grey),
+                          ),
+                        ),
+                        Positioned(
+                          top: 8,
+                          right: 8,
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                            decoration: BoxDecoration(
+                              color: AppTheme.accentColor,
+                              borderRadius: BorderRadius.circular(AppTheme.radiusFull),
+                            ),
+                            child: const Text(
+                              'BUY NOW',
+                              style: TextStyle(fontSize: 8, fontWeight: FontWeight.bold, color: Colors.white),
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    flex: 2,
+                    child: Padding(
+                      padding: const EdgeInsets.all(10.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            product.title,
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 13),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                          const SizedBox(height: 4),
+                          Text(
+                            product.condition ?? 'Good',
+                            style: const TextStyle(fontSize: 10, color: AppTheme.textSecondary),
+                          ),
+                          const Spacer(),
+                          Row(
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            children: [
+                              Text(
+                                '${product.currency} ${product.price.toStringAsFixed(0)}',
+                                style: const TextStyle(color: AppTheme.primaryColor, fontWeight: FontWeight.w900, fontSize: 15),
+                              ),
+                              Container(
+                                padding: const EdgeInsets.all(4),
+                                decoration: BoxDecoration(
+                                  color: AppTheme.primaryColor.withOpacity(0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: const Icon(Icons.arrow_forward, size: 12, color: AppTheme.primaryColor),
+                              ),
+                            ],
                           ),
                         ],
                       ),

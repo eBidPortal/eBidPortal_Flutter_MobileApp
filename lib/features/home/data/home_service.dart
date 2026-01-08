@@ -8,6 +8,39 @@ class HomeService {
 
   HomeService(this._apiClient);
 
+
+
+  /// Get featured products (Direct Buy items)
+  Future<List<Product>> getFeaturedProducts({int limit = 5}) async {
+    try {
+      final response = await _apiClient.get(
+        '/sell', // Assuming this is the public endpoint for listing sell items
+        queryParameters: {
+          'limit': limit,
+          'featured': true, // Try to get featured items
+          // If public API doesn't support 'featured', it might just ignore this or return all.
+          // Fallback to sort by date if needed
+          'sort': 'created_at_desc',
+        },
+      );
+
+      if (response.data['success'] == true) {
+        final data = response.data['data'] as Map<String, dynamic>;
+        final productsList = data['products'] as List;
+        print('🏠 HOME_SERVICE: Featured products - Total: ${data['total']}, Products count: ${productsList.length}');
+        return productsList.map((json) => Product.fromJson(json as Map<String, dynamic>)).toList();
+      } else {
+        // If the API returns success=false, we just return empty list for this section
+        print('🏠 HOME_SERVICE: Featured products endpoint returned success=false: ${response.data['message']}');
+        return [];
+      }
+    } catch (e) {
+      print('🏠 HOME_SERVICE: Error fetching featured products (ignoring to keep home safe): $e');
+      // Gracefully return empty list so the rest of the home page still loads
+      return [];
+    }
+  }
+
   /// Get featured auctions (auctions with high bids or recent activity)
   Future<List<Auction>> getFeaturedAuctions({int limit = 5}) async {
     try {
